@@ -1,0 +1,166 @@
+#ifndef MSQDicomExplorer_H
+#define MSQDicomExplorer_H
+
+#include <QtGui>
+#include "QVTKWidget.h"
+
+#include "gdcmSubject.h"
+#include "gdcmCommand.h"
+#include "gdcmEvent.h"
+#include "gdcmSmartPointer.h"
+#include "gdcmProgressEvent.h"
+#include "gdcmScanner.h"
+#include "gdcmDataElement.h"
+#include "gdcmAttribute.h"
+#include "gdcmSerieHelper.h"
+
+#include "MSQDicomHeaderViewer.h"
+#include "MSQDicomImageViewer.h"
+#include "MSQDicomImageSorter.h"
+
+class MSQFileWithName : public gdcm::FileWithName
+{
+public:
+  MSQFileWithName(gdcm::File &f):gdcm::FileWithName(f),enabled(true){}
+  bool enabled;
+};
+
+class MSQDicomExplorer : public QMainWindow
+{
+Q_OBJECT
+
+public:
+  // Constructor/Destructor
+  MSQDicomExplorer(QWidget* parent = 0);
+  ~MSQDicomExplorer();
+
+  QProgressBar *progressBar();
+
+  void updateStatusBar(QString message, bool showProgressBar, int timeout = 0);
+  void warningMessage(const QString &text, const QString &info);
+  typedef bool (*SortFunction)(gdcm::DataSet const &, gdcm::DataSet const &);
+
+signals:
+
+
+public slots:
+  void updateProgressBar(vtkObject *caller, unsigned long eventId, void *clientData, void* callData);
+  //void fileOpen();
+  //void fileClose(int iClosed);
+  //void fileCloseSelected();
+  //void setCurrentImage(int iCurrent);
+  //void enableInspector(bool enable);
+
+private slots:
+  //void fileNew();
+  //void fileSave();
+  void dicomSelectionChanged();
+  void dicomItemChanged(QTreeWidgetItem *, int);
+  //void removeSelection();
+  void viewShowHeader();
+  void viewShowImage();
+  void viewShowCriteria();
+  void fileExit();
+  void fileOpenDir();
+  void fileExportAs2D();
+  void fileExportAs3D();
+  void fileExportAs4D();
+  void fileSort(bool restore=false);
+  void fileRestore();
+  void fileFilter();
+  void helpAbout();
+
+private:
+  // Qt actions
+  QAction *afileSource;
+  QAction *afileExportAs2D;
+  //QAction *afileSave, *afileCompress;
+  //QAction *afileImport;
+  QAction *afileExit;
+  //QAction *auseOrthogonalViewer;
+  //QAction *aviewZoomIn;
+  //QAction *aviewZoomOut;
+  //QAction *aviewReset;
+  //QAction *aviewInspector;
+  QAction *aviewHeader;
+  QAction *aviewImage;
+  QAction *aviewCriteria;
+  QAction *aoptionsSaveValues;
+  QAction *asortFiles;
+  QAction *ahelpAbout;
+
+  bool viewHeader;
+  bool viewImage;
+  bool viewCriteria;
+  bool initializing;
+  //QActionGroup *agViewers;
+
+  // Current file path
+  QString currentFileName;
+  QString currentFilter;
+  QString currentPath;
+
+  // Qt widgets
+  QMenu *fileMenu;
+  QMenu *viewMenu;
+  QMenu *optionsMenu;
+  QMenu *exportMenu;
+  //QMenu *toolsMenu;
+  QMenu *helpMenu;
+  QToolBar *fileToolBar;
+  QToolBar *viewToolBar;
+  
+  QSplitter *mainSplitter;
+  QList<int> mainSplitterSize;
+  QSplitter *leftSplitter;
+  QList<int> leftSplitterSize;
+
+  QProgressBar *myProgressBar;
+  QProgressDialog *mProgressDialog; 
+  QTreeWidget *dicomTree, *tagTree;
+  QPushButton *mSortButton, *mExportButton;
+  QPushButton *mRestoreButton, *mFilterButton;
+  QCheckBox *mAppendValues;
+
+  MSQDicomHeaderViewer *headerViewer;
+  MSQDicomImageViewer *imageViewer;
+  MSQDicomImageSorter *imageSorter;
+
+  long fileCount;
+  std::vector<std::string> mFilenames;
+  std::vector< gdcm::SmartPointer<MSQFileWithName> > mFileList;
+
+  // helper functions
+  void initialize();
+  void createMenus();
+  void createActions();
+  void createStatusBar();
+  void createToolBars();
+  void createInterface();
+
+  void updateProgress(gdcm::Subject *caller, const gdcm::Event &evt);
+  void setCurrentFile(const QString& fileName);
+  void readDirectory(const QString& dirName);
+  //bool sortFiles(std::vector<std::string> const & filenames, std::vector<gdcm::Tag> const& tags, std::vector<int> const& order);
+  std::string GetStringValueFromTag(const gdcm::Tag& t, const gdcm::File& ds);
+  void addToDicomTree(std::string fileName, unsigned int index, bool enabled, const QVector<gdcm::Tag> &tags, 
+    const QStringList &descriptions, const QStringList &aliases, const QVector<bool> &groups);
+
+  double GetSliceSpacingFromDataset(const gdcm::DataSet& ds);
+  int GetDominantOrientation(const double *dircos);
+
+  bool exportToAnalyze(const QString& fileName, const QString& fileNameAnalyze);
+  bool exportToAnalyze(const QStringList& fileNames, const QString& fileNameAnalyze, int components=1);
+
+  void fileExportToAnalyze(QString preffix, QTreeWidgetItem *item, long count);
+  void fileExport2DRecursive(QString preffix, QTreeWidgetItem *item, bool selected, long *count);
+  void fileExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, bool selected, long *count);
+  void fileExport4DRecursive(QStringList& fileNames, QTreeWidgetItem *item, bool selected, long *count, int *comp);
+
+  void toggleItem(QTreeWidgetItem *item, bool enabled);
+  int countFiles(const QString &path);//, bool countDirs=false);
+
+  //MSQImageIO *msq_imageIO;
+};
+
+#endif // MSQDicomExplorer_H

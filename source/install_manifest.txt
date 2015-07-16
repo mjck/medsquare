@@ -1,0 +1,5 @@
+/usr/local/MedSquare/vtk/bin/libvtkmsqHybrid.dylib
+/usr/local/MedSquare/vtk/bin/libvtkmsqIO.dylib
+/usr/local/MedSquare/vtk/MedSquare.sh
+/usr/local/MedSquare/vtk/bin/MedSquare.app/Contents/Info.plist
+/usr/local/MedSquare/vtk/bin/MedSquare.app/Contents/MacOS/MedSquare
