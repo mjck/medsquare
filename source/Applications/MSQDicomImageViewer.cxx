@@ -998,6 +998,22 @@ void MSQDicomImageViewer::setColormap(vtkmsqLookupTable *lut)
 /***********************************************************************************//**
  *
  */
+void MSQDicomImageViewer::setBackgroundOpacity(qreal opacity) 
+{
+  mLabel->setBackgroundOpacity( opacity );
+}
+
+/***********************************************************************************//**
+ *
+ */
+void MSQDicomImageViewer::setForegroundOpacity(qreal opacity) 
+{
+  mLabel->setForegroundOpacity( opacity );
+}
+
+/***********************************************************************************//**
+ *
+ */
 void MSQDicomImageViewer::regionOfInterestChanged()
 {
   gdcm::ImageReader reader;

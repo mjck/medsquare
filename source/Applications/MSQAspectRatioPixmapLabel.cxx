@@ -39,6 +39,9 @@ MSQAspectRatioPixmapLabel::MSQAspectRatioPixmapLabel(QWidget *parent) :
     this->penSize = 1;
 
     this->highQuality = true;
+
+    this->foregroundOpacity = 0.5;
+    this->backgroundOpacity = 1.0;
     //this->overlay = 0;
 }
 
@@ -139,13 +142,49 @@ void MSQAspectRatioPixmapLabel::setCursorToArc()
 /***********************************************************************************//**
  * 
  */
+void MSQAspectRatioPixmapLabel::setForegroundOpacity( qreal opacity )
+{
+    this->foregroundOpacity = opacity;
+    update();
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQAspectRatioPixmapLabel::setBackgroundOpacity( qreal opacity )
+{
+    this->backgroundOpacity = opacity;
+    update();
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQAspectRatioPixmapLabel::paintBackground( QPainter & p, QStyle *style, int align)
+{
+    p.setOpacity(this->backgroundOpacity);
+
+    style->drawItemPixmap(&p, contentsRect(), align, 
+        pix.scaled(this->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
+}
+
+/***********************************************************************************//**
+ * 
+ */
 void MSQAspectRatioPixmapLabel::paintEvent(QPaintEvent * e)
 {
-    QLabel::paintEvent(e);
+    //QLabel::paintEvent(e);
+    QPainter painter(this);
+
+    QStyle *style = QWidget::style();
+    int align = QStyle::visualAlignment(layoutDirection(), QFlag(Qt::AlignCenter));
+
+    // draw background
+    this->paintBackground(painter, style, align);
 
     if (this->cursorEnabled) {
 
-        QPainter painter(this);
+        //QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing); 
         //painter.setRenderHint(QPainter::HighQualityAntialiasing);
 
@@ -491,6 +530,12 @@ void MSQAspectRatioPixmapLabel::setPixmap ( const QPixmap & p )
 
     recalculateRect();
 }
+
+/*void MSQAspectRatioPixmapLabel::setForeground ( const QPixmap & p )
+{
+    foreground = p;
+}
+*/
 
 /***********************************************************************************//**
  * 

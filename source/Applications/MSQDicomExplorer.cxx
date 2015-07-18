@@ -609,7 +609,13 @@ void MSQDicomExplorer::colormapChanged(int index)
 void MSQDicomExplorer::opacityChanged(int index)
 { 
   this->layerOpacity[this->currentLayer] = index;
+  
+  if (this->currentLayer == 0)
+    this->imageViewer->setBackgroundOpacity( 1.0 - (index * 0.1) );
+  else 
+    this->imageViewer->setForegroundOpacity( 1.0 - (index * 0.1) );
 }
+
 /***********************************************************************************//**
  * 
  */

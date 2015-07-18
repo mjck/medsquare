@@ -44,6 +44,8 @@ public:
 
   virtual void setInput(const QString& fileName);
   virtual void setColormap(vtkmsqLookupTable *lut);
+  virtual void setBackgroundOpacity( qreal opacity );
+  virtual void setForegroundOpacity( qreal opacity );
   QImage regionOfInterest() const;
 
   void showToolBar(bool show);
