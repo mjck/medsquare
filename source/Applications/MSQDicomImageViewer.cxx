@@ -76,6 +76,8 @@ MSQDicomImageViewer::MSQDicomImageViewer()
 
   roiType = 0;
   highQuality = true;
+
+  currentLayer = 0;
 }
 
 /***********************************************************************************//**
@@ -686,6 +688,97 @@ bool MSQDicomImageViewer::ConvertToFormat_RGB888(gdcm::Image const & gimage, cha
 /***********************************************************************************//**
  *
  */
+bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
+  double window, double center, double slope, double intercept)
+{
+  const unsigned int* dimension = gimage.GetDimensions();
+
+  unsigned int dimX = dimension[0];
+  unsigned int dimY = dimension[1];
+
+  // create Qt image
+  imageQt = new QImage(dimX, dimY, QImage::Format_ARGB32_Premultiplied);
+
+  // Let's start with the easy case:
+  if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::RGB )
+  {
+    // RGB image
+    if( gimage.GetPixelFormat() != gdcm::PixelFormat::UINT8 )
+      {
+        return false;
+      }
+    
+    unsigned char *input = (unsigned char*)buffer;
+    unsigned red, green, blue;
+
+    for(unsigned int i = 0; i < dimY; i++) 
+      {
+        QRgb *row = (QRgb*)imageQt->scanLine(i);
+
+        for(unsigned int j = 0; j < dimX; j++)
+        {
+          red = *input++; green=*input++; blue=*input++;
+          *row++ = qRgba(red, green, blue, 255);
+        }
+      }
+  } else if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME1 ||
+             gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME2 )
+  {
+    // Grayscale 8-BIT
+    if( gimage.GetPixelFormat() == gdcm::PixelFormat::INT8 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT8 )
+    {
+      unsigned char *input = (unsigned char*)buffer;
+      for(unsigned int i = 0; i < dimY; i++) 
+      {
+        QRgb *row = (QRgb*)imageQt->scanLine(i);
+        for(unsigned int j = 0; j < dimX; j++)
+        {
+          *row++ = qRgba(*input, *input, *input, 255);
+          input++;
+        }
+      }
+      // Grayscale 16-BIT
+    } else if ( gimage.GetPixelFormat() == gdcm::PixelFormat::INT16 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT16 )
+    {
+      short *input = (short*)buffer;
+      double scaled;
+      unsigned char r;
+
+      for(unsigned int i = 0; i < dimY; i++) 
+      {
+        QRgb *row = (QRgb*)imageQt->scanLine(i);
+        for(unsigned int j = 0; j < dimX; j++)
+        {
+          scaled = *input * slope + intercept;
+          
+          if (scaled <= center - 0.5 - (window - 1.0 ) / 2 )
+            r = 0;
+          else if (scaled > center - 0.5 + (window - 1.0) / 2)
+            r = 255;
+          else
+            r = ((scaled - (center - 0.5)) / (window - 1.0) + 0.5) * 255;
+
+          *row++ = this->colorTable[r];
+          input++;
+        }
+      }
+    } else
+    {
+        std::cerr << "Pixel Format is: " << gimage.GetPixelFormat() << std::endl;
+        return false;
+    }
+  } else
+  {
+    std::cerr << "Unhandled PhotometricInterpretation: " << gimage.GetPhotometricInterpretation() << std::endl;
+    return false;
+  }
+
+  return true;
+}
+
+/***********************************************************************************//**
+ *
+ */
 void MSQDicomImageViewer::updateViewer()
 {
   gdcm::ImageReader reader;
@@ -801,13 +894,17 @@ void MSQDicomImageViewer::updateViewer()
   }
 
 //printf("**window=%f, center=%f\n",window,center);
- if( !ConvertToFormat_RGB888( gimage, buffer, imageQt, window, center, slope, intercept ) )
+ //if( !ConvertToFormat_RGB888( gimage, buffer, imageQt, window, center, slope, intercept ) )
+  if( !ConvertToFormat_ARGB32( gimage, buffer, imageQt, window, center, slope, intercept ) )
     {
       std::cout<<"Could not convert into QImage..."<<std::endl;
       return;
     }
 
-  mLabel->setPixmap( QPixmap::fromImage(*imageQt) );
+  //if ( this->currentLayer == 0 )
+    mLabel->setPixmap( QPixmap::fromImage(*imageQt) );
+  //else
+  //  mLabel->setForegroundPixmap( QPixmap::fromImage(*imageQt) );
 
   // Study and series description 
   if ( ds.FindDataElement (tstudesc) ) {
@@ -986,7 +1083,7 @@ void MSQDicomImageViewer::setColormap(vtkmsqLookupTable *lut)
   for(int c=0;c<numColors;c++)
   {
     color = lut->GetTableValue(c);
-    this->colorTable.append(qRgb(color[0]*255, color[1]*255, color[2]*255));
+    this->colorTable.append(qRgba(color[0]*255, color[1]*255, color[2]*255, 255));
   }
 
   //colorTransferFunction->BuildFunctionFromTable( center-window/2, center+window/2, 255, (double*) &this->colorTable);
@@ -998,9 +1095,17 @@ void MSQDicomImageViewer::setColormap(vtkmsqLookupTable *lut)
 /***********************************************************************************//**
  *
  */
+void MSQDicomImageViewer::setCurrentLayer(int layer)
+{
+  this->currentLayer = layer;
+}
+
+/***********************************************************************************//**
+ *
+ */
 void MSQDicomImageViewer::setBackgroundOpacity(qreal opacity) 
 {
-  mLabel->setBackgroundOpacity( opacity );
+  //mLabel->setBackgroundOpacity( opacity );
 }
 
 /***********************************************************************************//**
@@ -1008,7 +1113,7 @@ void MSQDicomImageViewer::setBackgroundOpacity(qreal opacity)
  */
 void MSQDicomImageViewer::setForegroundOpacity(qreal opacity) 
 {
-  mLabel->setForegroundOpacity( opacity );
+  //mLabel->setForegroundOpacity( opacity );
 }
 
 /***********************************************************************************//**

@@ -40,8 +40,6 @@ MSQAspectRatioPixmapLabel::MSQAspectRatioPixmapLabel(QWidget *parent) :
 
     this->highQuality = true;
 
-    this->foregroundOpacity = 0.5;
-    this->backgroundOpacity = 1.0;
     //this->overlay = 0;
 }
 
@@ -142,49 +140,43 @@ void MSQAspectRatioPixmapLabel::setCursorToArc()
 /***********************************************************************************//**
  * 
  */
-void MSQAspectRatioPixmapLabel::setForegroundOpacity( qreal opacity )
-{
-    this->foregroundOpacity = opacity;
-    update();
-}
-
-/***********************************************************************************//**
- * 
- */
-void MSQAspectRatioPixmapLabel::setBackgroundOpacity( qreal opacity )
-{
-    this->backgroundOpacity = opacity;
-    update();
-}
-
-/***********************************************************************************//**
- * 
- */
-void MSQAspectRatioPixmapLabel::paintBackground( QPainter & p, QStyle *style, int align)
-{
-    p.setOpacity(this->backgroundOpacity);
-
-    style->drawItemPixmap(&p, contentsRect(), align, 
-        pix.scaled(this->size(), Qt::KeepAspectRatio, Qt::FastTransformation));
-}
-
-/***********************************************************************************//**
- * 
- */
 void MSQAspectRatioPixmapLabel::paintEvent(QPaintEvent * e)
 {
-    //QLabel::paintEvent(e);
-    QPainter painter(this);
+    QLabel::paintEvent(e);
+    //QPainter painter(this);
 
-    QStyle *style = QWidget::style();
-    int align = QStyle::visualAlignment(layoutDirection(), QFlag(Qt::AlignCenter));
+    //QStyle *style = QWidget::style();
+    //int align = QStyle::visualAlignment(layoutDirection(), QFlag(Qt::AlignCenter));
 
     // draw background
-    this->paintBackground(painter, style, align);
+    //painter.setOpacity(this->backgroundOpacity);
+    //painter.setCompositionMode(QPainter::CompositionMode_Source);
+    //this->paintBackground(painter, style, align);
+    //painter.fillRect(contentsRect(), Qt::transparent);
+
+    //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+    //painter.fillRect(contentsRect(), QColor(0, 0, 0, 120));
+    //if (foreground.width() > 0 && foreground.height() > 0) {
+       //foreground.setOpacity(this->foregroundOpacity);
+    //   this->paintForeground(painter, style, align);
+    //}
+    //painter.setCompositionMode(mode);
+    //painter.drawImage(0, 0, sourceImage);
+    //painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
+    //painter.fillRect(resultImage.rect(), Qt::white);
+    //painter.end();
+
+    //this->paintBackground(painter, style, align);
+
+    // draw foreground
+     //if (foreground.width() > 0 && foreground.height() > 0) {
+     //   painter.setOpacity(1.0 - this->backgroundOpacity);
+     //   this->paintForeground(painter, style, align);
+   // }
 
     if (this->cursorEnabled) {
 
-        //QPainter painter(this);
+        QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing); 
         //painter.setRenderHint(QPainter::HighQualityAntialiasing);
 
@@ -530,12 +522,6 @@ void MSQAspectRatioPixmapLabel::setPixmap ( const QPixmap & p )
 
     recalculateRect();
 }
-
-/*void MSQAspectRatioPixmapLabel::setForeground ( const QPixmap & p )
-{
-    foreground = p;
-}
-*/
 
 /***********************************************************************************//**
  * 

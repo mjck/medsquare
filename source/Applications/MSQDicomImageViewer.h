@@ -44,6 +44,7 @@ public:
 
   virtual void setInput(const QString& fileName);
   virtual void setColormap(vtkmsqLookupTable *lut);
+  virtual void setCurrentLayer(int layer);
   virtual void setBackgroundOpacity( qreal opacity );
   virtual void setForegroundOpacity( qreal opacity );
   QImage regionOfInterest() const;
@@ -87,6 +88,7 @@ protected:
   //double colorTable[256][3];
   //double window, center;
 
+  int currentLayer;
   MSQAspectRatioPixmapLabel *mLabel;
   
   void buildFrame();
@@ -96,6 +98,8 @@ protected:
     double *entropy, double *mean, double *stdev);
   bool ConvertToFormat_RGB888(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
     double window, double center, double slope, double intercept);
+  bool ConvertToFormat_ARGB32(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
+  double window, double center, double slope, double intercept);
   void updateViewer();
 };
 

@@ -142,7 +142,7 @@ private:
   std::vector<std::string> mFilenames;
   std::vector< gdcm::SmartPointer<MSQFileWithName> > mFileList;
 
-  int currentLayer;
+  int layer;
   int layerColormap[2];
   int layerOpacity[2];
 

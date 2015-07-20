@@ -42,12 +42,8 @@ public:
 
     QImage regionOfInterest() const;
 
-    void setForegroundOpacity( qreal opacity );
-    void setBackgroundOpacity( qreal opacity );
-
 private:
     void recalculateRect();
-    void paintBackground ( QPainter &p, QStyle *style, int align );
     void drawOverlay ( QPainter & p );
 
 signals:
@@ -67,7 +63,6 @@ private slots:
 private:
     QPixmap pix;
     QPixmap overlay;
-    //QPixmap background;
 
     bool tracking;
     bool panning;
@@ -86,9 +81,6 @@ private:
     bool cursorFilled;
     int cursorType;
     int penSize;
-
-    qreal foregroundOpacity;
-    qreal backgroundOpacity;
 };
 
 #endif // MSQ_ASPECTRATIOPIXMAPLABEL_H

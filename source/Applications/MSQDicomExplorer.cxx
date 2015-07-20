@@ -300,7 +300,7 @@ MSQDicomExplorer::MSQDicomExplorer(QWidget* p) : QMainWindow(p)
   this->currentColormap = 0;
 
   // set current layer/colormap/opacity
-  this->currentLayer = 0;
+  this->layer = 0;
   this->layerColormap[0] = this->layerColormap[1] = 0;
   this->layerOpacity[0] = this->layerOpacity[1] = 0;
 
@@ -590,9 +590,10 @@ void MSQDicomExplorer::createStatusBar()
  */
 void MSQDicomExplorer::layerChanged(int index)
 { 
-  this->currentLayer = index;
-  this->colormapCombo->setCurrentIndex(this->layerColormap[this->currentLayer]);
-  this->opacityCombo->setCurrentIndex(this->layerOpacity[this->currentLayer]);
+  this->layer = index;
+  this->colormapCombo->setCurrentIndex(this->layerColormap[this->layer]);
+  this->opacityCombo->setCurrentIndex(this->layerOpacity[this->layer]);
+  this->imageViewer->setCurrentLayer(this->layer);
 }
 
 /***********************************************************************************//**
@@ -600,7 +601,7 @@ void MSQDicomExplorer::layerChanged(int index)
  */
 void MSQDicomExplorer::colormapChanged(int index)
 { 
-  this->layerColormap[this->currentLayer] = index;
+  this->layerColormap[this->layer] = index;
 }
 
 /***********************************************************************************//**
@@ -608,9 +609,9 @@ void MSQDicomExplorer::colormapChanged(int index)
  */
 void MSQDicomExplorer::opacityChanged(int index)
 { 
-  this->layerOpacity[this->currentLayer] = index;
+  this->layerOpacity[this->layer] = index;
   
-  if (this->currentLayer == 0)
+  if (this->layer == 0)
     this->imageViewer->setBackgroundOpacity( 1.0 - (index * 0.1) );
   else 
     this->imageViewer->setForegroundOpacity( 1.0 - (index * 0.1) );
