@@ -60,13 +60,17 @@ private slots:
   void layerChanged(int);
   void colormapChanged(int);
   void opacityChanged(int);
-  void selectColormap(QAction *action);
+  //void selectColormap(QAction *action);
   void dicomSelectionChanged();
   void dicomItemChanged(QTreeWidgetItem *, int);
   //void removeSelection();
   void viewShowHeader();
   void viewShowImage();
   void viewShowTools();
+  void viewClearBackground();
+  void viewAsForeground();
+  void viewAsBackground();
+
   void fileExit();
   void fileOpenDir();
   void fileCopySelected();
@@ -86,6 +90,9 @@ private:
   QAction *afileExit;
   QAction *aviewHeader;
   QAction *aviewImage;
+  QAction *aviewClearBackground;
+  QAction *aviewAsForeground;
+  QAction *aviewAsBackground;
   QAction *aoptionsSaveValues;
   //QAction *asortFiles;
   QAction *aviewTools;
@@ -108,7 +115,7 @@ private:
   QMenu *fileMenu;
   QMenu *editMenu;
   QMenu *viewMenu;
-  QMenu *colormapMenu;
+  QMenu *imageMenu;
   QMenu *exportMenu;
   //QMenu *toolsMenu;
   QMenu *helpMenu;
@@ -142,7 +149,7 @@ private:
   std::vector<std::string> mFilenames;
   std::vector< gdcm::SmartPointer<MSQFileWithName> > mFileList;
 
-  int layer;
+  int currentLayer;
   int layerColormap[2];
   int layerOpacity[2];
 

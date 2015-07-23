@@ -55,15 +55,18 @@
  */
 MSQDicomImageViewer::MSQDicomImageViewer()
 {
-  // create color table
-  this->colorTable.clear();
+  // create color tables
+  this->foregroundColorTable.clear();
+  this->backgroundColorTable.clear();
+  
   for(int c=0;c<256;c++)
     {
-      //this->colorTable[c][0] = c / 255;
-      //this->colorTable[c][1] = c / 255;
-      //this->colorTable[c][2] = c / 255;
-      this->colorTable.append(qRgb(c, c, c));
+      this->foregroundColorTable.append(qRgb(c, c, c));
+      this->backgroundColorTable.append(qRgb(c, c, c));
     }
+
+  this->foregroundOpacity = 1.0;
+  this->backgroundOpacity = 0.0;
 
   //this->window = 255;
   //this->center = 128;
@@ -74,10 +77,11 @@ MSQDicomImageViewer::MSQDicomImageViewer()
   // create interface
   createInterface();
 
+  //foregroundImage = QImage(50, 50, QImage::Format_ARGB32_Premultiplied);
+  //backgroundImage = QImage(50, 50, QImage::Format_ARGB32_Premultiplied);
+
   roiType = 0;
   highQuality = true;
-
-  currentLayer = 0;
 }
 
 /***********************************************************************************//**
@@ -665,7 +669,7 @@ bool MSQDicomImageViewer::ConvertToFormat_RGB888(gdcm::Image const & gimage, cha
 
         //imageQt = new QImage(output, dimX, dimY, 3*dimX, QImage::Format_RGB888);
         imageQt = new QImage(output, dimX, dimY, dimX, QImage::Format_Indexed8);
-        imageQt->setColorTable(this->colorTable);
+        imageQt->setColorTable(this->backgroundColorTable);
 
         //colorTransferFunction->Delete();
         //lut->Delete();
@@ -688,8 +692,8 @@ bool MSQDicomImageViewer::ConvertToFormat_RGB888(gdcm::Image const & gimage, cha
 /***********************************************************************************//**
  *
  */
-bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
-  double window, double center, double slope, double intercept)
+bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, char *buffer, QImage *image, 
+  double window, double center, double slope, double intercept, QVector<QRgb> &colorTable, int opacity)
 {
   const unsigned int* dimension = gimage.GetDimensions();
 
@@ -697,7 +701,7 @@ bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, cha
   unsigned int dimY = dimension[1];
 
   // create Qt image
-  imageQt = new QImage(dimX, dimY, QImage::Format_ARGB32_Premultiplied);
+  *image = QImage(dimX, dimY, QImage::Format_ARGB32_Premultiplied);
 
   // Let's start with the easy case:
   if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::RGB )
@@ -713,7 +717,7 @@ bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, cha
 
     for(unsigned int i = 0; i < dimY; i++) 
       {
-        QRgb *row = (QRgb*)imageQt->scanLine(i);
+        QRgb *row = (QRgb*)image->scanLine(i);
 
         for(unsigned int j = 0; j < dimX; j++)
         {
@@ -730,7 +734,7 @@ bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, cha
       unsigned char *input = (unsigned char*)buffer;
       for(unsigned int i = 0; i < dimY; i++) 
       {
-        QRgb *row = (QRgb*)imageQt->scanLine(i);
+        QRgb *row = (QRgb*)image->scanLine(i);
         for(unsigned int j = 0; j < dimX; j++)
         {
           *row++ = qRgba(*input, *input, *input, 255);
@@ -746,7 +750,7 @@ bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, cha
 
       for(unsigned int i = 0; i < dimY; i++) 
       {
-        QRgb *row = (QRgb*)imageQt->scanLine(i);
+        QRgb *row = (QRgb*)image->scanLine(i);
         for(unsigned int j = 0; j < dimX; j++)
         {
           scaled = *input * slope + intercept;
@@ -758,7 +762,7 @@ bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, cha
           else
             r = ((scaled - (center - 0.5)) / (window - 1.0) + 0.5) * 255;
 
-          *row++ = this->colorTable[r];
+          *row++ = qRgba(qRed(colorTable[r]), qGreen(colorTable[r]), qBlue(colorTable[r]), opacity);
           input++;
         }
       }
@@ -779,7 +783,7 @@ bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, cha
 /***********************************************************************************//**
  *
  */
-void MSQDicomImageViewer::updateViewer()
+void MSQDicomImageViewer::updateViewer( bool background )
 {
   gdcm::ImageReader reader;
   reader.SetFileName( this->fileName.toLocal8Bit().constData() );
@@ -838,8 +842,6 @@ void MSQDicomImageViewer::updateViewer()
   double intercept = 0.0;
   double slope = 1.0;
 
-  QImage *imageQt = NULL;
-
   // find intercept and slope
   if ( ds.FindDataElement( tintercept ) && ds.FindDataElement( tslope ) ) 
   {
@@ -893,16 +895,54 @@ void MSQDicomImageViewer::updateViewer()
     }
   }
 
-//printf("**window=%f, center=%f\n",window,center);
- //if( !ConvertToFormat_RGB888( gimage, buffer, imageQt, window, center, slope, intercept ) )
-  if( !ConvertToFormat_ARGB32( gimage, buffer, imageQt, window, center, slope, intercept ) )
+  //QImage *imageQt = NULL;
+
+  //printf("**window=%f, center=%f\n",window,center);
+  //if( !ConvertToFormat_RGB888( gimage, buffer, imageQt, window, center, slope, intercept ) )
+  
+  if ( background ) {
+
+    if( !ConvertToFormat_ARGB32( gimage, buffer, &backgroundImage, 
+        window, center, slope, intercept, backgroundColorTable, 255 ) )
     {
-      std::cout<<"Could not convert into QImage..."<<std::endl;
+      std::cout<<"Could not convert background into QImage..."<<std::endl;
       return;
     }
 
+    /*if (backgroundImage.isNull()) {
+      backgroundImage = QImage(foregroundImage.size(), QImage::Format_ARGB32_Premultiplied);
+      backgroundImage.fill(QColor(0, 0, 0, 255));
+    }*/
+
+  } else {
+
+    if( !ConvertToFormat_ARGB32( gimage, buffer, &foregroundImage, 
+        window, center, slope, intercept, foregroundColorTable, 255 ) )
+    {
+      std::cout<<"Could not convert foreground into QImage..."<<std::endl;
+      return;
+    }
+
+    if (backgroundImage.isNull()) {
+      backgroundImage = QImage(foregroundImage.size(), QImage::Format_ARGB32_Premultiplied);
+      backgroundImage.fill(QColor(0, 0, 0, 255));
+    }
+
+  }
+
+  QImage resultImage(foregroundImage.size(), QImage::Format_ARGB32_Premultiplied);
+  
+  QPainter painter(&resultImage);
+  painter.drawImage(0, 0, backgroundImage);
+  painter.setOpacity(this->foregroundOpacity);
+  //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+  painter.drawImage(0, 0, foregroundImage);
+  //painter.end();
+
   //if ( this->currentLayer == 0 )
-    mLabel->setPixmap( QPixmap::fromImage(*imageQt) );
+ //if (!foregroundImage.isNull()) {
+  mLabel->setPixmap( QPixmap::fromImage(resultImage) );
+//}
   //else
   //  mLabel->setForegroundPixmap( QPixmap::fromImage(*imageQt) );
 
@@ -1063,6 +1103,247 @@ void MSQDicomImageViewer::updateViewer()
 /***********************************************************************************//**
  *
  */
+void MSQDicomImageViewer::loadImage(const QString& fileName, MSQDicomImage *dest) 
+{
+  gdcm::ImageReader reader;
+  reader.SetFileName( dest->fileName.toLocal8Bit().constData() );
+
+  if(!reader.Read())
+    {
+      qDebug() << "Could not open file: " << dest->fileName;  
+      return;
+    }
+  
+  dest->fileName = fileName;
+
+  const gdcm::File &file = reader.GetFile();
+  const gdcm::Image &gimage = reader.GetImage();
+  const double *spacing = gimage.GetSpacing();
+  const gdcm::DataSet &ds = file.GetDataSet();
+
+  dest->window = 256;
+  dest->center = 128;
+  dest->slope = 1.0;
+  dest->intercept = 0.0;
+
+  gdcm::Tag twindowcenter(0x0028, 0x1050);
+  gdcm::Tag twindowwidth(0x0028, 0x1051);
+
+  // rescale slope and intercept
+  gdcm::Tag tintercept(0x0028, 0x1052);
+  gdcm::Tag tslope(0x0028, 0x1053);
+
+  // study and series description
+  gdcm::Tag tstudesc(0x0008, 0x1030);
+  gdcm::Tag tseqdesc(0x0018, 0x0024);
+  gdcm::Tag tseriesdesc(0x0008, 0x103e);
+  gdcm::Tag tbodypart(0x0018, 0x0015);
+
+  // number of columns and rows
+  gdcm::Tag tcolumns(0x0028, 0x0011);
+  gdcm::Tag trows(0x0028, 0x0010);
+
+  // date and time
+  gdcm::Tag tacqtime(0x0008, 0x0032);
+  gdcm::Tag tacqdate(0x0008, 0x0022);
+  gdcm::Tag tacqdatetime(0x0008, 0x002a); // philips
+
+  // slicethickness or spacing between slices
+  gdcm::Tag tthickness(0x0018, 0x0050);
+  gdcm::Tag tspacing(0x0018, 0x0088); // philips
+
+  // in-plane phase encoding direction
+  gdcm::Tag tphase(0x0018, 0x1312);
+
+  unsigned long len = gimage.GetBufferLength();
+  //std::vector<char> vbuffer;
+  dest->vbuffer.resize( len );
+  char *buffer = &dest->vbuffer[0];
+  gimage.GetBuffer(buffer);
+
+  // find intercept and slope
+  if ( ds.FindDataElement( tintercept ) && ds.FindDataElement( tslope ) ) 
+  {
+    const gdcm::DataElement& rescaleintercept = ds.GetDataElement( tintercept );
+    const gdcm::DataElement& rescaleslope = ds.GetDataElement( tslope );
+    const gdcm::ByteValue *bvri = rescaleintercept.GetByteValue();
+    const gdcm::ByteValue *bvrs = rescaleslope.GetByteValue();
+    std::string sri = std::string( bvri->GetPointer(), bvri->GetLength() );
+    std::string srs = std::string( bvrs->GetPointer(), bvrs->GetLength() );
+    //intercept = std::stod(sri); // C++ 11
+    dest->intercept = ::atof(sri.c_str());
+    //slope = std::stod(srs); // C++ 11
+    dest->slope = ::atof(srs.c_str());
+  }
+
+  // window and level
+  if( ds.FindDataElement( twindowcenter ) && ds.FindDataElement( twindowwidth) )
+  {
+    const gdcm::DataElement& windowcenter = ds.GetDataElement( twindowcenter );
+    const gdcm::DataElement& windowwidth = ds.GetDataElement( twindowwidth );
+    const gdcm::ByteValue *bvwc = windowcenter.GetByteValue();
+    const gdcm::ByteValue *bvww = windowwidth.GetByteValue();
+
+    if( bvwc && bvww ) // Can be Type 2
+    {
+        //gdcm::Attributes<0x0028,0x1050> at;
+        gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elwc;
+        std::stringstream ss1;
+        std::string swc = std::string( bvwc->GetPointer(), bvwc->GetLength() );
+        ss1.str( swc );
+        gdcm::VR vr = gdcm::VR::DS;
+        unsigned int vrsize = vr.GetSizeof();
+        unsigned int count = gdcm::VM::GetNumberOfElementsFromArray(swc.c_str(), (unsigned int)swc.size());
+        elwc.SetLength( count * vrsize );
+        elwc.Read( ss1 );
+        std::stringstream ss2;
+        std::string sww = std::string( bvww->GetPointer(), bvww->GetLength() );
+        ss2.str( sww );
+        gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elww;
+        elww.SetLength( count * vrsize );
+        elww.Read( ss2 );
+
+        if (elwc.GetLength() > 0)
+        {
+          dest->window = elww.GetValue(0);
+          dest->center = elwc.GetValue(0);
+          //printf("*window=%f, center=%f, length=%lu\n",window,center,elwc.GetLength());
+        }
+    }
+  }
+
+  // Study and series description 
+  if ( ds.FindDataElement (tstudesc) ) {
+    const gdcm::DataElement& studesc = ds.GetDataElement( tstudesc );
+    const gdcm::ByteValue *bvstu = studesc.GetByteValue();
+    if (bvstu)
+      dest->studydesc = std::string( bvstu->GetPointer(), bvstu->GetLength() );
+    else
+      dest->studydesc = "";
+  }
+
+  if ( ds.FindDataElement (tseriesdesc) ) {
+    const gdcm::DataElement& seriesdesc = ds.GetDataElement( tseriesdesc );
+    const gdcm::ByteValue *bvsed = seriesdesc.GetByteValue();
+    if (bvsed)
+      dest->seriesdesc = std::string( bvsed->GetPointer(), bvsed->GetLength() );
+    else
+      dest->seriesdesc = "";
+  }
+  
+  if ( ds.FindDataElement (tbodypart) ) {
+    const gdcm::DataElement& bodypart = ds.GetDataElement( tbodypart );
+    const gdcm::ByteValue *bvbp = bodypart.GetByteValue();
+    if (bvbp)
+      dest->bodypart = std::string( bvbp->GetPointer(), bvbp->GetLength() );
+    else
+      dest->bodypart = "";
+  }
+
+  // Acquisition date and time
+  if ( !ds.FindDataElement (tacqdate) )
+  {
+    if ( !ds.FindDataElement (tacqdatetime) ) {
+      dest->acqdate = "";
+    } else {
+      const gdcm::DataElement& acqdate = ds.GetDataElement( tacqdatetime );
+      const gdcm::ByteValue *bvdate = acqdate.GetByteValue();
+      if (bvdate) {
+        dest->acqdate = std::string( bvdate->GetPointer(), bvdate->GetLength() );
+      } else {
+        dest->acqdate = "";
+      }
+    }
+  } else {
+    const gdcm::DataElement& acqdate = ds.GetDataElement( tacqdate );
+    const gdcm::ByteValue *bvdate = acqdate.GetByteValue();
+    if (bvdate) {
+      dest->acqdate = std::string( bvdate->GetPointer(), bvdate->GetLength() );
+    } else {
+      dest->acqdate = "";
+    }
+  }
+
+  if ( !ds.FindDataElement (tacqtime) ) 
+  {
+    if ( !ds.FindDataElement (tacqdatetime) )
+        dest->acqtime = "";
+    else {
+      const gdcm::DataElement& acqtime = ds.GetDataElement( tacqdatetime );
+      const gdcm::ByteValue *bvtime = acqtime.GetByteValue();
+      if (bvtime) {
+        dest->acqtime = std::string( bvtime->GetPointer(), bvtime->GetLength() );
+      } else{
+        dest->acqtime = "";
+      }
+    }
+  } else {
+    const gdcm::DataElement& acqtime = ds.GetDataElement( tacqtime );
+    const gdcm::ByteValue *bvtime = acqtime.GetByteValue();
+    if (bvtime) {
+      dest->acqtime = std::string( bvtime->GetPointer(), bvtime->GetLength() );
+    } else {
+      dest->acqtime = "";
+    }
+  }
+
+  // Number of columns and rows, spacing
+  if ( !ds.FindDataElement (tcolumns) )
+    dest->columns = -1;
+  else {
+    const gdcm::DataElement& columns = ds.GetDataElement( tcolumns );
+    const gdcm::ByteValue *bvcol = columns.GetByteValue();
+    dest->columns = *(int *)bvcol->GetPointer();
+  }
+
+  if ( !ds.FindDataElement (trows) )
+    dest->rows = -1;
+  else {
+    const gdcm::DataElement& rows = ds.GetDataElement( trows );
+    const gdcm::ByteValue *bvrow = rows.GetByteValue();
+    dest->rows = *(int *)bvrow->GetPointer();
+  }
+
+  // phase encoding direction
+  if ( ds.FindDataElement (tphase) ) {
+    const gdcm::DataElement& phase = ds.GetDataElement( tphase );
+    const gdcm::ByteValue *bvphase = phase.GetByteValue();
+    if (bvphase) 
+      dest->phase = std::string( bvphase->GetPointer(), bvphase->GetLength() );
+    else
+      dest->phase = "";
+  }
+  
+  // slice thickness
+  if ( !ds.FindDataElement (tthickness) )
+  {
+    dest->thickness = "";
+  } else {
+    const gdcm::DataElement& thick = ds.GetDataElement( tthickness );
+    const gdcm::ByteValue *bvthick = thick.GetByteValue();
+    if (bvthick) {
+      dest->thickness = std::string( bvthick->GetPointer(), bvthick->GetLength() );
+    } else {
+      dest->thickness = "";
+    }
+  }
+
+  if ( !ds.FindDataElement (tspacing) )
+    dest->spacing = "";
+  else {
+    const gdcm::DataElement& space = ds.GetDataElement( tspacing );
+    const gdcm::ByteValue *bvspace = space.GetByteValue();
+    if (bvspace) {
+      dest->spacing = std::string( bvspace->GetPointer(), bvspace->GetLength() );
+    } else {
+      dest->spacing = "";
+    }
+  }
+}
+
+/***********************************************************************************//**
+ *
+ */
 void MSQDicomImageViewer::setInput(const QString& fileName) 
 {
   this->fileName = fileName;
@@ -1073,17 +1354,27 @@ void MSQDicomImageViewer::setInput(const QString& fileName)
 /***********************************************************************************//**
  *
  */
-void MSQDicomImageViewer::setColormap(vtkmsqLookupTable *lut) 
+void MSQDicomImageViewer::setBackground(const QString& fileName) 
+{
+  this->fileName = fileName;
+
+  this->updateViewer(true);
+}
+
+/***********************************************************************************//**
+ *
+ */
+void MSQDicomImageViewer::setForegroundColormap(vtkmsqLookupTable *lut) 
 {
   double *color;
   int numColors = lut->GetNumberOfTableValues();
   
-  this->colorTable.clear();
-
+  this->foregroundColorTable.clear();
+  
   for(int c=0;c<numColors;c++)
   {
     color = lut->GetTableValue(c);
-    this->colorTable.append(qRgba(color[0]*255, color[1]*255, color[2]*255, 255));
+    this->foregroundColorTable.append(qRgb(color[0]*255, color[1]*255, color[2]*255));
   }
 
   //colorTransferFunction->BuildFunctionFromTable( center-window/2, center+window/2, 255, (double*) &this->colorTable);
@@ -1095,17 +1386,23 @@ void MSQDicomImageViewer::setColormap(vtkmsqLookupTable *lut)
 /***********************************************************************************//**
  *
  */
-void MSQDicomImageViewer::setCurrentLayer(int layer)
+void MSQDicomImageViewer::setBackgroundColormap(vtkmsqLookupTable *lut) 
 {
-  this->currentLayer = layer;
-}
+  double *color;
+  int numColors = lut->GetNumberOfTableValues();
+  
+  this->backgroundColorTable.clear();
+  
+  for(int c=0;c<numColors;c++)
+  {
+    color = lut->GetTableValue(c);
+    this->backgroundColorTable.append(qRgb(color[0]*255, color[1]*255, color[2]*255));
+  }
+  
+  //colorTransferFunction->BuildFunctionFromTable( center-window/2, center+window/2, 255, (double*) &this->colorTable);
 
-/***********************************************************************************//**
- *
- */
-void MSQDicomImageViewer::setBackgroundOpacity(qreal opacity) 
-{
-  //mLabel->setBackgroundOpacity( opacity );
+  // redisplay image
+  this->updateViewer();
 }
 
 /***********************************************************************************//**
@@ -1113,7 +1410,21 @@ void MSQDicomImageViewer::setBackgroundOpacity(qreal opacity)
  */
 void MSQDicomImageViewer::setForegroundOpacity(qreal opacity) 
 {
-  //mLabel->setForegroundOpacity( opacity );
+  this->foregroundOpacity = opacity;
+
+  // redisplay image
+  this->updateViewer();
+}
+
+/***********************************************************************************//**
+ *
+ */
+void MSQDicomImageViewer::setBackgroundOpacity(qreal opacity) 
+{
+  this->backgroundOpacity = opacity;
+
+  // redisplay image
+  this->updateViewer();
 }
 
 /***********************************************************************************//**

@@ -28,6 +28,29 @@
 
 #include "vtkmsqLookupTable.h"
 
+struct MSQDicomImage
+{
+  QString fileName;
+  std::vector<char> vbuffer;
+  QImage image;
+  QVector<QRgb> colorTable;
+  qreal opacity;
+  double slope, intercept;
+  int window, center;
+  std::string studydesc;
+  std::string seqdesc;
+  std::string seriesdesc;
+  std::string bodypart;
+  int columns;
+  int rows;
+  std::string acqtime;
+  std::string acqdate;
+  std::string acqdatetime;
+  std::string thickness;
+  std::string spacing;
+  std::string phase;
+};
+
 class MSQDicomImageViewer : public QWidget
 {
 Q_OBJECT
@@ -43,10 +66,12 @@ public:
   void refresh();
 
   virtual void setInput(const QString& fileName);
-  virtual void setColormap(vtkmsqLookupTable *lut);
-  virtual void setCurrentLayer(int layer);
-  virtual void setBackgroundOpacity( qreal opacity );
+  virtual void setBackground(const QString& fileName);
   virtual void setForegroundOpacity( qreal opacity );
+  virtual void setBackgroundOpacity( qreal opacity );
+  virtual void setForegroundColormap(vtkmsqLookupTable *lut);
+  virtual void setBackgroundColormap(vtkmsqLookupTable *lut);
+
   QImage regionOfInterest() const;
 
   void showToolBar(bool show);
@@ -82,25 +107,36 @@ protected:
   QToolButton *mOnepx, *mThreepx, *mFivepx;
   QToolButton *mQuality;
 
-  // current colormap
-  QVector<QRgb> colorTable;
   //vtkColorTransferFunction *colorTransferFunction;
   //double colorTable[256][3];
   //double window, center;
 
-  int currentLayer;
+  MSQDicomImage foreground;
+  MSQDicomImage background;
+
+  std::vector<char> foregroundBuffer;
+  QImage foregroundImage;
+  QVector<QRgb> foregroundColorTable;
+  qreal foregroundOpacity;
+
+  std::vector<char> backgroundBuffer;
+  QImage backgroundImage;
+  QVector<QRgb> backgroundColorTable;
+  qreal backgroundOpacity;
+
   MSQAspectRatioPixmapLabel *mLabel;
   
   void buildFrame();
   void createInterface();
+  void loadImage(const QString& fileName, MSQDicomImage *dest);
   void statistics(gdcm::Image const & gimage, char *buffer, const QImage& mask, 
     double window, double center, double slope, double intercept,
     double *entropy, double *mean, double *stdev);
   bool ConvertToFormat_RGB888(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
     double window, double center, double slope, double intercept);
-  bool ConvertToFormat_ARGB32(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
-  double window, double center, double slope, double intercept);
-  void updateViewer();
+  bool ConvertToFormat_ARGB32(gdcm::Image const & gimage, char *buffer, QImage* image, 
+  double window, double center, double slope, double intercept, QVector<QRgb> &colorTable, int opacity);
+  void updateViewer(bool background = false);
 };
 
 #endif

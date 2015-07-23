@@ -300,7 +300,7 @@ MSQDicomExplorer::MSQDicomExplorer(QWidget* p) : QMainWindow(p)
   this->currentColormap = 0;
 
   // set current layer/colormap/opacity
-  this->layer = 0;
+  //this->layer = 0;
   this->layerColormap[0] = this->layerColormap[1] = 0;
   this->layerOpacity[0] = this->layerOpacity[1] = 0;
 
@@ -370,7 +370,19 @@ void MSQDicomExplorer::createActions()
   aeditRestore->setStatusTip(tr("Restore original DICOM files"));
   aeditRestore->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_R));
   connect(aeditRestore, SIGNAL(triggered()), this, SLOT(fileRestore()));
-  aeditRestore->setEnabled(false);
+  aeditRestore->setEnabled(false); 
+
+
+  this->aviewAsForeground = new QAction(tr("Show Image as Foreground"), this);
+  this->aviewAsForeground->setStatusTip(tr("Show currently selected image as foreground"));
+  connect(this->aviewAsForeground, SIGNAL(triggered()), this, SLOT(viewAsForeground()));
+
+  this->aviewAsBackground = new QAction(tr("Show Image as Background"), this);
+  this->aviewAsBackground->setStatusTip(tr("Show currently selected image as background"));
+  connect(this->aviewAsBackground, SIGNAL(triggered()), this, SLOT(viewAsBackground()));
+
+  this->aviewClearBackground = new QAction(tr("Clear Background"), this);
+  connect(this->aviewClearBackground, SIGNAL(triggered()), this, SLOT(viewClearBackground()));
 
   this->viewHeader = false;
   this->aviewHeader = new QAction(QIcon(":/images/toolbar_tag.png"), tr("Show Tags"), this);
@@ -391,6 +403,7 @@ void MSQDicomExplorer::createActions()
   this->aviewTools->setStatusTip(tr("Show toolset"));
   this->aviewTools->setIconVisibleInMenu(false);
   connect(this->aviewTools, SIGNAL(triggered()), this, SLOT(viewShowTools()));
+
 
   //this->asortFiles = new QAction(QIcon(":/images/toolbar_sync.png"), tr("Sort Files"), this);
   //this->asortFiles->setStatusTip(tr("Sort DICOM files according to criteria"));
@@ -425,37 +438,38 @@ void MSQDicomExplorer::createMenus()
 
   viewMenu = menuBar()->addMenu(tr("&View"));
   viewMenu->addAction(aviewHeader);
-  viewMenu->addAction(aviewImage);
-  viewMenu->addSeparator();
   viewMenu->addAction(aviewTools);
+  viewMenu->addSeparator();
+  viewMenu->addAction(aviewAsForeground);
+  viewMenu->addAction(aviewAsBackground);
+  viewMenu->addAction(aviewClearBackground);
+  viewMenu->addSeparator();
+  viewMenu->addAction(aviewImage);
 
-  colormapMenu = menuBar()->addMenu(tr("&Colormap"));
-  QActionGroup *colormapActionGroup = new QActionGroup(this);
-  colormapActionGroup->setExclusive(true);
-  QAction *grayColormap = new QAction(tr("Gray"), this);
-  grayColormap->setCheckable(true);
-  grayColormap->setChecked(true);
-  colormapMenu->addAction(grayColormap);
-  colormapActionGroup->addAction(grayColormap);
-  QAction *hueColormap = new QAction(tr("Hue"), this);
-  hueColormap->setCheckable(true);
-  colormapMenu->addAction(hueColormap);
-  colormapActionGroup->addAction(hueColormap);
-  QAction *satColormap = new QAction(tr("Saturation"), this);
-  satColormap->setCheckable(true);
-  colormapMenu->addAction(satColormap);
-  colormapActionGroup->addAction(satColormap);
-  QAction *hotColormap = new QAction(tr("Hot"), this);
-  hotColormap->setCheckable(true);
-  colormapMenu->addAction(hotColormap);
-  colormapActionGroup->addAction(hotColormap);
-  colormapMenu->addSeparator();
-  QAction *customColormap = new QAction(tr("Custom..."), this);
-  colormapMenu->addAction(customColormap);
-  connect(colormapMenu, SIGNAL(triggered(QAction*)), this, SLOT(selectColormap(QAction*)));
-  //optionsMenu->addAction(aoptionsSaveValues);
-  //toolsMenu = menuBar()->addMenu(tr("&Tools"));
-  //toolsMenu->addAction(auseOrthogonalViewer);
+  // backColormapMenu = imageMenu->addMenu(tr("&Background Colormap"));
+  // QActionGroup *colormapActionGroup = new QActionGroup(this);
+  // colormapActionGroup->setExclusive(true);
+  // QAction *grayColormap = new QAction(tr("Gray"), this);
+  // grayColormap->setCheckable(true);
+  // grayColormap->setChecked(true);
+  // backColormapMenu->addAction(grayColormap);
+  // colormapActionGroup->addAction(grayColormap);
+  // QAction *hueColormap = new QAction(tr("Hue"), this);
+  // hueColormap->setCheckable(true);
+  // backColormapMenu->addAction(hueColormap);
+  // colormapActionGroup->addAction(hueColormap);
+  // QAction *satColormap = new QAction(tr("Saturation"), this);
+  // satColormap->setCheckable(true);
+  // backColormapMenu->addAction(satColormap);
+  // colormapActionGroup->addAction(satColormap);
+  // QAction *hotColormap = new QAction(tr("Hot"), this);
+  // hotColormap->setCheckable(true);
+  // backColormapMenu->addAction(hotColormap);
+  // colormapActionGroup->addAction(hotColormap);
+  // backColormapMenu->addSeparator();
+  // QAction *customColormap = new QAction(tr("Custom..."), this);
+  // backColormapMenu->addAction(customColormap);
+  //connect(backColormapMenu, SIGNAL(triggered(QAction*)), this, SLOT(selectColormap(QAction*)));
 
   //menuBar()->addSeparator();
 
@@ -500,8 +514,8 @@ void MSQDicomExplorer::createLayerToolBar(QToolBar *toolbar)
 
   // create layer combo box
   layerCombo = new QComboBox;
-  layerCombo->addItem("Background");
   layerCombo->addItem("Foreground");
+  layerCombo->addItem("Background");
   layerCombo->setFont(font11);
   connect(layerCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(layerChanged(int)));
 
@@ -523,6 +537,7 @@ void MSQDicomExplorer::createLayerToolBar(QToolBar *toolbar)
   colormapCombo->addItem("Hue");
   colormapCombo->addItem("Saturation");
   colormapCombo->addItem("Hot");
+  //colormapCombo->addSeparator();
   connect(colormapCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(colormapChanged(int)));
 
   QLabel *colormapLabel = new QLabel("Colormap");
@@ -590,10 +605,10 @@ void MSQDicomExplorer::createStatusBar()
  */
 void MSQDicomExplorer::layerChanged(int index)
 { 
-  this->layer = index;
-  this->colormapCombo->setCurrentIndex(this->layerColormap[this->layer]);
-  this->opacityCombo->setCurrentIndex(this->layerOpacity[this->layer]);
-  this->imageViewer->setCurrentLayer(this->layer);
+  this->currentLayer = index;
+  this->colormapCombo->setCurrentIndex(this->layerColormap[this->currentLayer]);
+  this->opacityCombo->setCurrentIndex(this->layerOpacity[this->currentLayer]);
+  //this->imageViewer->setCurrentLayer(this->layer);
 }
 
 /***********************************************************************************//**
@@ -601,7 +616,41 @@ void MSQDicomExplorer::layerChanged(int index)
  */
 void MSQDicomExplorer::colormapChanged(int index)
 { 
-  this->layerColormap[this->layer] = index;
+  this->layerColormap[this->currentLayer] = index;
+  this->currentColormap = index;
+
+  if (index > 4) 
+  {
+    QString colormapPath = "./../colormap";
+    QString colormapName = QFileDialog::getOpenFileName(this, tr("Open colormap"), colormapPath);
+    QFileInfo fi(colormapName);
+
+    if (!colormapName.isEmpty())
+    {
+      vtkmsqLookupTable *custom_cmap;
+
+      if (fi.suffix() == "lut")
+        custom_cmap = colormapFactory->loadColormap(colormapName.toStdString());
+      else if (fi.suffix() == "plist")
+        custom_cmap = colormapFactory->loadPListColormap(colormapName.toStdString());
+      else return;
+
+      if (custom_cmap == NULL)
+        this->warningMessage(tr("Error reading file %1.").arg(colormapName),
+            tr("Make sure file is of correct type and retry."));
+      else {
+        this->currentColormap = MAX_COLORMAPS-1;
+        if (this->colormaps[MAX_COLORMAPS-1] != 0)
+          this->colormaps[MAX_COLORMAPS-1]->Delete();
+        this->colormaps[MAX_COLORMAPS-1] = custom_cmap;
+      }
+    }
+  }
+  
+  if (this->currentLayer == 0)
+    this->imageViewer->setForegroundColormap(this->colormaps[this->currentColormap]);
+  else
+    this->imageViewer->setBackgroundColormap(this->colormaps[this->currentColormap]);
 }
 
 /***********************************************************************************//**
@@ -609,12 +658,11 @@ void MSQDicomExplorer::colormapChanged(int index)
  */
 void MSQDicomExplorer::opacityChanged(int index)
 { 
-  this->layerOpacity[this->layer] = index;
-  
-  if (this->layer == 0)
-    this->imageViewer->setBackgroundOpacity( 1.0 - (index * 0.1) );
-  else 
+  this->layerOpacity[this->currentLayer] = index;  
+  if (this->currentLayer == 0)
     this->imageViewer->setForegroundOpacity( 1.0 - (index * 0.1) );
+  else 
+    this->imageViewer->setBackgroundOpacity( 1.0 - (index * 0.1) );
 }
 
 /***********************************************************************************//**
@@ -911,55 +959,57 @@ void MSQDicomExplorer::createInterface()
 /***********************************************************************************//**
  *
  */
-void MSQDicomExplorer::selectColormap(QAction *action)
-{
-  if (!strcmp(action->text().toLocal8Bit().constData(), "Gray"))
-  {
-    this->currentColormap = 0;
-  }
-  else if (!strcmp(action->text().toLocal8Bit().constData(), "Hue"))
-  {
-    this->currentColormap = 1;
-  }
-  else if (!strcmp(action->text().toLocal8Bit().constData(), "Saturation"))
-  {
-    this->currentColormap = 2;
-  }
-  else if (!strcmp(action->text().toLocal8Bit().constData(), "Hot"))
-  {
-    this->currentColormap = 3;
-  } 
-  else if (!strcmp(action->text().toLocal8Bit().constData(), "Custom..."))
-  {
+// void MSQDicomExplorer::selectColormap(QAction *action)
+// {
+//   if (!strcmp(action->text().toLocal8Bit().constData(), "Gray"))
+//   {
+//     this->currentColormap = 0;
+//   }
+//   else if (!strcmp(action->text().toLocal8Bit().constData(), "Hue"))
+//   {
+//     this->currentColormap = 1;
+//   }
+//   else if (!strcmp(action->text().toLocal8Bit().constData(), "Saturation"))
+//   {
+//     this->currentColormap = 2;
+//   }
+//   else if (!strcmp(action->text().toLocal8Bit().constData(), "Hot"))
+//   {
+//     this->currentColormap = 3;
+//   } 
+//   else if (!strcmp(action->text().toLocal8Bit().constData(), "Custom..."))
+//   {
 
-    QString colormapPath = "./../colormap";
-    QString colormapName = QFileDialog::getOpenFileName(this, tr("Open colormap"), colormapPath);
-    QFileInfo fi(colormapName);
-    if (!colormapName.isEmpty())
-    {
-      vtkmsqLookupTable *custom_cmap;
+//     QString colormapPath = "./../colormap";
+//     QString colormapName = QFileDialog::getOpenFileName(this, tr("Open colormap"), colormapPath);
+//     QFileInfo fi(colormapName);
+//     if (!colormapName.isEmpty())
+//     {
+//       vtkmsqLookupTable *custom_cmap;
 
-      if (fi.suffix() == "lut")
-        custom_cmap = colormapFactory->loadColormap(colormapName.toStdString());
-      else if (fi.suffix() == "plist")
-        custom_cmap = colormapFactory->loadPListColormap(colormapName.toStdString());
-      else return;
+//       if (fi.suffix() == "lut")
+//         custom_cmap = colormapFactory->loadColormap(colormapName.toStdString());
+//       else if (fi.suffix() == "plist")
+//         custom_cmap = colormapFactory->loadPListColormap(colormapName.toStdString());
+//       else return;
 
-      if (custom_cmap == NULL)
-        this->warningMessage(tr("Error reading file %1.").arg(colormapName),
-            tr("Make sure file is of correct type and retry."));
-      else {
-        this->currentColormap = MAX_COLORMAPS-1;
-        if (this->colormaps[MAX_COLORMAPS-1] != 0)
-          this->colormaps[MAX_COLORMAPS-1]->Delete();
-        this->colormaps[MAX_COLORMAPS-1] = custom_cmap;
-      }
-    }
+//       if (custom_cmap == NULL)
+//         this->warningMessage(tr("Error reading file %1.").arg(colormapName),
+//             tr("Make sure file is of correct type and retry."));
+//       else {
+//         this->currentColormap = MAX_COLORMAPS-1;
+//         if (this->colormaps[MAX_COLORMAPS-1] != 0)
+//           this->colormaps[MAX_COLORMAPS-1]->Delete();
+//         this->colormaps[MAX_COLORMAPS-1] = custom_cmap;
+//       }
+//     }
     
-  }
+//   }
 
-  this->imageViewer->setColormap(this->colormaps[this->currentColormap]);
-}
+//   qDebug() << "about to change colormaps";
+
+//   this->imageViewer->setForegroundColormap(this->colormaps[this->currentColormap]);
+// }
 
 
 /***********************************************************************************//**
@@ -1735,6 +1785,38 @@ void MSQDicomExplorer::viewShowImage()
     }
   }
   this->viewImage = !this->viewImage;
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::viewClearBackground()
+{
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::viewAsForeground()
+{
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::viewAsBackground()
+{
+  QTreeWidgetItem *item = this->dicomTree->currentItem();
+ 
+  if (item != NULL) {
+
+    while (item->childCount())
+      item = item->child(0);
+
+    // set DICOM imagew viewer
+    this->imageViewer->setBackground(item->text(0));
+  }
+
 }
 
 /***********************************************************************************//**
