@@ -28,27 +28,56 @@
 
 #include "vtkmsqLookupTable.h"
 
-struct MSQDicomImage
+class MSQDicomImage
 {
+public:
+  MSQDicomImage() {
+    opacity = 255;
+    slope = 1.0;
+    intercept = 0.0;
+    window = 256;
+    center = 128;
+    dimensions[0] = columns = 25;
+    dimensions[1] = rows = 25;
+    resolution[0] = resolution[1] = 1.0;
+    vbuffer.resize(625);
+    pixelformat = gdcm::PixelFormat::UINT8;
+    interpretation = gdcm::PhotometricInterpretation::MONOCHROME1;
+    colorTable.clear();
+    for(int c=0;c<256;c++)
+      colorTable.append(qRgb(c, c, c));
+  }
+
   QString fileName;
   std::vector<char> vbuffer;
+
+  // Qt specific
   QImage image;
   QVector<QRgb> colorTable;
   qreal opacity;
+
+  // pixel mapping
   double slope, intercept;
+  double resolution[2];
   int window, center;
+  int dimensions[2];
+  int columns, rows;
+
+  // auxiliary information
   std::string studydesc;
   std::string seqdesc;
   std::string seriesdesc;
   std::string bodypart;
-  int columns;
-  int rows;
   std::string acqtime;
   std::string acqdate;
   std::string acqdatetime;
   std::string thickness;
   std::string spacing;
   std::string phase;
+
+  // GDCM specific 
+  gdcm::PixelFormat pixelformat;
+  gdcm::PhotometricInterpretation interpretation;
 };
 
 class MSQDicomImageViewer : public QWidget
@@ -67,6 +96,7 @@ public:
 
   virtual void setInput(const QString& fileName);
   virtual void setBackground(const QString& fileName);
+  virtual void clearBackground(bool update = false);
   virtual void setForegroundOpacity( qreal opacity );
   virtual void setBackgroundOpacity( qreal opacity );
   virtual void setForegroundColormap(vtkmsqLookupTable *lut);
@@ -129,14 +159,12 @@ protected:
   void buildFrame();
   void createInterface();
   void loadImage(const QString& fileName, MSQDicomImage *dest);
-  void statistics(gdcm::Image const & gimage, char *buffer, const QImage& mask, 
-    double window, double center, double slope, double intercept,
-    double *entropy, double *mean, double *stdev);
+  void statistics(const MSQDicomImage& source, const QImage& mask, double *entropy, double *mean, double *stdev);
   bool ConvertToFormat_RGB888(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
     double window, double center, double slope, double intercept);
-  bool ConvertToFormat_ARGB32(gdcm::Image const & gimage, char *buffer, QImage* image, 
-  double window, double center, double slope, double intercept, QVector<QRgb> &colorTable, int opacity);
-  void updateViewer(bool background = false);
+  bool ConvertToFormat_ARGB32(MSQDicomImage &source);
+  void updateInformation();
+  void updateViewer();
 };
 
 #endif

@@ -68,7 +68,6 @@ private slots:
   void viewShowImage();
   void viewShowTools();
   void viewClearBackground();
-  void viewAsForeground();
   void viewAsBackground();
 
   void fileExit();

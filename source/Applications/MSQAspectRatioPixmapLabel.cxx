@@ -16,7 +16,7 @@
 #include "MSQAspectRatioPixmapLabel.h"
 #include <QStyle>
 //
-//#include <QDebug>
+#include <QDebug>
 
 MSQAspectRatioPixmapLabel::MSQAspectRatioPixmapLabel(QWidget *parent) :
     QLabel(parent)
@@ -452,7 +452,9 @@ void MSQAspectRatioPixmapLabel::recalculateRect()
  */
 QImage MSQAspectRatioPixmapLabel::regionOfInterest() const
 {
-    //QPixmap pixroi( pix.width(), pix.height() );
+    if ( pix.isNull() )
+        return QImage();
+
     QImage pixroi ( pix.width(), pix.height(), QImage::Format_RGB32 );
     QPainter painter( &pixroi );
 
@@ -477,7 +479,7 @@ QImage MSQAspectRatioPixmapLabel::regionOfInterest() const
     if ( this->cursorEnabled )
     {
         pixroi.fill( Qt::black );
-    
+
         switch(this->cursorType)
         {
             case 0:
@@ -545,8 +547,10 @@ QSize MSQAspectRatioPixmapLabel::sizeHint() const
  */
 void MSQAspectRatioPixmapLabel::resizeEvent(QResizeEvent * e)
 {
-    QLabel::setPixmap(pix.scaled(this->size(),
-        Qt::KeepAspectRatio, Qt::SmoothTransformation));
-
+    if ( !pix.isNull() )
+    {
+        QLabel::setPixmap(pix.scaled(this->size(),
+            Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
     recalculateRect();
 }

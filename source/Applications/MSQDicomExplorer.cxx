@@ -372,12 +372,7 @@ void MSQDicomExplorer::createActions()
   connect(aeditRestore, SIGNAL(triggered()), this, SLOT(fileRestore()));
   aeditRestore->setEnabled(false); 
 
-
-  this->aviewAsForeground = new QAction(tr("Show Image as Foreground"), this);
-  this->aviewAsForeground->setStatusTip(tr("Show currently selected image as foreground"));
-  connect(this->aviewAsForeground, SIGNAL(triggered()), this, SLOT(viewAsForeground()));
-
-  this->aviewAsBackground = new QAction(tr("Show Image as Background"), this);
+  this->aviewAsBackground = new QAction(tr("Send to Background"), this);
   this->aviewAsBackground->setStatusTip(tr("Show currently selected image as background"));
   connect(this->aviewAsBackground, SIGNAL(triggered()), this, SLOT(viewAsBackground()));
 
@@ -440,7 +435,6 @@ void MSQDicomExplorer::createMenus()
   viewMenu->addAction(aviewHeader);
   viewMenu->addAction(aviewTools);
   viewMenu->addSeparator();
-  viewMenu->addAction(aviewAsForeground);
   viewMenu->addAction(aviewAsBackground);
   viewMenu->addAction(aviewClearBackground);
   viewMenu->addSeparator();
@@ -608,7 +602,6 @@ void MSQDicomExplorer::layerChanged(int index)
   this->currentLayer = index;
   this->colormapCombo->setCurrentIndex(this->layerColormap[this->currentLayer]);
   this->opacityCombo->setCurrentIndex(this->layerOpacity[this->currentLayer]);
-  //this->imageViewer->setCurrentLayer(this->layer);
 }
 
 /***********************************************************************************//**
@@ -1792,13 +1785,7 @@ void MSQDicomExplorer::viewShowImage()
  */
 void MSQDicomExplorer::viewClearBackground()
 {
-}
-
-/***********************************************************************************//**
- * 
- */
-void MSQDicomExplorer::viewAsForeground()
-{
+  this->imageViewer->clearBackground(true);
 }
 
 /***********************************************************************************//**
