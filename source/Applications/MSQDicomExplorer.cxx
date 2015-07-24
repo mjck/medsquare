@@ -531,8 +531,9 @@ void MSQDicomExplorer::createLayerToolBar(QToolBar *toolbar)
   colormapCombo->addItem("Hue");
   colormapCombo->addItem("Saturation");
   colormapCombo->addItem("Hot");
-  //colormapCombo->addSeparator();
-  connect(colormapCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(colormapChanged(int)));
+  colormapCombo->insertSeparator(4);
+  colormapCombo->addItem("Custom...");
+  connect(colormapCombo, SIGNAL(activated(int)), this, SLOT(colormapChanged(int)));
 
   QLabel *colormapLabel = new QLabel("Colormap");
   colormapLabel->setAlignment(Qt::AlignCenter);
@@ -612,7 +613,7 @@ void MSQDicomExplorer::colormapChanged(int index)
   this->layerColormap[this->currentLayer] = index;
   this->currentColormap = index;
 
-  if (index > 4) 
+  if (index > 3) 
   {
     QString colormapPath = "./../colormap";
     QString colormapName = QFileDialog::getOpenFileName(this, tr("Open colormap"), colormapPath);

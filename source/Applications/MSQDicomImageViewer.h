@@ -160,9 +160,9 @@ protected:
   void createInterface();
   void loadImage(const QString& fileName, MSQDicomImage *dest);
   void statistics(const MSQDicomImage& source, const QImage& mask, double *entropy, double *mean, double *stdev);
-  bool ConvertToFormat_RGB888(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
-    double window, double center, double slope, double intercept);
-  bool ConvertToFormat_ARGB32(MSQDicomImage &source);
+  //bool ConvertToFormat_RGB888(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
+  //  double window, double center, double slope, double intercept);
+  bool convertToARGB32(MSQDicomImage &source);
   void updateInformation();
   void updateViewer();
 };

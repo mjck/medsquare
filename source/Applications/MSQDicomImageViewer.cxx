@@ -77,9 +77,6 @@ MSQDicomImageViewer::MSQDicomImageViewer()
   // create interface
   createInterface();
 
-  //foregroundImage = QImage(50, 50, QImage::Format_ARGB32_Premultiplied);
-  //backgroundImage = QImage(50, 50, QImage::Format_ARGB32_Premultiplied);
-
   roiType = 0;
   highQuality = true;
 }
@@ -490,7 +487,8 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
         for(unsigned int i = 0; i < dimX*dimY; i++)
           {
             r = qRed(scan[i]);
-            if (r > 0) {
+
+            if (r == 255) {
               pos = source.vbuffer[i];
               hist[pos]++;
               sum += pos;
@@ -511,10 +509,9 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
           {
             scaled = *input * source.slope + source.intercept;
             r = qRed(scan[j]);  
-            //qDebug() <<  "looking(" << i << "," << j << "): " << r;
-
+         
             if (r == 255) {
-              //qDebug() <<  "computing2";
+
               scaled = *input * source.slope + source.intercept;
             
               if (scaled <= source.center - 0.5 - (source.window - 1.0 ) / 2 )
@@ -523,8 +520,6 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
                 pos = 255;
               else
                 pos = ((scaled - (source.center - 0.5)) / (source.window - 1.0) + 0.5) * 255;
-
-              //qDebug() << pos;
 
               hist[pos]++;
               sum += pos;
@@ -538,7 +533,6 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
       }
     else
       {
-        //qDebug() << "here";
         *entropy = -1;
         *mean = 0;
         *stdev = 0;
@@ -547,7 +541,6 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
     }
   else
     {
-       //qDebug() << "here2";
       *entropy = -1;
       *mean = 0;
       *stdev = 0;
@@ -571,7 +564,6 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
 
     //printf("total=%d\n",total);
   } else {
-     //qDebug() << "here3";
     *entropy = -1;
     *mean = 0;
     *stdev = 0;
@@ -584,125 +576,125 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
 /***********************************************************************************//**
  *
  */
-bool MSQDicomImageViewer::ConvertToFormat_RGB888(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
-  double window, double center, double slope, double intercept)
-{
-  const unsigned int* dimension = gimage.GetDimensions();
+// bool MSQDicomImageViewer::ConvertToFormat_RGB888(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
+//   double window, double center, double slope, double intercept)
+// {
+//   const unsigned int* dimension = gimage.GetDimensions();
 
-  unsigned int dimX = dimension[0];
-  unsigned int dimY = dimension[1];
+//   unsigned int dimX = dimension[0];
+//   unsigned int dimY = dimension[1];
 
-  //double table[256][3];
+//   //double table[256][3];
 
-  //for( int i = 0; i < 256; i++)
-  //{
-  //  table[i][0] = qRed(colorTable.at(i)) / 255.;
-  //  table[i][1] = qGreen(colorTable.at(i))  / 255.;
-  //  table[i][2] = qBlue(colorTable.at(i)) / 255.;
-  //}
+//   //for( int i = 0; i < 256; i++)
+//   //{
+//   //  table[i][0] = qRed(colorTable.at(i)) / 255.;
+//   //  table[i][1] = qGreen(colorTable.at(i))  / 255.;
+//   //  table[i][2] = qBlue(colorTable.at(i)) / 255.;
+//   //}
    
-   /*vtkWindowLevelLookupTable *lut = vtkWindowLevelLookupTable::New();
-   lut->SetWindow( window );
-   lut->SetLevel ( center );
-   lut->Build();
+//    /*vtkWindowLevelLookupTable *lut = vtkWindowLevelLookupTable::New();
+//    lut->SetWindow( window );
+//    lut->SetLevel ( center );
+//    lut->Build();
 
-   for(int i=0; i<256; i++) {
-    lut->SetTableValue(i, qRed(colorTable.at(i)) / 255., qGreen(colorTable.at(i)) / 255., qBlue(colorTable.at(i)) / 255.);
-   }*/
+//    for(int i=0; i<256; i++) {
+//     lut->SetTableValue(i, qRed(colorTable.at(i)) / 255., qGreen(colorTable.at(i)) / 255., qBlue(colorTable.at(i)) / 255.);
+//    }*/
 
-   //colorTransferFunction->BuildFunctionFromTable( center-window/2, center+window/2, 255, (double*) &this->colorTable);
+//    //colorTransferFunction->BuildFunctionFromTable( center-window/2, center+window/2, 255, (double*) &this->colorTable);
 
-  //QVector<QRgb> table(2);
-  //for(int c=0;c<256;c++)
-  //  {
-  //      table.append(qRgb(c,c,c));
-  //  }
+//   //QVector<QRgb> table(2);
+//   //for(int c=0;c<256;c++)
+//   //  {
+//   //      table.append(qRgb(c,c,c));
+//   //  }
 
-  // Let's start with the easy case:
-  if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::RGB )
-    {
-      // RGB image
-      if( gimage.GetPixelFormat() != gdcm::PixelFormat::UINT8 )
-        {
-          return false;
-        }
-      unsigned char *ubuffer = (unsigned char*)buffer;
-      // QImage::Format_RGB888  13  The image is stored using a 24-bit RGB format (8-8-8).
-      imageQt = new QImage((unsigned char *)ubuffer, dimX, dimY, 3*dimX, QImage::Format_RGB888);
-    }
-  else if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME1 ||
-           gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME2 )
-    {
-      if( gimage.GetPixelFormat() == gdcm::PixelFormat::INT8 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT8 )
-      {
-        //std::cerr << "Pixel Format is: " << gimage.GetPixelFormat() << std::endl;
-        // We need to copy each individual 8bits into R / G and B:
-        unsigned char *ubuffer = new unsigned char[dimX*dimY*3];
-        unsigned char *pubuffer = ubuffer;
+//   // Let's start with the easy case:
+//   if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::RGB )
+//     {
+//       // RGB image
+//       if( gimage.GetPixelFormat() != gdcm::PixelFormat::UINT8 )
+//         {
+//           return false;
+//         }
+//       unsigned char *ubuffer = (unsigned char*)buffer;
+//       // QImage::Format_RGB888  13  The image is stored using a 24-bit RGB format (8-8-8).
+//       imageQt = new QImage((unsigned char *)ubuffer, dimX, dimY, 3*dimX, QImage::Format_RGB888);
+//     }
+//   else if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME1 ||
+//            gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME2 )
+//     {
+//       if( gimage.GetPixelFormat() == gdcm::PixelFormat::INT8 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT8 )
+//       {
+//         //std::cerr << "Pixel Format is: " << gimage.GetPixelFormat() << std::endl;
+//         // We need to copy each individual 8bits into R / G and B:
+//         unsigned char *ubuffer = new unsigned char[dimX*dimY*3];
+//         unsigned char *pubuffer = ubuffer;
         
-        for(unsigned int i = 0; i < dimX*dimY; i++)
-          {
-            *pubuffer++ = *buffer;
-            *pubuffer++ = *buffer;
-            *pubuffer++ = *buffer++;
-          }
+//         for(unsigned int i = 0; i < dimX*dimY; i++)
+//           {
+//             *pubuffer++ = *buffer;
+//             *pubuffer++ = *buffer;
+//             *pubuffer++ = *buffer++;
+//           }
 
-        imageQt = new QImage(ubuffer, dimX, dimY, 3*dimX, QImage::Format_RGB888);
-      }
-    else if ( gimage.GetPixelFormat() == gdcm::PixelFormat::INT16 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT16 )
-      {
-        short *input = (short*)buffer;
-        double scaled;
-        unsigned char *output = new unsigned char[dimX*dimY];//*3];
-        unsigned char *poutput = output;
-        unsigned char r;
+//         imageQt = new QImage(ubuffer, dimX, dimY, 3*dimX, QImage::Format_RGB888);
+//       }
+//     else if ( gimage.GetPixelFormat() == gdcm::PixelFormat::INT16 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT16 )
+//       {
+//         short *input = (short*)buffer;
+//         double scaled;
+//         unsigned char *output = new unsigned char[dimX*dimY];//*3];
+//         unsigned char *poutput = output;
+//         unsigned char r;
 
-        for(unsigned int i = 0; i < dimX*dimY; i++)
-          {
-            scaled = *input * slope + intercept;
-            if (scaled <= center - 0.5 - (window - 1.0 ) / 2 )
-              r = 0;
-            else if (scaled > center - 0.5 + (window - 1.0) / 2)
-              r = 255;
-            else {
-              r = ((scaled - (center - 0.5)) / (window - 1.0) + 0.5) * 255;
-            }
-            *poutput++ = r;
+//         for(unsigned int i = 0; i < dimX*dimY; i++)
+//           {
+//             scaled = *input * slope + intercept;
+//             if (scaled <= center - 0.5 - (window - 1.0 ) / 2 )
+//               r = 0;
+//             else if (scaled > center - 0.5 + (window - 1.0) / 2)
+//               r = 255;
+//             else {
+//               r = ((scaled - (center - 0.5)) / (window - 1.0) + 0.5) * 255;
+//             }
+//             *poutput++ = r;
 
-            /*unsigned char *rgb = colorTransferFunction->MapValue(scaled);
-            *poutput++ = rgb[0];
-            *poutput++ = rgb[1];
-            *poutput++ = rgb[2];*/
+//             /*unsigned char *rgb = colorTransferFunction->MapValue(scaled);
+//             *poutput++ = rgb[0];
+//             *poutput++ = rgb[1];
+//             *poutput++ = rgb[2];*/
 
-            input++;
-          }
+//             input++;
+//           }
 
-        //imageQt = new QImage(output, dimX, dimY, 3*dimX, QImage::Format_RGB888);
-        imageQt = new QImage(output, dimX, dimY, dimX, QImage::Format_Indexed8);
-        imageQt->setColorTable(this->backgroundColorTable);
+//         //imageQt = new QImage(output, dimX, dimY, 3*dimX, QImage::Format_RGB888);
+//         imageQt = new QImage(output, dimX, dimY, dimX, QImage::Format_Indexed8);
+//         imageQt->setColorTable(this->backgroundColorTable);
 
-        //colorTransferFunction->Delete();
-        //lut->Delete();
-      }
-    else
-      {
-        std::cerr << "Pixel Format is: " << gimage.GetPixelFormat() << std::endl;
-        return false;
-      }
-    }
-  else
-    {
-    std::cerr << "Unhandled PhotometricInterpretation: " << gimage.GetPhotometricInterpretation() << std::endl;
-    return false;
-    }
+//         //colorTransferFunction->Delete();
+//         //lut->Delete();
+//       }
+//     else
+//       {
+//         std::cerr << "Pixel Format is: " << gimage.GetPixelFormat() << std::endl;
+//         return false;
+//       }
+//     }
+//   else
+//     {
+//     std::cerr << "Unhandled PhotometricInterpretation: " << gimage.GetPhotometricInterpretation() << std::endl;
+//     return false;
+//     }
 
-  return true;
-}
+//   return true;
+// }
 
 /***********************************************************************************//**
  *
  */
-bool MSQDicomImageViewer::ConvertToFormat_ARGB32(MSQDicomImage &source)
+bool MSQDicomImageViewer::convertToARGB32(MSQDicomImage &source)
 {
   //const unsigned int* dimension = gimage.GetDimensions();
 
@@ -797,417 +789,6 @@ bool MSQDicomImageViewer::ConvertToFormat_ARGB32(MSQDicomImage &source)
 
   return true;
 }
-
-/***********************************************************************************//**
- *
- */
-// bool MSQDicomImageViewer::ConvertToFormat_ARGB32(gdcm::Image const & gimage, char *buffer, QImage *image, 
-//   double window, double center, double slope, double intercept, QVector<QRgb> &colorTable, int opacity)
-// {
-//   const unsigned int* dimension = gimage.GetDimensions();
-
-//   unsigned int dimX = dimension[0];
-//   unsigned int dimY = dimension[1];
-
-//   // create Qt image
-//   *image = QImage(dimX, dimY, QImage::Format_ARGB32_Premultiplied);
-
-//   // Let's start with the easy case:
-//   if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::RGB )
-//   {
-//     // RGB image
-//     if( gimage.GetPixelFormat() != gdcm::PixelFormat::UINT8 )
-//       {
-//         return false;
-//       }
-    
-//     unsigned char *input = (unsigned char*)buffer;
-//     unsigned red, green, blue;
-
-//     for(unsigned int i = 0; i < dimY; i++) 
-//       {
-//         QRgb *row = (QRgb*)image->scanLine(i);
-
-//         for(unsigned int j = 0; j < dimX; j++)
-//         {
-//           red = *input++; green=*input++; blue=*input++;
-//           *row++ = qRgba(red, green, blue, 255);
-//         }
-//       }
-//   } else if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME1 ||
-//              gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME2 )
-//   {
-//     // Grayscale 8-BIT
-//     if( gimage.GetPixelFormat() == gdcm::PixelFormat::INT8 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT8 )
-//     {
-//       unsigned char *input = (unsigned char*)buffer;
-//       for(unsigned int i = 0; i < dimY; i++) 
-//       {
-//         QRgb *row = (QRgb*)image->scanLine(i);
-//         for(unsigned int j = 0; j < dimX; j++)
-//         {
-//           *row++ = qRgba(*input, *input, *input, 255);
-//           input++;
-//         }
-//       }
-//       // Grayscale 16-BIT
-//     } else if ( gimage.GetPixelFormat() == gdcm::PixelFormat::INT16 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT16 )
-//     {
-//       short *input = (short*)buffer;
-//       double scaled;
-//       unsigned char r;
-
-//       for(unsigned int i = 0; i < dimY; i++) 
-//       {
-//         QRgb *row = (QRgb*)image->scanLine(i);
-//         for(unsigned int j = 0; j < dimX; j++)
-//         {
-//           scaled = *input * slope + intercept;
-          
-//           if (scaled <= center - 0.5 - (window - 1.0 ) / 2 )
-//             r = 0;
-//           else if (scaled > center - 0.5 + (window - 1.0) / 2)
-//             r = 255;
-//           else
-//             r = ((scaled - (center - 0.5)) / (window - 1.0) + 0.5) * 255;
-
-//           *row++ = qRgba(qRed(colorTable[r]), qGreen(colorTable[r]), qBlue(colorTable[r]), opacity);
-//           input++;
-//         }
-//       }
-//     } else
-//     {
-//         std::cerr << "Pixel Format is: " << gimage.GetPixelFormat() << std::endl;
-//         return false;
-//     }
-//   } else
-//   {
-//     std::cerr << "Unhandled PhotometricInterpretation: " << gimage.GetPhotometricInterpretation() << std::endl;
-//     return false;
-//   }
-
-//   return true;
-// }
-
-/***********************************************************************************//**
- *
- */
-// void MSQDicomImageViewer::updateViewerOld( bool background )
-// {
-//   gdcm::ImageReader reader;
-//   reader.SetFileName( this->fileName.toLocal8Bit().constData() );
-//   if(!reader.Read())
-//     {
-//       //std::cout<<"Could not open file" << std::endl;
-//       return;
-//       //Read failed
-//       //return 1;
-//     }
-
-//   const gdcm::File &file = reader.GetFile();
-//   const gdcm::Image &gimage = reader.GetImage();
-//   const double *spacing = gimage.GetSpacing();
-//   const gdcm::DataSet &ds = file.GetDataSet();
-
-//   double window = 256, center = 128;
-//   gdcm::Tag twindowcenter(0x0028, 0x1050);
-//   gdcm::Tag twindowwidth(0x0028, 0x1051);
-
-//   // rescale slope and intercept
-//   gdcm::Tag tintercept(0x0028, 0x1052);
-//   gdcm::Tag tslope(0x0028, 0x1053);
-
-//   // study and series description
-//   gdcm::Tag tstudesc(0x0008, 0x1030);
-//   gdcm::Tag tseqdesc(0x0018, 0x0024);
-//   gdcm::Tag tseriesdesc(0x0008, 0x103e);
-//   gdcm::Tag tbodypart(0x0018, 0x0015);
-
-//   // number of columns and rows
-//   gdcm::Tag tcolumns(0x0028, 0x0011);
-//   gdcm::Tag trows(0x0028, 0x0010);
-
-//   // date and time
-//   gdcm::Tag tacqtime(0x0008, 0x0032);
-//   gdcm::Tag tacqdate(0x0008, 0x0022);
-//   gdcm::Tag tacqdatetime(0x0008, 0x002a); // philips
-
-//   // slicethickness or spacing between slices
-//   gdcm::Tag tthickness(0x0018, 0x0050);
-//   gdcm::Tag tspacing(0x0018, 0x0088); // philips
-
-//   // in-plane phase encoding direction
-//   gdcm::Tag tphase(0x0018, 0x1312);
-
-//   QString topleft="", topmid="", topright="";
-//   QString botleft="", botmid="", botright="";
-
-//   unsigned long len = gimage.GetBufferLength();
-//   std::vector<char> vbuffer;
-//   vbuffer.resize( len );
-//   char *buffer = &vbuffer[0];
-//   gimage.GetBuffer(buffer);
-
-//   double intercept = 0.0;
-//   double slope = 1.0;
-
-//   // find intercept and slope
-//   if ( ds.FindDataElement( tintercept ) && ds.FindDataElement( tslope ) ) 
-//   {
-//     const gdcm::DataElement& rescaleintercept = ds.GetDataElement( tintercept );
-//     const gdcm::DataElement& rescaleslope = ds.GetDataElement( tslope );
-//     const gdcm::ByteValue *bvri = rescaleintercept.GetByteValue();
-//     const gdcm::ByteValue *bvrs = rescaleslope.GetByteValue();
-//     std::string sri = std::string( bvri->GetPointer(), bvri->GetLength() );
-//     std::string srs = std::string( bvrs->GetPointer(), bvrs->GetLength() );
-//     //intercept = std::stod(sri); // C++ 11
-//     intercept = ::atof(sri.c_str());
-//     //slope = std::stod(srs); // C++ 11
-//     slope = ::atof(srs.c_str());
-//   }
-
-//   // window and level
-//   if( ds.FindDataElement( twindowcenter ) && ds.FindDataElement( twindowwidth) )
-//   {
-//     const gdcm::DataElement& windowcenter = ds.GetDataElement( twindowcenter );
-//     const gdcm::DataElement& windowwidth = ds.GetDataElement( twindowwidth );
-//     const gdcm::ByteValue *bvwc = windowcenter.GetByteValue();
-//     const gdcm::ByteValue *bvww = windowwidth.GetByteValue();
-
-//     if( bvwc && bvww ) // Can be Type 2
-//     {
-//         //gdcm::Attributes<0x0028,0x1050> at;
-//         gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elwc;
-//         std::stringstream ss1;
-//         std::string swc = std::string( bvwc->GetPointer(), bvwc->GetLength() );
-//         ss1.str( swc );
-//         gdcm::VR vr = gdcm::VR::DS;
-//         unsigned int vrsize = vr.GetSizeof();
-//         unsigned int count = gdcm::VM::GetNumberOfElementsFromArray(swc.c_str(), (unsigned int)swc.size());
-//         elwc.SetLength( count * vrsize );
-//         elwc.Read( ss1 );
-//         std::stringstream ss2;
-//         std::string sww = std::string( bvww->GetPointer(), bvww->GetLength() );
-//         ss2.str( sww );
-//         gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elww;
-//         elww.SetLength( count * vrsize );
-//         elww.Read( ss2 );
-
-//         if (elwc.GetLength() > 0)
-//         {
-//           window = elww.GetValue(0);
-//           center = elwc.GetValue(0);
-
-//           //printf("*window=%f, center=%f, length=%lu\n",window,center,elwc.GetLength());
-
-//         }
-//     }
-//   }
-
-//   //QImage *imageQt = NULL;
-
-//   //printf("**window=%f, center=%f\n",window,center);
-//   //if( !ConvertToFormat_RGB888( gimage, buffer, imageQt, window, center, slope, intercept ) )
-  
-//   if ( background ) {
-
-//     if( !ConvertToFormat_ARGB32( gimage, buffer, &backgroundImage, 
-//         window, center, slope, intercept, backgroundColorTable, 255 ) )
-//     {
-//       std::cout<<"Could not convert background into QImage..."<<std::endl;
-//       return;
-//     }
-
-//     /*if (backgroundImage.isNull()) {
-//       backgroundImage = QImage(foregroundImage.size(), QImage::Format_ARGB32_Premultiplied);
-//       backgroundImage.fill(QColor(0, 0, 0, 255));
-//     }*/
-
-//   } else {
-
-//     if( !ConvertToFormat_ARGB32( gimage, buffer, &foregroundImage, 
-//         window, center, slope, intercept, foregroundColorTable, 255 ) )
-//     {
-//       std::cout<<"Could not convert foreground into QImage..."<<std::endl;
-//       return;
-//     }
-
-//     if (backgroundImage.isNull()) {
-//       backgroundImage = QImage(foregroundImage.size(), QImage::Format_ARGB32_Premultiplied);
-//       backgroundImage.fill(QColor(0, 0, 0, 255));
-//     }
-
-//   }
-
-//   QImage resultImage(foregroundImage.size(), QImage::Format_ARGB32_Premultiplied);
-  
-//   QPainter painter(&resultImage);
-//   painter.drawImage(0, 0, backgroundImage);
-//   painter.setOpacity(this->foregroundOpacity);
-//   //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-//   painter.drawImage(0, 0, foregroundImage);
-//   //painter.end();
-
-//   //if ( this->currentLayer == 0 )
-//  //if (!foregroundImage.isNull()) {
-//   mLabel->setPixmap( QPixmap::fromImage(resultImage) );
-// //}
-//   //else
-//   //  mLabel->setForegroundPixmap( QPixmap::fromImage(*imageQt) );
-
-//   // Study and series description 
-//   if ( ds.FindDataElement (tstudesc) ) {
-//     const gdcm::DataElement& studesc = ds.GetDataElement( tstudesc );
-//     const gdcm::ByteValue *bvstu = studesc.GetByteValue();
-//     if (bvstu)
-//       topleft += QString::fromStdString( std::string( bvstu->GetPointer(), bvstu->GetLength() ) ) + "<br>";
-//     else
-//       topleft += "<br>";
-//   }
-
-//   if ( ds.FindDataElement (tseriesdesc) ) {
-//     const gdcm::DataElement& seriesdesc = ds.GetDataElement( tseriesdesc );
-//     const gdcm::ByteValue *bvsed = seriesdesc.GetByteValue();
-//     if (bvsed)
-//       topleft += QString::fromStdString( std::string( bvsed->GetPointer(), bvsed->GetLength() ) );
-//   }
-//   mHeader[0]->setText(topleft);
-
-//  // body part
-//   if ( ds.FindDataElement (tbodypart) ) {
-//     const gdcm::DataElement& bodypart = ds.GetDataElement( tbodypart );
-//     const gdcm::ByteValue *bvbp = bodypart.GetByteValue();
-//     if (bvbp)
-//       topmid = QString::fromStdString( std::string( bvbp->GetPointer(), bvbp->GetLength() ) );
-//   }
-//   mHeader[1]->setText(topmid);
-
-//   // Acquisition date and time
-//   if ( !ds.FindDataElement (tacqdate) )
-//   {
-//     if ( !ds.FindDataElement (tacqdatetime) )
-//       topright = "Unknown date";
-//     else {
-//       const gdcm::DataElement& acqdate = ds.GetDataElement( tacqdatetime );
-//       const gdcm::ByteValue *bvdate = acqdate.GetByteValue();
-//       if (bvdate) {
-//         QString qstrdate = QString::fromStdString( std::string( bvdate->GetPointer(), bvdate->GetLength() ) );
-//         topright += QString("%1-%2-%3").arg(qstrdate.left(4)).arg(qstrdate.mid(4, 2)).arg(qstrdate.mid(6, 2));
-//       } else {
-//         topright += "Unknown date";
-//       }
-//     }
-//   } else {
-//     const gdcm::DataElement& acqdate = ds.GetDataElement( tacqdate );
-//     const gdcm::ByteValue *bvdate = acqdate.GetByteValue();
-//     if (bvdate) {
-//       QString qstrdate = QString::fromStdString( std::string( bvdate->GetPointer(), bvdate->GetLength() ) );
-//       topright += QString("%1-%2-%3").arg(qstrdate.left(4)).arg(qstrdate.mid(4, 2)).arg(qstrdate.mid(6, 2));
-//     } else {
-//       topright += "Unknown date";
-//     }
-//   }
-
-//   if ( !ds.FindDataElement (tacqtime) ) 
-//   {
-//     if ( !ds.FindDataElement (tacqdatetime) )
-//         topright += "<br>Unknown time";
-//     else {
-//       const gdcm::DataElement& acqtime = ds.GetDataElement( tacqdatetime );
-//       const gdcm::ByteValue *bvtime = acqtime.GetByteValue();
-//       if (bvtime) {
-//         QString qstrtime = QString::fromStdString( std::string( bvtime->GetPointer(), bvtime->GetLength() ) );
-//         topright += QString("<br>%1:%2:%3").arg(qstrtime.mid(8, 2)).arg(qstrtime.mid(10, 2)).arg(qstrtime.mid(12, 2));
-//       } else{
-//         topright += "<br>Unknown time";
-//       }
-//     }
-//   } else {
-//     const gdcm::DataElement& acqtime = ds.GetDataElement( tacqtime );
-//     const gdcm::ByteValue *bvtime = acqtime.GetByteValue();
-//     if (bvtime) {
-//       QString qstrtime = QString::fromStdString( std::string( bvtime->GetPointer(), bvtime->GetLength() ) );
-//       topright += QString("<br>%1:%2:%3").arg(qstrtime.left(2)).arg(qstrtime.mid(2, 2)).arg(qstrtime.mid(4, 2));
-//     } else {
-//       topright += "<br>Unknown time";
-//     }
-//   }
-//   mHeader[2]->setText(topright);
-
-//   // Entropy
-//   const QImage mask = mLabel->regionOfInterest();
-//   double entrpy, mean, stdev;
-//   this->statistics(gimage, buffer, mask, window, center, slope, intercept, &entrpy, &mean, &stdev);
-//   botleft = QString("<FONT COLOR=Firebrick>Entropy: %1</FONT>").arg(entrpy);
-
-//   // Number of columns and rows, spacing
-//   if ( !ds.FindDataElement (tcolumns) )
-//     botleft += "<br>Image size: ? x ";
-//   else {
-//     const gdcm::DataElement& columns = ds.GetDataElement( tcolumns );
-//     const gdcm::ByteValue *bvcol = columns.GetByteValue();
-//     const int vcols = *(int *)bvcol->GetPointer();
-//     botleft += QString("<br>Image size: %1 x ").arg(vcols);
-//   }
-
-//   if ( !ds.FindDataElement (trows) )
-//     botleft += "?";
-//   else {
-//     const gdcm::DataElement& rows = ds.GetDataElement( trows );
-//     const gdcm::ByteValue *bvrow = rows.GetByteValue();
-//     const int vrows = *(int *)bvrow->GetPointer();
-//     botleft += QString("%1").arg(vrows);
-//   }
-
-//   // add pixel spacing
-//   botleft += QString("<br>Pixel spacing: %1 mm x %2 mm").arg(spacing[0], 0, 'g', 2).arg(spacing[1], 0, 'g', 2);
-
-//   mFooter[0]->setText(botleft);
-
-//   // phase encoding direction
-//   if ( ds.FindDataElement (tphase) ) {
-//     const gdcm::DataElement& phase = ds.GetDataElement( tphase );
-//     const gdcm::ByteValue *bvphase = phase.GetByteValue();
-//     if (bvphase) 
-//       botmid = QString::fromStdString( std::string( bvphase->GetPointer(), bvphase->GetLength() ) );
-//   }
-  
-//   mFooter[1]->setText(botmid);
-
-//   botright = QString("<FONT COLOR=RoyalBlue>Mean: %1</FONT>").arg(mean);
-//   botright += QString("<br><FONT COLOR=RoyalBlue>SD: %1</FONT>").arg(stdev);
-
-//   // slice thickness
-//   if ( !ds.FindDataElement (tthickness) )
-//   {
-//     botright += "";
-//   } else {
-//     const gdcm::DataElement& thick = ds.GetDataElement( tthickness );
-//     const gdcm::ByteValue *bvthick = thick.GetByteValue();
-//     if (bvthick) {
-//       QString str = QString::fromStdString( std::string( bvthick->GetPointer(), bvthick->GetLength() ) );
-//       botright += QString("<br>Thickness: %1 mm").arg(str.toFloat(), 0, 'g', 2);
-//     } else {
-//       botright += "";
-//     }
-//   }
-
-//   if ( !ds.FindDataElement (tspacing) )
-//     botright += "";
-//   else {
-//     const gdcm::DataElement& space = ds.GetDataElement( tspacing );
-//     const gdcm::ByteValue *bvspace = space.GetByteValue();
-//     if (bvspace) {
-//       QString str = QString::fromStdString( std::string( bvspace->GetPointer(), bvspace->GetLength() ) );
-//       botright += QString("<br>Spacing between slices: %1 mm").arg(str.toFloat(), 0, 'g', 2);
-//     } else {
-//       botright += "";
-//     }
-//   }
-
-//   mFooter[2]->setText(botright);
-
-// }
 
 /***********************************************************************************//**
  *
@@ -1316,14 +897,14 @@ void MSQDicomImageViewer::updateInformation()
 void MSQDicomImageViewer::updateViewer()
 {
   // convert background
-  if (!ConvertToFormat_ARGB32( background ))
+  if (!convertToARGB32( background ))
   {
     std::cout<<"Could not convert background into QImage..."<<std::endl;
     return;
   }
 
   // convert foreground
-  if (!ConvertToFormat_ARGB32( foreground ))
+  if (!convertToARGB32( foreground ))
   {
     std::cout<<"Could not convert foreground into QImage..."<<std::endl;
     return;
@@ -1334,6 +915,7 @@ void MSQDicomImageViewer::updateViewer()
   
   // blend foreground and background
   QPainter painter(&resultImage);
+  painter.setOpacity(background.opacity);
   painter.drawImage(0, 0, background.image);
   painter.setOpacity(foreground.opacity);
   //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
@@ -1555,23 +1137,6 @@ void MSQDicomImageViewer::loadImage(const QString& fileName, MSQDicomImage *dest
       dest->acqtime = "";
     }
   }
-
-  // Number of columns and rows, spacing
-  // if ( !ds.FindDataElement (tcolumns) )
-  //   dest->columns = -1;
-  // else {
-  //   const gdcm::DataElement& columns = ds.GetDataElement( tcolumns );
-  //   const gdcm::ByteValue *bvcol = columns.GetByteValue();
-  //   dest->columns = *(int *)bvcol->GetPointer();
-  // }
-
-  // if ( !ds.FindDataElement (trows) )
-  //   dest->rows = -1;
-  // else {
-  //   const gdcm::DataElement& rows = ds.GetDataElement( trows );
-  //   const gdcm::ByteValue *bvrow = rows.GetByteValue();
-  //   dest->rows = *(int *)bvrow->GetPointer();
-  // }
 
   // phase encoding direction
   if ( ds.FindDataElement (tphase) ) {
