@@ -178,6 +178,10 @@ OPTION(MEDSQUARE_BUILD_TESTS
 	"Build tests"
 	OFF)
 
+OPTION(USE_BIOIMAGESUITE
+  "Use BioimageSuite Module"
+  ON)
+
 ENABLE_TESTING()
 
 INCLUDE(CPack)

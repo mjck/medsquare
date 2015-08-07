@@ -1876,6 +1876,8 @@ void MSQDicomExplorer::fileFilter()
     mProgressDialog->show();
   QApplication::processEvents();
 
+  //printf("discarding...\n");
+
   initializing = true;
 
   std::vector< gdcm::SmartPointer<MSQFileWithName> >::iterator it2;
@@ -1941,7 +1943,7 @@ void MSQDicomExplorer::fileSort(bool restore)
   mProgressDialog->setLabelText("Sorting DICOM files... Please wait");
   if (!mProgressDialog->isVisible())
     mProgressDialog->show();
-  QApplication::processEvents();
+  //QApplication::processEvents();
 
   std::vector<gdcm::Tag> const& std_tags = tags.toStdVector();
   std::vector<int> const& std_orders = orders.toStdVector();
@@ -1994,7 +1996,7 @@ void MSQDicomExplorer::fileSort(bool restore)
     }
 
     mProgressDialog->hide();
-  
+
     initializing = false;
 
     if (this->dicomTree->topLevelItemCount())
@@ -2318,6 +2320,10 @@ void MSQDicomExplorer::readDirectory(const QString& dirName)
           continue;// false;
         }
       }
+
+      // done reading
+      mProgressDialog->setValue(100);
+      mProgressDialog->hide();
 
       // now sort files with given criteria
       fileSort();

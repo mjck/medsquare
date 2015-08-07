@@ -33,12 +33,12 @@ export DYLD_LIBRARY_PATH
 echo "MedSquare is now in your path"
 echo "Key Components"
 
-which cmake
-which vtk
-which gdcminfo
-
+#which cmake
+#which vtk
+#which gdcminfo
+echo "VTK in ${VTK_DIR}"
 echo "ITK in ${ITK_DIR}"
-
+echo "GDCM in ${GDCM_DIR}"
 
 
 
