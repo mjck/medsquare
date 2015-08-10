@@ -21,9 +21,15 @@ SET (MSQDicomExplorerSrcs
   main.cxx
 )
 
+IF (USE_BIOIMAGESUITE)
+  MESSAGE(STATUS "Adding BioimageSuite libraries")
+  ADD_DEFINITIONS(-DUSE_BIOIMAGESUITE)
+ENDIF (USE_BIOIMAGESUITE)
+
 # Use the include path and library for Qt that is used by VTK.
 INCLUDE_DIRECTORIES(
   ${QT_INCLUDE_DIR}
+  ${BIOIMAGESUITE_INCLUDE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -84,6 +90,7 @@ TARGET_LINK_LIBRARIES (DicomExplorer
   vtkImaging
   vtkIO
   vtkWidgets
+  ${BIOIMAGESUITE_LIBRARIES}
 )
 
 INSTALL(TARGETS DicomExplorer

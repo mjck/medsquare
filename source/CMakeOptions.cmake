@@ -182,6 +182,17 @@ OPTION(USE_BIOIMAGESUITE
   "Use BioimageSuite Module"
   ON)
 
+IF (USE_BIOIMAGESUITE)
+  
+  SET(BIOIMAGESUITE_INCLUDE_DIR CACHE PATH "Bioimagesuite3 include directory")
+
+  INCLUDE_DIRECTORIES(/usr/local/bioimagesuite30/lib)
+  FIND_LIBRARY(BIOIMAGESUITE_LIBRARIES 
+    NAMES vtkpxCommon vtkpxRegistration
+    HINTS /usr/local/bioimagesuite30/lib)
+
+ENDIF (USE_BIOIMAGESUITE)
+
 ENABLE_TESTING()
 
 INCLUDE(CPack)

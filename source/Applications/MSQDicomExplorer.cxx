@@ -50,6 +50,8 @@
 #include "gdcmImageReader.h"
 #include "gdcmStringFilter.h"
 
+#include "vtkpxLinearRegistration.h"
+
 #include <map>
 #include <algorithm>
 #include <string>
@@ -308,6 +310,12 @@ MSQDicomExplorer::MSQDicomExplorer(QWidget* p) : QMainWindow(p)
   setCurrentFile("No source");
   setWindowTitle("DICOM Explorer");
   setUnifiedTitleAndToolBarOnMac(true);
+
+//#ifdef USE_BIOIMAGESUITE
+  //printf("including BIOIMAGESUITE!\n");
+  //vtkpxLinearRegistration *lin = vtkpxLinearRegistration::New();
+  //lin->Delete();
+//#endif
 }
 
 /***********************************************************************************//**
