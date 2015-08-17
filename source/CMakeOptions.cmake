@@ -137,7 +137,6 @@ ENDIF (VTK_WRAP_PYTHON)
 #
 # Java
 #
-
 IF (VTK_WRAP_JAVA)
 
   OPTION(MEDSQUARE_WRAP_JAVA
@@ -180,16 +179,16 @@ OPTION(MEDSQUARE_BUILD_TESTS
 
 OPTION(USE_BIOIMAGESUITE
   "Use BioimageSuite Module"
-  ON)
+  OFF)
 
+#
+# Try to find BIS and include its settings
+#
 IF (USE_BIOIMAGESUITE)
-  
-  SET(BIOIMAGESUITE_INCLUDE_DIR CACHE PATH "Bioimagesuite3 include directory")
 
-  INCLUDE_DIRECTORIES(/usr/local/bioimagesuite30/lib)
-  FIND_LIBRARY(BIOIMAGESUITE_LIBRARIES 
-    NAMES vtkpxCommon vtkpxRegistration
-    HINTS /usr/local/bioimagesuite30/lib)
+  FIND_PACKAGE(BIS)
+  
+  INCLUDE(${BIS_USE_FILE})
 
 ENDIF (USE_BIOIMAGESUITE)
 

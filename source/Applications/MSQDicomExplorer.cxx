@@ -50,7 +50,9 @@
 #include "gdcmImageReader.h"
 #include "gdcmStringFilter.h"
 
-#include "vtkpxLinearRegistration.h"
+#ifdef USE_BIOIMAGESUITE
+ #include "vtkpxLinearRegistration.h"
+#endif
 
 #include <map>
 #include <algorithm>
@@ -311,11 +313,11 @@ MSQDicomExplorer::MSQDicomExplorer(QWidget* p) : QMainWindow(p)
   setWindowTitle("DICOM Explorer");
   setUnifiedTitleAndToolBarOnMac(true);
 
-//#ifdef USE_BIOIMAGESUITE
-  //printf("including BIOIMAGESUITE!\n");
+#ifdef USE_BIOIMAGESUITE
+  printf("including BIOIMAGESUITE!\n");
   //vtkpxLinearRegistration *lin = vtkpxLinearRegistration::New();
   //lin->Delete();
-//#endif
+#endif
 }
 
 /***********************************************************************************//**
