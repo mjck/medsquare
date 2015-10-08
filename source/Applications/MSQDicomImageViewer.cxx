@@ -912,7 +912,8 @@ void MSQDicomImageViewer::updateViewer()
 
   // create blended image
   QImage resultImage(foreground.image.size(), QImage::Format_ARGB32_Premultiplied);
-  
+  resultImage.fill(qRgba(0, 0, 0, 255));
+ 
   // blend foreground and background
   QPainter painter(&resultImage);
   painter.setOpacity(background.opacity);

@@ -304,7 +304,7 @@ MSQDicomExplorer::MSQDicomExplorer(QWidget* p) : QMainWindow(p)
   this->currentColormap = 0;
 
   // set current layer/colormap/opacity
-  //this->layer = 0;
+  this->currentLayer = 0;
   this->layerColormap[0] = this->layerColormap[1] = 0;
   this->layerOpacity[0] = this->layerOpacity[1] = 0;
 
