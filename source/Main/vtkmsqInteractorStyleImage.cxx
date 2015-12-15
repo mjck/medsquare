@@ -221,7 +221,7 @@ void vtkmsqInteractorStyleImage::updateWindowLevel(vtkRenderer *pokedRenderer, i
   double dy = 4.0 * (this->WindowLevelStartPosition[1] - y) / size[1];
 
   // scale by current values
-  if (fabs(window) > 0.01)
+  if (std::abs(window) > 0.01)
   {
     dx = dx * window;
   }
@@ -229,7 +229,7 @@ void vtkmsqInteractorStyleImage::updateWindowLevel(vtkRenderer *pokedRenderer, i
   {
     dx = dx * (window < 0 ? -0.01 : 0.01);
   }
-  if (fabs(level) > 0.01)
+  if (std::abs(level) > 0.01)
   {
     dy = dy * level;
   }
