@@ -180,7 +180,7 @@ void MSQAspectRatioPixmapLabel::paintEvent(QPaintEvent * e)
         painter.setRenderHint(QPainter::Antialiasing); 
         //painter.setRenderHint(QPainter::HighQualityAntialiasing);
 
-        if (pix.width() > 0 && pix.height() > 0) {
+        if (pix.width() > 0 && pix.height() > 0 && screen.width() > 0 && screen.height() > 0) {
 
             QPen paintpen(this->highQuality ? Qt::green : Qt::red);
             QBrush paintbrush(this->highQuality ? QColor(0, 255, 0, 60) : QColor(255, 0, 0, 60), Qt::DiagCrossPattern);
@@ -227,7 +227,7 @@ void MSQAspectRatioPixmapLabel::paintEvent(QPaintEvent * e)
                         if ( this->cursorFilled )
                             painter.drawEllipse(screen);
                         else
-                            painter.drawArc(screen, 0, 359 * 16);
+                            painter.drawArc(screen, 0, 359 * 17);
                     break;
                     case 2:
                         if (this->arcLength < 360)
