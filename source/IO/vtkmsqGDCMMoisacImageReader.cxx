@@ -70,10 +70,9 @@ static void vtkmsqGDCMMoisacImageReader_reorganize_mosaic(const unsigned short *
     {
       for (unsigned int z = 0; z < outputdims[2]; ++z)
       {
-        const size_t outputidx = x + y * outputdims[0]
-            + z * outputdims[0] * outputdims[1];
+        const size_t outputidx = x + y * outputdims[0] + z * outputdims[0] * outputdims[1];
         const size_t inputidx = (x + (z % square) * outputdims[0])
-            + (y + (z / square) * outputdims[0]) * inputdims[0];
+            + (y + (z / square) * outputdims[1]) * inputdims[0]; // fixed bug 
         output[outputidx] = input[inputidx];
       }
     }
@@ -854,6 +853,7 @@ int vtkmsqGDCMMoisacImageReader::LoadSingleFile(const char *filename, char *poin
     vtkErrorMacro( "ImageReader failed: " << filename);
     return 0;
   }
+  //printf("reading %s\n",filename);
   gdcm::Image &image = reader.GetImage();
   gdcm::File &file = reader.GetFile();
   unsigned int dims[3] = { 0, 0, 0 };
