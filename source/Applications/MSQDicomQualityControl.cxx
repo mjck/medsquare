@@ -67,8 +67,9 @@ void MSQDicomQualityControl::createInterface()
 
   mMeasureBox = new QComboBox;
   mMeasureBox->addItem("Entropy");
-  mMeasureBox->addItem("Mean intensity");
-  mMeasureBox->addItem("SD of intensity");
+  mMeasureBox->addItem("SNR");
+  //mMeasureBox->addItem("Mean intensity");
+  //mMeasureBox->addItem("SD of intensity");
 
   mSelectionButton = new QCheckBox("Perform quality check on marked images only");
   mSelectionButton->setFont(font);
@@ -292,9 +293,16 @@ double MSQDicomQualityControl::calculateStat(std::string fileName, const QImage&
 
   if (type == 0)
     return entropy;
-  else if (type == 1)
-    return mean;
-  else return stdev;
+  else {
+    if (isnormal(stdev))
+      return mean / stdev;
+    else
+      return 0;
+  }
+
+    //if (type == 1)
+    //return mean;
+  //else return stdev;
   //return (type == 0) ? entropy : mean;
   //printf("entropy=%f, mean=%f\n",entropy,mean);
 

@@ -797,7 +797,7 @@ void MSQDicomImageViewer::updateInformation()
 {
   QString topleft="", topmid="", topright="";
   QString botleft="", botmid="", botright="";
-  double entrpy, mean, stdev;
+  double entrpy, mean, stdev, snr;
 
   QImage mask = mLabel->regionOfInterest();
   if ( mask.isNull() )
@@ -854,6 +854,9 @@ void MSQDicomImageViewer::updateInformation()
 
   // Entropy
   this->statistics(foreground, mask, &entrpy, &mean, &stdev);
+  if (isnormal(stdev))
+    snr = mean / stdev;
+  else snr = 0;
 
   botleft = QString("<FONT COLOR=Firebrick>Entropy: %1</FONT>").arg(entrpy);
   botleft += QString("<br>Image size: %1 x ").arg(foreground.columns);
@@ -869,8 +872,8 @@ void MSQDicomImageViewer::updateInformation()
   
   mFooter[1]->setText(botmid);
 
-  botright = QString("<FONT COLOR=RoyalBlue>Mean: %1</FONT>").arg(mean);
-  botright += QString("<br><FONT COLOR=RoyalBlue>SD: %1</FONT>").arg(stdev);
+  botright = QString("<FONT COLOR=RoyalBlue>SNR: %1</FONT>").arg(snr);
+  //botright += QString("<br><FONT COLOR=RoyalBlue>SD: %1</FONT>").arg(stdev);
 
   // slice thickness
   if ( foreground.thickness.empty() ) {
