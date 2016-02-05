@@ -74,7 +74,7 @@ void MSQDicomQualityControl::createInterface()
   mMethodBox->addItem("SNR maximization");
   mMethodBox->addItem("Entropy minimization");
   mMethodBox->addItem("SNR max / Entropy min");
-  mMethodBox->addItem("Entropy / min SNR max");
+  mMethodBox->addItem("Entropy min / SNR max");
   //mMethodBox->addItem("Mean intensity");
   //mMethodBox->addItem("SD of intensity");
 
