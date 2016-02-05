@@ -450,8 +450,10 @@ void MSQDicomImageViewer::penSizeChanged()
  */
 void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& mask, double *entropy, double *mean, double *stdev)
 {
-  int c, r, pos, total=0;
-  long hist[256];
+  short pos;
+  int c, r, total=0;
+  //long hist[256];
+  std::map<short, int> hist;
   unsigned int dimX = source.columns;
   unsigned int dimY = source.rows;
   double dimXdimY = dimX * dimY;
@@ -465,10 +467,10 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
 
   QRgb *scan = (QRgb *)mask.scanLine(0);
 
-  for(c=0;c<256;c++)
-    {
-        hist[c] = 0;
-    }
+  //for(c=0;c<256;c++)
+  //  {
+  //      hist[c] = 0;
+  //  }
 
   // Let's start with the easy case
   if( source.interpretation == gdcm::PhotometricInterpretation::RGB )
@@ -500,7 +502,7 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
     else if ( source.pixelformat == gdcm::PixelFormat::INT16 || source.pixelformat == gdcm::PixelFormat::UINT16 )
       {
         short *input = (short*)&source.vbuffer[0];
-        double scaled;
+        short scaled;
 
         for(unsigned int i = 0; i < dimY; i++) 
         {
@@ -521,9 +523,12 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
               else
                 pos = ((scaled - (source.center - 0.5)) / (source.window - 1.0) + 0.5) * 255;
 
-              hist[pos]++;
-              sum += pos;
-              sum2 += pos * pos;
+              //hist[pos]++;
+              hist[scaled]++;
+              sum += scaled;
+              sum2 += scaled * scaled;
+              //sum += pos;
+              //sum2 += pos * pos;
               total++;
             }
 
@@ -548,14 +553,19 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
     }
 
   if (total > 0) {
+
     // calculate entropy
-    for(c=0;c<256;c++)
-    {
-      if (hist[c] > 0) {
-         px = hist[c] / (double)total;
-         sumlog -= px * log(px);
+    for ( std::pair<short , int> p : hist ) {
+      double px = static_cast<double>( p.second ) / (double)total;
+      sumlog -= px * log( px );
+
+    //for(c=0;c<256;c++)
+    //{
+    //  if (hist[c] > 0) {
+    //     px = hist[c] / (double)total;
+    //     sumlog -= px * log(px);
          //total += c;
-      }
+     // }
     }
 
     *entropy = sumlog / M_LN2;

@@ -28,6 +28,76 @@
 #include "gdcmImageReader.h"
 #include "gdcmStringFilter.h"
 
+class combination {
+public:
+
+  struct comb_type {
+    std::vector<int> vec;
+    double snr;
+    double entropy;
+  };
+
+  std::vector<comb_type> list; 
+
+  void add(double snr, double entropy, std::vector<int> vec) {
+
+    comb_type item;
+    item.snr = snr;
+    item.entropy = entropy;
+    item.vec = vec;
+    list.push_back(item);
+
+  }
+
+  void print()
+  {
+    std::cout << "total: " << list.size() << std::endl;
+
+    for(int i = 0; i < list.size(); i++) {
+      for(int j = 0; j < list[i].vec.size(); j++)
+        std::cout << " " << list[i].vec[j];
+      std::cout << " // snr: " << list[i].snr << ", entropy: " << list[i].entropy << std::endl;
+    }
+
+  }
+
+  // generate all possible combinations of N items, in lengths 1 to N
+  void generate(int N) {
+
+    list.clear();
+
+    for(int k=N; k>0; k--) {
+      comb(N, k);
+    }
+  }
+
+  // generate combinations of N items of length K
+  void comb(int N, int K) {
+    
+    std::string bitmask(K, 1); // K leading 1's
+    bitmask.resize(N, 0); // N-K trailing 0's
+    std::vector<int> item;
+
+    // print integers and permute bitmask
+    do {
+
+      item.clear();
+
+      for (int i = 0; i < N; ++i) // [0..N-1] integers
+      {
+          if (bitmask[i]) {
+            //std::cout << " " << i;
+            item.push_back(i);
+          }
+      }
+      //std::cout << std::endl;
+      add(0, -1, item);
+
+    } while (std::prev_permutation(bitmask.begin(), bitmask.end()));
+  }
+
+};
+
 class MSQDicomQualityControl : public QWidget
 {
 Q_OBJECT
@@ -69,7 +139,7 @@ protected:
   //QRadioButton *mEntropyButton;
   //QRadioButton *mMeanButton;
   //QRadioButton *mSD;
-  QComboBox *mMeasureBox;
+  QComboBox *mMethodBox;
   QCheckBox *mRangeButton, *mDistButton;
   QCheckBox *mSelectionButton;
   //QCheckBox *mFilledButton;
@@ -79,8 +149,12 @@ protected:
   short equalize(short input, double window, double center);
   void fileCheckQualityRecursive(QTreeWidgetItem *item, const QImage& mask, 
     bool selection, double toppercfrom, double toppercto);
-  void statistics(gdcm::Image const & gimage, char *buffer, const QImage& mask, 
-    double window, double center, double *entropy, double *mean, double *stdev);
+  void collectFilenamesRecursive(QTreeWidgetItem *item, bool selection, std::vector<std::string>& fileNames, std::vector<QTreeWidgetItem *>& qtItems);
+  void fileCheckQualityCombinations(std::vector<std::string>& fileNames,  std::vector<QTreeWidgetItem *>& qtItems, 
+    const QImage& mask, combination& cmb, int option);
+  void statistics(gdcm::Image const & gimage, char *buffer, const QImage& mask, double *entropy, double *mean, double *stdev);
+  void calculateAverage(std::string fileName, const QImage& mask, float *output, float factor);
+  void stat_average(float *buffer, const QImage& mask, int dimX, int dimY, double *entropy, double *mean, double *stdev);
 
  };
 
