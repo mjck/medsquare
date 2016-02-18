@@ -42,6 +42,7 @@ SET(DicomExplorerSrcs ${DicomExplorerSrcs} DicomExplorer.cxx)
 # If you have .ui files put them in the next line
 SET(UIS )
 SET(MSQDicomExplorerHeaders
+  MSQBTable.h
   MSQDicomImageViewerButton.h
   MSQAspectRatioPixmapLabel.h
   MSQTagSortItem.h

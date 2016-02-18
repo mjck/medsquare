@@ -850,12 +850,14 @@ void MSQDicomExplorer::createInterface()
   QStringList headerLabels;
   headerLabels << "Name" << "Value";
   this->dicomTree = new QTreeWidget;
-  this->dicomTree->setColumnCount(4);
+  this->dicomTree->setColumnCount(6);
   this->dicomTree->setHeaderLabels(headerLabels);
   this->dicomTree->setAlternatingRowColors(true);
   // hide study and series Instance UID
   this->dicomTree->setColumnHidden(2, true);
   this->dicomTree->setColumnHidden(3, true);
+  this->dicomTree->setColumnHidden(4, true);
+  this->dicomTree->setColumnHidden(5, true);
   this->dicomTree->setSortingEnabled(false);
   //this->dicomTree->setColumnHidden(8, true);
 
@@ -1267,7 +1269,6 @@ bool MSQDicomExplorer::exportToAnalyze(const QStringList& fileNames, const QStri
   gdcm::DataSet &ds = file.GetDataSet();
   const double sliceSpacing = this->GetSliceSpacingFromDataset(ds);
 
-
   vtkStringArray *vtkFileNames = vtkStringArray::New();
 
   // convert file names
@@ -1547,11 +1548,18 @@ void MSQDicomExplorer::fileExport2DRecursive(QString preffix, QTreeWidgetItem *i
 /***********************************************************************************//**
  * 
  */
-void MSQDicomExplorer::fileExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, bool selected, long *count)
+void MSQDicomExplorer::fileExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count)
 {
   if (item->childCount() == 0) {
     if (selected || item->isSelected()) {
       fileNames.append(item->text(0));
+      if (!(item->text(4) == "None")) {
+        QStringList bvec = item->text(5).split("\\");
+        if (bvec.size() < 3)
+          btable.add(item->text(4).toDouble(), 0, 0, 0);
+        else
+          btable.add(item->text(4).toDouble(), bvec[0].toDouble(), bvec[1].toDouble(), bvec[2].toDouble());
+      }
       //printf("%ld: %s\n", *count, item->text(0).toLocal8Bit().data());
       //*count = *count + 1;
     }
@@ -1559,7 +1567,7 @@ void MSQDicomExplorer::fileExport3DRecursive(QStringList& fileNames, QTreeWidget
     if (item->isSelected())
       selected = true;
     for(int i=0; i<item->childCount(); i++) {
-        this->fileExport3DRecursive(fileNames, item->child(i), selected, count);
+        this->fileExport3DRecursive(fileNames, item->child(i), btable, selected, count);
         //printf("count=%ld\n",count);
     }
   }
@@ -1568,7 +1576,7 @@ void MSQDicomExplorer::fileExport3DRecursive(QStringList& fileNames, QTreeWidget
 /***********************************************************************************//**
  * 
  */
-void MSQDicomExplorer::fileExport4DRecursive(QStringList& fileNames, QTreeWidgetItem *item, bool selected, 
+void MSQDicomExplorer::fileExport4DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, 
   long *count, int *comp)
 {
   int total = 0;
@@ -1576,6 +1584,14 @@ void MSQDicomExplorer::fileExport4DRecursive(QStringList& fileNames, QTreeWidget
   if (item->childCount() == 0) {
     if (selected || item->isSelected()) {
       fileNames.append(item->text(0));
+      if (!(item->text(4) == "None")) {
+        QStringList bvec = item->text(5).split("\\");
+        if (bvec.size() < 3)
+          btable.add(item->text(4).toDouble(), 0, 0, 0);
+        else
+          btable.add(item->text(4).toDouble(), bvec[0].toDouble(), bvec[1].toDouble(), bvec[2].toDouble());
+      }
+      //printf("bval: %s, bvec: %s\n", item->text(4).toLocal8Bit().data(), item->text(5).toLocal8Bit().data());
       //printf("%ld: %s\n", *count, item->text(0).toLocal8Bit().data());
       *count = *count + 1;
     }
@@ -1585,7 +1601,7 @@ void MSQDicomExplorer::fileExport4DRecursive(QStringList& fileNames, QTreeWidget
     for(int i=0; i<item->childCount(); i++) {
         if (item->child(i)->childCount() != 0)
           total++;
-        this->fileExport4DRecursive(fileNames, item->child(i), selected, count, comp);
+        this->fileExport4DRecursive(fileNames, item->child(i), btable, selected, count, comp);
         //printf("count=%ld\n",*count);
     }
     // if total == 0, only simple leaves
@@ -1604,14 +1620,21 @@ void MSQDicomExplorer::fileExportAs3D()
 
   this->fileCount = 0;
   QStringList selectedNames;
+  MSQBTable bTable;
 
   if (!fileName.isEmpty())
   {
     fileExport3DRecursive(
       selectedNames,
-      this->dicomTree->invisibleRootItem(), 
+      this->dicomTree->invisibleRootItem(), bTable,
       this->dicomTree->invisibleRootItem()->isSelected(), 
       &this->fileCount);
+
+    if (!bTable.empty()) {
+      bTable.savebvals(QFileInfo(fileName).path());
+      bTable.savebvecs(QFileInfo(fileName).path());
+      bTable.savedat(fileName);
+    }
 
     // printf("files=%ld\n", this->fileCount);
 
@@ -1635,6 +1658,7 @@ void MSQDicomExplorer::fileExportAs4D()
   int components = 0;
 
   QStringList selectedNames;
+  MSQBTable bTable;
 
   //printf("Initiating scan...\n");
 
@@ -1642,9 +1666,15 @@ void MSQDicomExplorer::fileExportAs4D()
   {
     fileExport4DRecursive(
       selectedNames,
-      this->dicomTree->invisibleRootItem(), 
+      this->dicomTree->invisibleRootItem(), bTable,
       this->dicomTree->invisibleRootItem()->isSelected(), 
       &this->fileCount, &components);
+
+    if (!bTable.empty()) {
+      bTable.savebvals(QFileInfo(fileName).path());
+      bTable.savebvecs(QFileInfo(fileName).path());
+      bTable.savedat(fileName);
+    }
 
     //printf("components=%d\n",components);
 
@@ -2102,6 +2132,8 @@ void MSQDicomExplorer::addToDicomTree(std::string fileName, unsigned int index, 
   double window = 256, center = 128;
   gdcm::Tag twindowcenter(0x0028, 0x1050);
   gdcm::Tag twindowwidth(0x0028, 0x1051);
+  gdcm::Tag bvalue(0x0019, 0x100c);
+  gdcm::Tag bvec(0x0019, 0x100e);
 
   QFont font11;
   font11.setPointSize(11);
@@ -2136,6 +2168,9 @@ void MSQDicomExplorer::addToDicomTree(std::string fileName, unsigned int index, 
 
   //const gdcm::Image &image = reader.GetImage();
   const gdcm::DataSet &ds = file.GetDataSet();
+
+  std::string bvalue_str = GetStringValueFromTag(bvalue, file);
+  std::string bvec_str = GetStringValueFromTag(bvec, file);
 
   QTreeWidgetItem *topItem = dicomTree->invisibleRootItem();
   QTreeWidgetItem *temp;
@@ -2174,6 +2209,7 @@ void MSQDicomExplorer::addToDicomTree(std::string fileName, unsigned int index, 
       temp->setText(0, desc.replace(QRegExp("\\([^\\(]*\\)"), ""));
       temp->setText(1, value);
       temp->setText(2, QString("%1").arg(i));
+
       key.append(temp->text(1).replace(QRegExp("[ `~!@#$%^&*()+=|:;<>«»,?/{}\'\"\\\[\\\]\\\\]"), "_"));
       key.append(",");
       indices.append(QString("%1,").arg(topItem->indexOfChild(temp)));
@@ -2200,6 +2236,8 @@ void MSQDicomExplorer::addToDicomTree(std::string fileName, unsigned int index, 
   item->setFont(0, font11);
   item->setText(2, key.simplified());
   item->setText(3, indices.simplified());
+  item->setText(4, QString::fromStdString(bvalue_str));
+  item->setText(5, QString::fromStdString(bvec_str));
   item->setData(0, Qt::UserRole, QVariant(index));
   //item->setData(1, Qt::UserRole, QVariant(entropy));
   item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
