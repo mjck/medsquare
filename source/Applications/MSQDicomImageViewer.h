@@ -37,6 +37,8 @@ public:
     intercept = 0.0;
     window = 256;
     center = 128;
+    min = 0;
+    max = 255;
     dimensions[0] = columns = 25;
     dimensions[1] = rows = 25;
     resolution[0] = resolution[1] = 1.0;
@@ -60,6 +62,7 @@ public:
   double slope, intercept;
   double resolution[2];
   int window, center;
+  int min, max;
   int dimensions[2];
   int columns, rows;
 

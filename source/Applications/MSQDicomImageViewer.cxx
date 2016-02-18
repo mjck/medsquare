@@ -40,6 +40,8 @@
 #include "vtkTexture.h"
 #include "vtkPlaneSource.h"
 
+#include "gdcmStringFilter.h"
+
 #include "vtkmsqRectangleActor2D.h"
 #include "vtkmsqInteractorStyleImage.h"
 
@@ -980,6 +982,8 @@ void MSQDicomImageViewer::loadImage(const QString& fileName, MSQDicomImage *dest
 
   dest->window = 256;
   dest->center = 128;
+  dest->min = 0;
+  dest->max = 255;
   dest->slope = 1.0;
   dest->intercept = 0.0;
   dest->resolution[0] = spacing[0];
@@ -991,6 +995,8 @@ void MSQDicomImageViewer::loadImage(const QString& fileName, MSQDicomImage *dest
   dest->columns = dims[0];
   dest->rows = dims[1];
 
+  gdcm::Tag tsmallestvalue(0x0028, 0x0106);
+  gdcm::Tag tlargestvalue(0x0028, 0x0107);
   gdcm::Tag twindowcenter(0x0028, 0x1050);
   gdcm::Tag twindowwidth(0x0028, 0x1051);
 
@@ -1041,6 +1047,27 @@ void MSQDicomImageViewer::loadImage(const QString& fileName, MSQDicomImage *dest
     dest->slope = ::atof(srs.c_str());
   }
 
+  // smallest value and largest value
+  if( ds.FindDataElement( tsmallestvalue ) && ds.FindDataElement( tlargestvalue) )
+  {
+    const gdcm::DataElement& smallest = ds.GetDataElement( tsmallestvalue );
+    const gdcm::DataElement& largest = ds.GetDataElement( tlargestvalue );
+    gdcm::StringFilter sf1;
+    sf1.SetFile(file);
+    gdcm::StringFilter sf2;
+    sf2.SetFile(file);
+
+    if ( !smallest.IsEmpty() && !largest.IsEmpty() ) {
+
+      std::string s1 = sf1.ToString( tsmallestvalue );
+      std::string s2 = sf2.ToString( tlargestvalue );
+      dest->min = ::atoi(s1.c_str());
+      dest->max = ::atoi(s2.c_str());
+    
+    } 
+      
+  }
+
   // window and level
   if( ds.FindDataElement( twindowcenter ) && ds.FindDataElement( twindowwidth) )
   {
@@ -1075,7 +1102,13 @@ void MSQDicomImageViewer::loadImage(const QString& fileName, MSQDicomImage *dest
           //printf("*window=%f, center=%f, length=%lu\n",window,center,elwc.GetLength());
         }
     }
+  } else {
+    //dest->center = dest->min + (dest->window) / 2;
+    dest->window = (dest->max - dest->min) * 0.6;
+    dest->center = dest->window * 0.42;
   }
+
+  //printf("w: %d, c: %d, min: %d, max: %d\n", dest->window, dest->center, dest->min, dest->max);
 
   // Study and series description 
   if ( ds.FindDataElement (tstudesc) ) {

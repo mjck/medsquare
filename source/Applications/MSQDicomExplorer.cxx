@@ -858,6 +858,8 @@ void MSQDicomExplorer::createInterface()
   this->dicomTree->setColumnHidden(3, true);
   this->dicomTree->setColumnHidden(4, true);
   this->dicomTree->setColumnHidden(5, true);
+  //this->dicomTree->setColumnHidden(6, true);
+  //this->dicomTree->setColumnHidden(7, true);
   this->dicomTree->setSortingEnabled(false);
   //this->dicomTree->setColumnHidden(8, true);
 
@@ -2171,6 +2173,8 @@ void MSQDicomExplorer::addToDicomTree(std::string fileName, unsigned int index, 
 
   std::string bvalue_str = GetStringValueFromTag(bvalue, file);
   std::string bvec_str = GetStringValueFromTag(bvec, file);
+  //std::string center_str = GetStringValueFromTag(twindowcenter, file);
+  //std::string width_str = GetStringValueFromTag(twindowwidth, file);
 
   QTreeWidgetItem *topItem = dicomTree->invisibleRootItem();
   QTreeWidgetItem *temp;
@@ -2238,6 +2242,8 @@ void MSQDicomExplorer::addToDicomTree(std::string fileName, unsigned int index, 
   item->setText(3, indices.simplified());
   item->setText(4, QString::fromStdString(bvalue_str));
   item->setText(5, QString::fromStdString(bvec_str));
+  //item->setText(6, QString::fromStdString(center_str));
+  //item->setText(7, QString::fromStdString(width_str));
   item->setData(0, Qt::UserRole, QVariant(index));
   //item->setData(1, Qt::UserRole, QVariant(entropy));
   item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
