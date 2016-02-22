@@ -1,6 +1,9 @@
 #ifndef MSQDicomExplorer_H
 #define MSQDicomExplorer_H
 
+#include <iostream>
+#include <fstream>
+
 #include <QtGui>
 #include "QVTKWidget.h"
 
@@ -77,6 +80,7 @@ private slots:
   void fileExportAs2D();
   void fileExportAs3D();
   void fileExportAs4D();
+  void fileExportSelection();
   void fileSort(bool restore=false);
   //void fileCheckQuality();
   void fileRestore();
@@ -87,6 +91,7 @@ private:
   // Qt actions
   QAction *afileSource;
   QAction *afileExportAs2D;
+  QAction *afileExportSelection;
   QAction *afileExit;
   QAction *aviewHeader;
   QAction *aviewImage;
@@ -193,6 +198,9 @@ private:
   void fileExport2DRecursive(QString preffix, QTreeWidgetItem *item, bool selected, long *count);
   void fileExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count);
   void fileExport4DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count, int *comp);
+
+  void fileExportSelectionAsXML(std::ofstream& xml, QTreeWidgetItem *item, bool selected, long *count);
+  void fileExportSelectionTableAsXML(std::ofstream& xml, QTreeWidgetItem *top);
 
   void toggleItem(QTreeWidgetItem *item, bool enabled);
   int countFiles(const QString &path);//, bool countDirs=false);

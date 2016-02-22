@@ -361,6 +361,10 @@ void MSQDicomExplorer::createActions()
   exportMenu->addAction(actionExportAs3DAnalyze);
   exportMenu->addAction(actionExportAs4DAnalyze);
 
+  afileExportSelection = new QAction(tr("Export Selection..."), this);
+  afileExportSelection->setStatusTip(tr("Export selection as an XML table"));
+  connect(afileExportSelection, SIGNAL(triggered()), this, SLOT(fileExportSelection()));
+
   afileExit = new QAction(tr("E&xit"), this);
   afileExit->setShortcuts(QKeySequence::Quit);
   afileExit->setStatusTip(tr("Exit DICOM Explorer"));
@@ -426,6 +430,8 @@ void MSQDicomExplorer::createMenus()
   fileMenu->addAction(afileSource);
   fileMenu->addSeparator();
   fileMenu->addMenu(exportMenu);
+   fileMenu->addSeparator();
+  fileMenu->addAction(afileExportSelection);
   //fileMenu->addAction(afileOpen);
   //fileMenu->addAction(afileImport);
   //fileMenu->addAction(aexportSlices);
@@ -1717,6 +1723,142 @@ void MSQDicomExplorer::fileExportAs2D()
   }
   
 }
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::fileExportSelectionTableAsXML(std::ofstream& xmlfile, QTreeWidgetItem *top)
+{
+  int numCols = top->childCount();
+  int numRows = 0;
+
+  // determine maximum number of rows
+  for(int j=0; j<numCols; j++) {
+
+    if ( top->child(j)->childCount() > numRows )
+      numRows = top->child(j)->childCount();
+
+  }
+  
+  // fill in table  
+  std::vector<bool> table(numRows * numCols);
+
+  for(int j = 0; j<numCols; j++) {
+    for (int i = 0; i<top->child(j)->childCount(); i++) {
+        table[i * numCols + j] = top->child(j)->child(i)->checkState(0) == Qt::Checked;
+    } 
+  }
+  
+  QString sheetname = QString("%1 %2").arg(top->text(0)).arg(top->text(1));
+  xmlfile << "<Worksheet ss:Name=\"" << sheetname.toStdString() << "\">\n";
+
+  //xmlfile << "<Worksheet ss:Name=\"" << sheetname.toStdString() << "\">\n";
+  xmlfile << "<Table>\n";
+
+  xmlfile << "<Row>\n";
+  xmlfile << "<Cell><Data ss:Type=\"String\"> </Data></Cell>\n";
+  xmlfile << "<Cell><Data ss:Type=\"String\">b0</Data></Cell>\n";
+  for (int i = 1; i < numCols; i++)  
+    xmlfile << "<Cell><Data ss:Type=\"String\">dw" << i << "</Data></Cell>\n";
+  xmlfile << "</Row>\n";
+
+  for (int i = 0; i < numRows; i++) {
+    xmlfile << "<Row>\n";
+    xmlfile << "<Cell><Data ss:Type=\"String\">av" << i << "</Data></Cell>\n";
+    for(int j = 0; j < numCols; j++) {
+      xmlfile << "<Cell><Data ss:Type=\"String\">" << (table[i * numCols + j] ? " " : "r") << "</Data></Cell>\n";
+    }
+    xmlfile << "</Row>\n";
+  }
+
+  xmlfile << "</Table>\n";
+  xmlfile << "</Worksheet>\n";
+
+  // print table
+  //std::cout << "\tb0";
+  //for (int i = 1; i < numCols; i++)  
+  //  std::cout << "\tdw" << i;
+  //std::cout << std::endl;
+  //for (int i = 0; i < numRows; i++) {
+  //  std::cout << "av" << i;
+  //  for(int j = 0; j < numCols; j++) {
+  //    cout << "\t" << (table[i * numCols + j] ? " " : "r");
+  //  }
+   // std::cout << std::endl;
+  //}
+
+    //printf("row %d: cols: %d\n", i, numCols);
+
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::fileExportSelectionAsXML(std::ofstream& xmlfile, QTreeWidgetItem *item, bool selected, long *count)
+{
+  if (item->isSelected()) {
+
+      // verify if you can save it as a table
+      if (item->childCount() > 0) {
+          QTreeWidgetItem *temp1 = item->child(0);
+          if (temp1->childCount() > 0) {
+              QTreeWidgetItem *temp2  = temp1->child(0);
+              if (temp2->childCount() == 0) {
+                  fileExportSelectionTableAsXML(xmlfile, item);
+              } else {
+                  // multiple slices
+                  if (temp2->child(0)->childCount() == 0) {
+                      for(int i=0; i<item->childCount(); i++) {
+                        fileExportSelectionTableAsXML(xmlfile, item->child(i));
+                      }
+                  }
+              }
+          }
+      }
+
+  } else {
+ 
+    for(int i=0; i<item->childCount(); i++) {
+      this->fileExportSelectionAsXML(xmlfile, item->child(i), selected, count);
+    }
+
+  }
+
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::fileExportSelection()
+{
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Export selection as XML file"),
+       currentFileName, tr("XML (*.xml)"));
+
+  this->fileCount = 0;
+
+  // In case a file was chosen try saving it
+  if (!fileName.isEmpty())
+  {
+    ofstream xmlfile;
+
+    xmlfile.open(fileName.toStdString());
+    xmlfile << "<?xml version=\"1.0\"?>\n";
+    xmlfile << "<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\">\n";
+
+    fileExportSelectionAsXML(
+      xmlfile,
+      this->dicomTree->invisibleRootItem(), 
+      this->dicomTree->invisibleRootItem()->isSelected(), 
+      &this->fileCount);
+
+    // write appendix
+    xmlfile << "</Workbook>\n";
+    xmlfile.close();
+  }
+  
+  //printf ("%s\n", fileName.toLocal8Bit().data());
+}
+
 
 /***********************************************************************************//**
  * 
