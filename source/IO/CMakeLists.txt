@@ -5,6 +5,7 @@
 #
 
 SET (IO_SRCS
+  MSQXMLParser.cxx
   MSQPListParser.cxx
   MSQPListSerializer.cxx
   vtkmsqMedicalImageProperties.cxx

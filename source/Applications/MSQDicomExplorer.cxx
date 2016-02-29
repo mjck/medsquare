@@ -32,6 +32,7 @@
 #include "MSQDicomImageSorter.h"
 
 #include "MSQTagSortItem.h"
+#include "MSQXMLParser.h"
 
 #include "vtkMath.h"
 #include "vtkSmartPointer.h"
@@ -361,7 +362,13 @@ void MSQDicomExplorer::createActions()
   exportMenu->addAction(actionExportAs3DAnalyze);
   exportMenu->addAction(actionExportAs4DAnalyze);
 
+  afileImportSelection = new QAction(tr("Import Selection..."), this);
+  afileImportSelection->setEnabled(false);
+  afileImportSelection->setStatusTip(tr("Import selection from XML table"));
+  connect(afileImportSelection, SIGNAL(triggered()), this, SLOT(fileImportSelection()));
+
   afileExportSelection = new QAction(tr("Export Selection..."), this);
+  afileExportSelection->setEnabled(false);
   afileExportSelection->setStatusTip(tr("Export selection as an XML table"));
   connect(afileExportSelection, SIGNAL(triggered()), this, SLOT(fileExportSelection()));
 
@@ -430,7 +437,8 @@ void MSQDicomExplorer::createMenus()
   fileMenu->addAction(afileSource);
   fileMenu->addSeparator();
   fileMenu->addMenu(exportMenu);
-   fileMenu->addSeparator();
+  fileMenu->addSeparator();
+  fileMenu->addAction(afileImportSelection);
   fileMenu->addAction(afileExportSelection);
   //fileMenu->addAction(afileOpen);
   //fileMenu->addAction(afileImport);
@@ -779,6 +787,8 @@ void MSQDicomExplorer::dicomSelectionChanged()
     //mExportButton->setEnabled(true);
     exportMenu->setEnabled(true);
     aeditCopyTo->setEnabled(true);
+    afileExportSelection->setEnabled(true);
+    afileImportSelection->setEnabled(true);
 
   } else {
 
@@ -786,6 +796,8 @@ void MSQDicomExplorer::dicomSelectionChanged()
     //mExportButton->setEnabled(false);
     exportMenu->setEnabled(false);
     aeditCopyTo->setEnabled(false);
+    afileExportSelection->setEnabled(false);
+    afileImportSelection->setEnabled(false);
 
   }
 
@@ -1859,6 +1871,130 @@ void MSQDicomExplorer::fileExportSelection()
   //printf ("%s\n", fileName.toLocal8Bit().data());
 }
 
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::fileImportSelectionTableAsXML(QVariantMap& map, QTreeWidgetItem *top, int index)
+{
+  int numCols = top->childCount();
+  int numRows = 0;
+
+  // determine maximum number of rows
+  for(int j=0; j<numCols; j++) {
+    if ( top->child(j)->childCount() > numRows )
+      numRows = top->child(j)->childCount();
+  }
+
+  //std::cout << "Number of sheets: " << map.size() << "\n"; 
+
+  QString sheetKey = QString("Sheet %1").arg(index);
+  QVariantMap rows = map[sheetKey].value<QVariantMap>();
+
+  QString firstRowKey = QString("Row 1");
+  QVariantMap colsFirstRow =  rows[firstRowKey].value<QVariantMap>();
+
+  //std::cout << "Number of rows" << rows.size() << std::endl;
+
+  for(int i = 0; i < top->childCount(); i++)
+    for(int j = 0; j < top->child(i)->childCount(); j++)
+      top->child(i)->child(j)->setCheckState(0, Qt::Checked);
+
+  if (colsFirstRow.size() - 1 != top->childCount()) {
+    std::cout << "Number of rows in the table do match criteria" << std::endl;
+    return;
+  }
+
+  for(int j = 1; j < rows.size(); j++) {
+
+    QString rowKey = QString("Row %1").arg(j+1);
+    QVariantMap cols = rows[rowKey].value<QVariantMap>();
+
+    //for(int k = 0; k < cols.size(); k++) {
+    //std::cout << "examining row " << j+1 << std::endl;
+
+      QVariantMap::const_iterator k = cols.constBegin();
+
+      while (k != cols.constEnd()) {
+        if (k.value().toString().isEmpty() || k.value().toString() == "r") {
+          top->child(k.key().toInt()-2)->child(j-1)->setCheckState(0, 
+            k.value().toString() == "r" ? Qt::Unchecked : Qt::Checked);
+        }
+        k++;
+    }
+  }
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::fileImportSelectionAsXML(QVariantMap& map, QTreeWidgetItem *item, bool selected, long *count)
+{
+  if (item->isSelected()) {
+
+      // verify if you can save it as a table
+      if (item->childCount() > 0) {
+          QTreeWidgetItem *temp1 = item->child(0);
+          if (temp1->childCount() > 0) {
+              QTreeWidgetItem *temp2  = temp1->child(0);
+              if (temp2->childCount() == 0) {
+                  fileImportSelectionTableAsXML(map, item, 1);
+              } else {
+                  // multiple slices
+                  if (temp2->child(0)->childCount() == 0) {
+                      for(int i=0; i<item->childCount(); i++) {
+                        fileImportSelectionTableAsXML(map, item->child(i), i+1);
+                      }
+                  }
+              }
+          }
+      }
+
+  } else {
+ 
+    for(int i=0; i<item->childCount(); i++) {
+      this->fileImportSelectionAsXML(map, item->child(i), selected, count);
+    }
+
+  }
+
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::fileImportSelection()
+{
+  QString fileName = QFileDialog::getOpenFileName(this, tr("Import selection as XML file"),
+       currentFileName, tr("XML (*.xml)"));
+
+  this->fileCount = 0;
+
+  if (!fileName.isEmpty())
+  {
+
+    QFile file(fileName);
+    if (file.open(QFile::ReadOnly | QFile::Text)) {
+     
+      QXmlStreamReader xmlReader;
+      xmlReader.setDevice(&file);
+
+      QVariantMap results = MSQXMLParser::parseXML(&file);//.toMap();
+
+      fileImportSelectionAsXML(
+      results,
+      this->dicomTree->invisibleRootItem(), 
+      this->dicomTree->invisibleRootItem()->isSelected(), 
+      &this->fileCount);
+
+      //std::cout << "Number of sheets: " << results.size() << "\n"; 
+    }
+    
+    file.close();
+
+  }
+
+  //printf ("%s\n", fileName.toLocal8Bit().data());
+}
 
 /***********************************************************************************//**
  * 

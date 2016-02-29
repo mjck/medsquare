@@ -80,6 +80,7 @@ private slots:
   void fileExportAs2D();
   void fileExportAs3D();
   void fileExportAs4D();
+  void fileImportSelection();
   void fileExportSelection();
   void fileSort(bool restore=false);
   //void fileCheckQuality();
@@ -91,6 +92,7 @@ private:
   // Qt actions
   QAction *afileSource;
   QAction *afileExportAs2D;
+  QAction *afileImportSelection;
   QAction *afileExportSelection;
   QAction *afileExit;
   QAction *aviewHeader;
@@ -199,6 +201,8 @@ private:
   void fileExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count);
   void fileExport4DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count, int *comp);
 
+  void fileImportSelectionAsXML(QVariantMap& map, QTreeWidgetItem *item, bool selected, long *count);
+  void fileImportSelectionTableAsXML(QVariantMap& map, QTreeWidgetItem *top, int index);
   void fileExportSelectionAsXML(std::ofstream& xml, QTreeWidgetItem *item, bool selected, long *count);
   void fileExportSelectionTableAsXML(std::ofstream& xml, QTreeWidgetItem *top);
 
