@@ -201,6 +201,7 @@ private:
   void fileExportToAnalyze(QString preffix, QTreeWidgetItem *item, long count);
   void fileExport2DRecursive(QString preffix, QTreeWidgetItem *item, bool selected, long *count);
   void fileExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count);
+  void fileAverageAndExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count);
   void fileExport4DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count, int *comp);
 
   void fileImportSelectionAsXML(QVariantMap& map, QTreeWidgetItem *item, bool selected, long *count);

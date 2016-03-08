@@ -1676,6 +1676,34 @@ void MSQDicomExplorer::fileExport2DRecursive(QString preffix, QTreeWidgetItem *i
 /***********************************************************************************//**
  * 
  */
+void MSQDicomExplorer::fileAverageAndExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count)
+{
+  if (item->childCount() == 0) {
+    if (selected && item->isSelected()) {
+      fileNames.append(item->text(0));
+      if (!(item->text(4) == "None")) {
+        QStringList bvec = item->text(5).split("\\");
+        if (bvec.size() < 3)
+          btable.add(item->text(4).toDouble(), 0, 0, 0);
+        else
+          btable.add(item->text(4).toDouble(), bvec[0].toDouble(), bvec[1].toDouble(), bvec[2].toDouble());
+      }
+      //printf("%ld: %s\n", *count, item->text(0).toLocal8Bit().data());
+      //*count = *count + 1;
+    }
+  } else {
+    if (item->isSelected())
+      selected = true;
+    for(int i=0; i<item->childCount(); i++) {
+        this->fileAverageAndExport3DRecursive(fileNames, item->child(i), btable, selected, count);
+        //printf("count=%ld\n",count);
+    }
+  }
+}
+
+/***********************************************************************************//**
+ * 
+ */
 void MSQDicomExplorer::fileExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count)
 {
   if (item->childCount() == 0) {
@@ -1858,7 +1886,7 @@ void MSQDicomExplorer::fileAverageAndExportSelection()
 
   if (!fileName.isEmpty())
   {
-    fileExport3DRecursive(
+    fileAverageAndExport3DRecursive(
       selectedNames,
       this->dicomTree->invisibleRootItem(), bTable,
       this->dicomTree->invisibleRootItem()->isSelected(), 
