@@ -93,14 +93,14 @@ int vtkmsqImageAverage::RequestData(vtkInformation *vtkNotUsed(request),
                                          vtkInformationVector *outputVector)
 {
 
-  printf("1) so far so good... ports = %d\n",this->GetNumberOfInputPorts());
-  printf("1.5) so far so good... connections = %d\n",this->GetNumberOfInputConnections(0));
+  //printf("1) so far so good... ports = %d\n",this->GetNumberOfInputPorts());
+  //printf("1.5) so far so good... connections = %d\n",this->GetNumberOfInputConnections(0));
 
   // Get the info objects
   //vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
  
-  printf("2) so far so good... ports = %d\n",this->GetNumberOfInputPorts());
+  //printf("2) so far so good... ports = %d\n",this->GetNumberOfInputPorts());
 
   // Get the input and ouptut
   std::vector<vtkImageData *> inputs;
@@ -121,7 +121,7 @@ int vtkmsqImageAverage::RequestData(vtkInformation *vtkNotUsed(request),
   inputs[0]->GetExtent(extent);
   int nc=inputs[0]->GetNumberOfScalarComponents();
 
-  printf("number of components=%d\n", nc);
+  //printf("number of components=%d\n", nc);
   //printf("%d %d %d %d %d %d\n",extent[0],extent[1],extent[2],extent[3],extent[4],extent[5]);
 
   output->SetNumberOfScalarComponents(nc);
@@ -135,7 +135,7 @@ int vtkmsqImageAverage::RequestData(vtkInformation *vtkNotUsed(request),
 
   output->AllocateScalars();
   
-  printf("3) out here = %d\n",this->GetNumberOfInputPorts());
+  //printf("3) out here = %d\n",this->GetNumberOfInputPorts());
 
   this->SimpleExecute(inputs, output);
  
@@ -184,17 +184,6 @@ void vtkmsqImageAverage::SimpleExecute(std::vector<vtkImageData *> inputs, vtkIm
   int numframes = inputs[0]->GetNumberOfScalarComponents();
   
   vtkDebugMacro(<< "Averaging Frames\n" <<  "Dimensions " << dim[0] <<","<< dim[1] <<","<< dim[2] << "\n");
-  
-  /*vtkStructuredPoints* output=this->GetOutput();
-    output->SetSpacing(this->GetInput(0)->GetSpacing());
-    output->SetOrigin(this->GetInput(0)->GetOrigin());
-    output->SetScalarType(VTK_FLOAT);
-    output->SetNumberOfScalarComponents(numframes);
-    output->SetDimensions(dim[0],dim[1],dim[2]);
-    output->SetWholeExtent(0,dim[0]-1,0,dim[1]-1,0,dim[2]-1);
-    output->AllocateScalars();*/
-
-  printf("here!\n");
 
   vtkDataArray* out=output->GetPointData()->GetScalars();
 
@@ -233,7 +222,6 @@ void vtkmsqImageAverage::SimpleExecute(std::vector<vtkImageData *> inputs, vtkIm
       	    count=0;
       	  }
       }
-   printf("done!\n");
 
   this->UpdateProgress(1.0);
 }

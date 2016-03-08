@@ -38,6 +38,7 @@
 #include "vtkSmartPointer.h"
 #include "vtkStringArray.h"
 #include "vtkImageChangeInformation.h"
+#include "vtkImageAppend.h"
 #include "vtkmsqMedicalImageProperties.h"
 #include "vtkmsqGDCMMoisacImageReader.h"
 #include "vtkmsqImageInterleaving.h"
@@ -1277,7 +1278,8 @@ int MSQDicomExplorer::GetDominantOrientation(const double *dircos)
 /***********************************************************************************//**
  * Average and export DICOM
  */
-bool MSQDicomExplorer::averageAndExportToAnalyze(const QStringList& fileNames, const QString& fileNameAnalyze, int components)
+bool MSQDicomExplorer::averageAndExportToAnalyze(const QStringList& fileNames, const QString& fileNameAnalyze, 
+  std::vector<int>& labels, int components)
 {
   // instantiate DICOM readers
   vtkSmartPointer<vtkmsqGDCMMoisacImageReader> imageReader = vtkSmartPointer<
@@ -1305,40 +1307,49 @@ bool MSQDicomExplorer::averageAndExportToAnalyze(const QStringList& fileNames, c
     vtkFileNames->InsertNextValue(file.toLocal8Bit().constData());
   }
 
-  vtkmsqImageAverage *average = vtkmsqImageAverage::New();
-
-  printf("Number of inputs %d\n",fileNames.size());
-
-  // read first
   imageReader->SetFileName(vtkFileNames->GetValue(0));
   imageReader->Update();
-
-  vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
-  image->DeepCopy(imageReader->GetOutput());
-  average->AddInput(image);
-
-  printf("Adding input 0\n");
-
   const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
 
-  for(int i=1; i<fileNames.size(); i++) {
+  vtkSmartPointer<vtkImageAppend> append = vtkSmartPointer<vtkImageAppend>::New();
+  append->SetAppendAxis(2);
 
-    vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+  // average images of the same component
+  int i = 0;
+  for(int k=0; k<components; k++) {
 
-    imageReader->SetFileName(vtkFileNames->GetValue(i));
-    imageReader->Update();
-    image->DeepCopy(imageReader->GetOutput());
+    vtkSmartPointer<vtkmsqImageAverage> average = vtkSmartPointer<vtkmsqImageAverage>::New();
+ 
+    while(labels[i] == k) {
 
-    average->AddInput(image);
-    printf("Adding input %d\n",i);
+      // read image
+      imageReader->SetFileName(vtkFileNames->GetValue(i));
+      imageReader->Update();
+
+      vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+      image->DeepCopy(imageReader->GetOutput());
+      average->AddInput(image);
+
+      //printf("Adding input %d with component %d\n",i,k);
+
+      i++;
+
+    }
+
+    //printf("averaging...\n");
+    average->Update();
+
+    // Add to append
+    append->SetInput(k, average->GetOutput());
+   
   }
 
-  printf("averaging...\n");
-  average->Update();
+  // append all components
+  append->Update();
 
   vtkSmartPointer<vtkImageChangeInformation> newInfo = vtkSmartPointer<
       vtkImageChangeInformation>::New();
-  newInfo->SetInput(average->GetOutput());
+  newInfo->SetInput(append->GetOutput());
   newInfo->SetOutputSpacing(spacing[0], spacing[1], sliceSpacing);
   newInfo->Update();
 
@@ -1363,12 +1374,13 @@ bool MSQDicomExplorer::averageAndExportToAnalyze(const QStringList& fileNames, c
   // write out Analyze image
   imageWriter->SetFileName(fileNameAnalyze.toLocal8Bit().constData());
   //imageWriter->SetInput(newImage);
-  imageWriter->SetInput(average->GetOutput());
+  imageWriter->SetInput(append->GetOutput());
   imageWriter->SetMedicalImageProperties(newProperties);
   imageWriter->SetCompression(0);
   imageWriter->Write();
 
-  average->Delete();
+  //average->Delete();
+  //append->Delete();
   vtkFileNames->Delete();
   newProperties->Delete();
 
@@ -1676,11 +1688,15 @@ void MSQDicomExplorer::fileExport2DRecursive(QString preffix, QTreeWidgetItem *i
 /***********************************************************************************//**
  * 
  */
-void MSQDicomExplorer::fileAverageAndExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count)
+void MSQDicomExplorer::fileAverageAndExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, 
+  MSQBTable& btable, bool selected, long *count, std::vector<int>& labels, int *comp)
 {
+  int total = 0;
+
   if (item->childCount() == 0) {
-    if (selected && item->isSelected()) {
+    if ((selected || item->isSelected()) && item->checkState(0) == Qt::Checked) {
       fileNames.append(item->text(0));
+      labels.push_back(*comp);
       if (!(item->text(4) == "None")) {
         QStringList bvec = item->text(5).split("\\");
         if (bvec.size() < 3)
@@ -1689,16 +1705,23 @@ void MSQDicomExplorer::fileAverageAndExport3DRecursive(QStringList& fileNames, Q
           btable.add(item->text(4).toDouble(), bvec[0].toDouble(), bvec[1].toDouble(), bvec[2].toDouble());
       }
       //printf("%ld: %s\n", *count, item->text(0).toLocal8Bit().data());
-      //*count = *count + 1;
+      *count = *count + 1;
+      //printf("%ld\n", *count);
     }
   } else {
     if (item->isSelected())
       selected = true;
     for(int i=0; i<item->childCount(); i++) {
-        this->fileAverageAndExport3DRecursive(fileNames, item->child(i), btable, selected, count);
-        //printf("count=%ld\n",count);
+        if (item->child(i)->childCount() != 0)
+          total++;
+        this->fileAverageAndExport3DRecursive(fileNames, item->child(i), btable, selected, count, labels, comp);
+        //printf("count=%ld\n",*count);
     }
+    // if total == 0, only simple leaves
+    if (total == 0 && selected)
+      *comp = *comp + 1;
   }
+
 }
 
 /***********************************************************************************//**
@@ -1880,8 +1903,10 @@ void MSQDicomExplorer::fileAverageAndExportSelection()
   QString fileName = QFileDialog::getSaveFileName(this, tr("Average Selected and Export as 3D Analyze file"),
       currentFileName, tr("Analyze (*.hdr *.img)"), &currentFilter);
 
+  int components = 0;
   this->fileCount = 0;
   QStringList selectedNames;
+  std::vector<int> labels;
   MSQBTable bTable;
 
   if (!fileName.isEmpty())
@@ -1890,7 +1915,9 @@ void MSQDicomExplorer::fileAverageAndExportSelection()
       selectedNames,
       this->dicomTree->invisibleRootItem(), bTable,
       this->dicomTree->invisibleRootItem()->isSelected(), 
-      &this->fileCount);
+      &this->fileCount, labels, &components);
+
+    //printf("filecount=%d\n",this->fileCount);
 
     //if (!bTable.empty()) {
     //  bTable.savebvals(QFileInfo(fileName).path());
@@ -1898,10 +1925,15 @@ void MSQDicomExplorer::fileAverageAndExportSelection()
     //  bTable.savedat(fileName);
    // }
 
+    for (int i=0;i<labels.size();i++)
+      printf("comp=%d\n",labels[i]);
+
     // printf("files=%ld\n", this->fileCount);
+    printf("numcomp=%d\n",components);
 
     // do appropriate export
-    this->averageAndExportToAnalyze(selectedNames, fileName);
+    if (this->fileCount > 0)
+      this->averageAndExportToAnalyze(selectedNames, fileName, labels, components);
   }
 }
 
