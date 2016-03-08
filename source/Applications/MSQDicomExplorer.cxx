@@ -1925,11 +1925,11 @@ void MSQDicomExplorer::fileAverageAndExportSelection()
     //  bTable.savedat(fileName);
    // }
 
-    for (int i=0;i<labels.size();i++)
-      printf("comp=%d\n",labels[i]);
+    //for (int i=0;i<labels.size();i++)
+    //  printf("comp=%d\n",labels[i]);
 
     // printf("files=%ld\n", this->fileCount);
-    printf("numcomp=%d\n",components);
+    //printf("numcomp=%d\n",components);
 
     // do appropriate export
     if (this->fileCount > 0)
