@@ -80,6 +80,7 @@ private slots:
   void fileExportAs2D();
   void fileExportAs3D();
   void fileExportAs4D();
+  void fileAverageAndExportSelection();
   void fileImportSelection();
   void fileExportSelection();
   void fileSort(bool restore=false);
@@ -195,6 +196,7 @@ private:
 
   bool exportToAnalyze(const QString& fileName, const QString& fileNameAnalyze);
   bool exportToAnalyze(const QStringList& fileNames, const QString& fileNameAnalyze, int components=1);
+  bool averageAndExportToAnalyze(const QStringList& fileNames, const QString& fileNameAnalyze, int components=1);
 
   void fileExportToAnalyze(QString preffix, QTreeWidgetItem *item, long count);
   void fileExport2DRecursive(QString preffix, QTreeWidgetItem *item, bool selected, long *count);

@@ -41,6 +41,7 @@
 #include "vtkmsqMedicalImageProperties.h"
 #include "vtkmsqGDCMMoisacImageReader.h"
 #include "vtkmsqImageInterleaving.h"
+#include "vtkmsqImageAverage.h"
 #include "vtkmsqAnalyzeWriter.h"  
 
 #include "gdcmSorter.h"
@@ -355,12 +356,18 @@ void MSQDicomExplorer::createActions()
   QObject::connect(actionExportAs3DAnalyze, SIGNAL(triggered()), this, SLOT(fileExportAs3D()));
   QAction *actionExportAs4DAnalyze = new QAction(tr("Single Analyze 4D..."), this);
   QObject::connect(actionExportAs4DAnalyze, SIGNAL(triggered()), this, SLOT(fileExportAs4D()));
+
+  QAction *actionAverageAndExportSelection = new QAction(tr("Average Analyze..."), this);
+  QObject::connect(actionAverageAndExportSelection, SIGNAL(triggered()), this, SLOT(fileAverageAndExportSelection()));
+
   exportMenu->addAction(aoptionsSaveValues);
   exportMenu->addSeparator();
   exportMenu->addAction(actionExportAs2DAnalyze);
   exportMenu->addSeparator();
   exportMenu->addAction(actionExportAs3DAnalyze);
   exportMenu->addAction(actionExportAs4DAnalyze);
+  exportMenu->addSeparator();
+  exportMenu->addAction(actionAverageAndExportSelection);
 
   afileImportSelection = new QAction(tr("Import Selection..."), this);
   afileImportSelection->setEnabled(false);
@@ -1268,6 +1275,107 @@ int MSQDicomExplorer::GetDominantOrientation(const double *dircos)
 }
 
 /***********************************************************************************//**
+ * Average and export DICOM
+ */
+bool MSQDicomExplorer::averageAndExportToAnalyze(const QStringList& fileNames, const QString& fileNameAnalyze, int components)
+{
+  // instantiate DICOM readers
+  vtkSmartPointer<vtkmsqGDCMMoisacImageReader> imageReader = vtkSmartPointer<
+      vtkmsqGDCMMoisacImageReader>::New();
+
+  // assume uniform thickness, given in first slice
+  gdcm::ImageReader reader;
+  reader.SetFileName(fileNames.at(0).toLocal8Bit().constData());
+  if (!reader.Read())
+  {
+    printf("Could not open %s for reading!", fileNames.at(0).toLocal8Bit().constData());
+    //vtkErrorMacro( "ImageReader failed: " << filename);
+    return 0;
+  }
+
+  gdcm::File &file = reader.GetFile();
+  gdcm::DataSet &ds = file.GetDataSet();
+  const double sliceSpacing = this->GetSliceSpacingFromDataset(ds);
+
+  vtkStringArray *vtkFileNames = vtkStringArray::New();
+  
+  // convert file names
+  foreach(QString file, fileNames)
+  {
+    vtkFileNames->InsertNextValue(file.toLocal8Bit().constData());
+  }
+
+  vtkmsqImageAverage *average = vtkmsqImageAverage::New();
+
+  printf("Number of inputs %d\n",fileNames.size());
+
+  // read first
+  imageReader->SetFileName(vtkFileNames->GetValue(0));
+  imageReader->Update();
+
+  vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+  image->DeepCopy(imageReader->GetOutput());
+  average->AddInput(image);
+
+  printf("Adding input 0\n");
+
+  const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+
+  for(int i=1; i<fileNames.size(); i++) {
+
+    vtkSmartPointer<vtkImageData> image = vtkSmartPointer<vtkImageData>::New();
+
+    imageReader->SetFileName(vtkFileNames->GetValue(i));
+    imageReader->Update();
+    image->DeepCopy(imageReader->GetOutput());
+
+    average->AddInput(image);
+    printf("Adding input %d\n",i);
+  }
+
+  printf("averaging...\n");
+  average->Update();
+
+  vtkSmartPointer<vtkImageChangeInformation> newInfo = vtkSmartPointer<
+      vtkImageChangeInformation>::New();
+  newInfo->SetInput(average->GetOutput());
+  newInfo->SetOutputSpacing(spacing[0], spacing[1], sliceSpacing);
+  newInfo->Update();
+
+ // update properties
+  vtkmsqMedicalImageProperties *newProperties = vtkmsqMedicalImageProperties::New();
+  newProperties->DeepCopy(imageReader->GetMedicalImageProperties());
+
+  // update orientation
+  newProperties->SetOrientationType(
+      this->GetDominantOrientation(newProperties->GetDirectionCosine()));
+
+  // instantiate Analyze Writer
+  vtkSmartPointer<vtkmsqAnalyzeWriter> imageWriter =
+      vtkSmartPointer<vtkmsqAnalyzeWriter>::New();
+
+  // can we actually write the file ?
+  if (imageWriter->CanWriteFile(fileNameAnalyze.toLocal8Bit().constData()) == 0)
+  {
+    return false;
+  }
+
+  // write out Analyze image
+  imageWriter->SetFileName(fileNameAnalyze.toLocal8Bit().constData());
+  //imageWriter->SetInput(newImage);
+  imageWriter->SetInput(average->GetOutput());
+  imageWriter->SetMedicalImageProperties(newProperties);
+  imageWriter->SetCompression(0);
+  imageWriter->Write();
+
+  average->Delete();
+  vtkFileNames->Delete();
+  newProperties->Delete();
+
+  return true;
+}
+
+/***********************************************************************************//**
  * Export DICOM
  */
 bool MSQDicomExplorer::exportToAnalyze(const QStringList& fileNames, const QString& fileNameAnalyze, int components)
@@ -1734,6 +1842,39 @@ void MSQDicomExplorer::fileExportAs2D()
       &this->fileCount);
   }
   
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomExplorer::fileAverageAndExportSelection()
+{
+  QString fileName = QFileDialog::getSaveFileName(this, tr("Average Selected and Export as 3D Analyze file"),
+      currentFileName, tr("Analyze (*.hdr *.img)"), &currentFilter);
+
+  this->fileCount = 0;
+  QStringList selectedNames;
+  MSQBTable bTable;
+
+  if (!fileName.isEmpty())
+  {
+    fileExport3DRecursive(
+      selectedNames,
+      this->dicomTree->invisibleRootItem(), bTable,
+      this->dicomTree->invisibleRootItem()->isSelected(), 
+      &this->fileCount);
+
+    //if (!bTable.empty()) {
+    //  bTable.savebvals(QFileInfo(fileName).path());
+    //  bTable.savebvecs(QFileInfo(fileName).path());
+    //  bTable.savedat(fileName);
+   // }
+
+    // printf("files=%ld\n", this->fileCount);
+
+    // do appropriate export
+    this->averageAndExportToAnalyze(selectedNames, fileName);
+  }
 }
 
 /***********************************************************************************//**
