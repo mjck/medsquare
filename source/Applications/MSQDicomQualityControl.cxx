@@ -435,7 +435,7 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
       }  
     }
 
-    cout <<  "selected ==> snr: " << max_snr << std::endl;
+    cout <<  "selected " << index << " ==> snr: " << max_snr << std::endl;
 
   } else if (option == 3) {
 
@@ -448,7 +448,7 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
       }  
     }
 
-    cout <<  "selected ==> entropy: " << min_entropy << std::endl;
+    cout <<  "selected " << index << " ==> entropy: " << min_entropy << std::endl;
 
   } else if (option == 4) {
  
@@ -613,7 +613,7 @@ inline short MSQDicomQualityControl::equalize(short input, double window, double
 /***********************************************************************************//**
  * 
  */
-void MSQDicomQualityControl::calculateAverage(std::string fileName, const QImage& mask, float *output, float factor)
+void MSQDicomQualityControl::calculateAverage(std::string fileName, const QImage& mask, float *output,float factor)
 {
   double window = 256, center = 128;
   gdcm::Tag twindowcenter(0x0028, 0x1050);
@@ -676,8 +676,8 @@ void MSQDicomQualityControl::calculateAverage(std::string fileName, const QImage
   char *buffer = &vbuffer[0];
   gimage.GetBuffer(buffer);
 
-  double intercept = gimage.GetIntercept();
-  double slope = gimage.GetSlope();
+  //double intercept = gimage.GetIntercept();
+  //double slope = gimage.GetSlope();
 
   const unsigned int* dimension = gimage.GetDimensions();
 
@@ -727,7 +727,8 @@ void MSQDicomQualityControl::calculateAverage(std::string fileName, const QImage
           r = qRed(scan[i]);
           if (r > 0) {
             //cout << "before: " << output[i];
-            output[i] = output[i] + factor * (input[i] * slope + intercept);
+            //output[i] = output[i] + factor * (input[i] * slope + intercept);
+            output[i] = output[i] + factor * buffer[i];
             //cout << " after: " << output[i] << std::endl;
           }
           //}
@@ -751,11 +752,11 @@ void MSQDicomQualityControl::calculateAverage(std::string fileName, const QImage
 void MSQDicomQualityControl::stat_average(float *buffer, const QImage& mask, int dimX, int dimY, double *entropy, double *mean, double *stdev)
 {
   //const unsigned int* dimension = gimage.GetDimensions();
-  std::map<short, int> hist;
-
+  //std::map<short, int> hist;
+  short pos;
   int c, r, total=0;
-  //long hist[256];
-  short input;
+  long hist[256];
+  //short input;
   //unsigned int dimX = dimension[0];
   //unsigned int dimY = dimension[1];
   //double dimXdimY = (dimX / 3) * (dimY / 3);
@@ -770,25 +771,53 @@ void MSQDicomQualityControl::stat_average(float *buffer, const QImage& mask, int
   *mean = 0;
   *stdev = 0;
 
-  //for(c=0;c<256;c++)
-  //  {
-  //      hist[c] = 0;
-  //  }
+  for(c=0;c<256;c++)
+    {
+        hist[c] = 0;
+    }
   
+  // get min max
+  short min = 32767;
+  short max = -32768;
+  float weight = 0;
+  float *input = buffer;
+  for(unsigned int i = 0; i < dimY; i++) 
+  {
+    scan = (QRgb*)mask.scanLine(i);
+    for(unsigned int j = 0; j < dimX; j++)
+    {
+      r = qRed(scan[j]);  
+      if (r > 0) {
+        short pos = (short)round(*input);
+        if (pos < min)
+          min = pos;
+        if (pos > max)
+          max = pos;
+      }
+      input++;
+    }
+  }
+
+  weight = 255.0 / (max - min);
+
+  printf("min=%d, max=%d\n",min,max);
+
+  int index = 0;
   for(unsigned int i = 0; i < dimX*dimY; i++)
   {
     r = qRed(scan[i]);
     if (r > 0) {
 
-      input = (short)round(buffer[i]);
+      short value = (short)round(buffer[i]);
 
       //pos = equalize(buffer[i], window, center);
-      sum += buffer[i];
-      sum2 += buffer[i] * buffer[i];
+      sum += value;
+      sum2 += value*value;
       //hist[pos]++;
 
       // freq
-      hist[input]++;
+      index = (value - min) * weight;
+      hist[index]++;
 
       total++;
     }
@@ -799,19 +828,19 @@ void MSQDicomQualityControl::stat_average(float *buffer, const QImage& mask, int
   if (total > 0) {
 
     // calculate entropy
-    //for(c=0;c<256;c++)
-    //{
-    //  if (hist[c] > 0) {
-    //     px = hist[c] / (double)total;
-    //     sumlog -= px * log(px);
+    for(c=0;c<256;c++)
+    {
+      if (hist[c] > 0) {
+         px = hist[c] / (double)total;
+         sumlog -= px * log(px);
          //total += c;
-    //  }
-    //}
-
-    for ( std::pair<short , int> p : hist ) {
-      double px = static_cast<double>( p.second ) / (double)total;
-      sumlog -= px * log( px );
+      }
     }
+
+    //for ( std::pair<short , int> p : hist ) {
+    //  double px = static_cast<double>( p.second ) / (double)total;
+    //  sumlog -= px * log( px );
+    //}
 
     *entropy = sumlog / M_LN2;
     *mean = sum / total;
@@ -835,8 +864,8 @@ void MSQDicomQualityControl::statistics(gdcm::Image const & gimage, char *buffer
 
   short pos;
   int c, r, total=0;
-  //long hist[256];
-  std::map<short, int> hist;
+  long hist[256];
+  //std::map<short, int> hist;
   unsigned int dimX = dimension[0];
   unsigned int dimY = dimension[1];
   //double dimXdimY = (dimX / 3) * (dimY / 3);
@@ -854,11 +883,36 @@ void MSQDicomQualityControl::statistics(gdcm::Image const & gimage, char *buffer
   *mean = 0;
   *stdev = 0;
 
-  //for(c=0;c<256;c++)
-  //  {
-  //      hist[c] = 0;
-  //  }
+  for(c=0;c<256;c++)
+    {
+        hist[c] = 0;
+    }
 
+  // get min max
+  short min = 32767;
+  short max = -32768;
+  float weight = 0;
+  short *input = (short *)buffer;
+  for(unsigned int i = 0; i < dimY; i++) 
+  {
+    scan = (QRgb*)mask.scanLine(i);
+    for(unsigned int j = 0; j < dimX; j++)
+    {
+      r = qRed(scan[j]);  
+      if (r > 0) {
+        pos = (short)round(*input);
+        if (pos < min)
+          min = pos;
+        if (pos > max)
+          max = pos;
+      }
+      input++;
+    }
+  }
+  weight = 255.0 / (max - min);
+
+  //printf("min=%d, max=%d\n",min,max);
+  int index;
   // Let's start with the easy case:
   if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::RGB )
     {
@@ -878,7 +932,9 @@ void MSQDicomQualityControl::statistics(gdcm::Image const & gimage, char *buffer
             r = qRed(scan[i]);
             if (r > 0) {
               pos = buffer[i];
-              hist[pos]++;
+              index = (pos - min) * weight;
+              hist[index]++;
+              //hist[pos]++;
               sum += pos;
               sum2 += pos * pos;
               total++;
@@ -889,37 +945,37 @@ void MSQDicomQualityControl::statistics(gdcm::Image const & gimage, char *buffer
       {
         short *input = (short*)buffer;
       
-        //short *start = input + dimX * (dimY / 3);
-
-        for(unsigned int i = 0; i < dimX*dimY; i++)
-        //  {
-        //for(unsigned int i = 0; i < dimY / 3; i++)
+        for(unsigned int i = 0; i < dimY; i++) 
         {
-          short value = input[i] * slope + intercept;
-          //short *offset = start + i * dimX + dimX / 3;
-          //for(unsigned int j = 0; j < dimX / 3; j++)
-          //{
-            //pos = equalize(offset[j], window, center);
-          r = qRed(scan[i]);
-          if (r > 0) {
-            //pos = equalize(input[i], window, center);
-            sum += value;
-            sum2 += value * value;
-            hist[value]++;
-            total++;
+          scan = (QRgb*)mask.scanLine(i);
+          for(unsigned int j = 0; j < dimX; j++)
+          {
+            //scaled = *input * source.slope + source.intercept;
+            r = qRed(scan[j]);  
+
+            if (r > 0) {
+              short value = *input; // * source.slope + source.intercept;
+            
+              //if (scaled <= source.center - 0.5 - (source.window - 1.0 ) / 2 )
+              //  pos = 0;
+              //else if (scaled > source.center - 0.5 + (source.window - 1.0) / 2)
+              //  pos = 255;
+              //else
+              //  pos = ((scaled - (source.center - 0.5)) / (source.window - 1.0) + 0.5) * 255;
+
+              //hist[pos]++;
+
+              //hist[scaled]++;
+              sum += value;
+              sum2 += value * value;
+              index = (value - min) * weight;
+              hist[index]++;
+              total++;
+            }
+
+            input++;
           }
-          //}
         }
-
-        //for(unsigned int i = 0; i < dimX*dimY; i++)
-        //  {
-
-        //    pos = equalize(input[i], window, center);
-
-            //pos = (int)round((double)input[i] / 256);
-        //    sum += pos;
-        //    hist[pos]++;
-          //}
       }
     else
       {
@@ -940,19 +996,19 @@ void MSQDicomQualityControl::statistics(gdcm::Image const & gimage, char *buffer
   if (total > 0) {
     // calculate entropy
 
-    for ( std::pair<short, int> p : hist ) {
-      double px = static_cast<double>( p.second ) / (double)total;
-      sumlog -= px * log( px );
-    }
-
-    //for(c=0;c<256;c++)
-    //{
-    //  if (hist[c] > 0) {
-    //     px = hist[c] / (double)total;
-    //     sumlog -= px * log(px);
-         //total += c;
-    //  }
+    //for ( std::pair<short, int> p : hist ) {
+    //  double px = static_cast<double>( p.second ) / (double)total;
+    //  sumlog -= px * log( px );
     //}
+
+    for(c=0;c<256;c++)
+    {
+      if (hist[c] > 0) {
+         px = hist[c] / (double)total;
+         sumlog -= px * log(px);
+         //total += c;
+      }
+    }
 
     *entropy = sumlog / M_LN2;
     *mean = sum / total;
@@ -992,9 +1048,13 @@ void MSQDicomQualityControl::checkQuality()
     std::vector<QTreeWidgetItem *> qtItems;
     collectFilenamesRecursive(mDicomTree, this->mSelectionButton->isChecked(), fileNames, qtItems);
 
+    printf("done collecting files = %d\n", fileNames.size());
+
     combination cmb;
     cmb.generate(fileNames.size());
     //cmb.print();
+
+    printf("before calculating\n");
 
     // calculate SNR and entropy for each combination
     fileCheckQualityCombinations(fileNames, qtItems, 

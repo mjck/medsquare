@@ -504,8 +504,8 @@ QImage MSQAspectRatioPixmapLabel::regionOfInterest() const
         pixroi.fill( Qt::white );
     }
 
-    //printf("saving\n");
-    //pixroi.save( "region_of_interest.png" );
+    printf("saving\n");
+    pixroi.save( "region_of_interest.png" );
 
     //return pixroi.toImage();
     return pixroi.copy();

@@ -454,8 +454,8 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
 {
   short pos;
   int c, r, total=0;
-  //long hist[256];
-  std::map<short, int> hist;
+  long hist[256];
+  //std::map<short, int> hist;
   unsigned int dimX = source.columns;
   unsigned int dimY = source.rows;
   double dimXdimY = dimX * dimY;
@@ -469,11 +469,36 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
 
   QRgb *scan = (QRgb *)mask.scanLine(0);
 
-  //for(c=0;c<256;c++)
-  //  {
-  //      hist[c] = 0;
-  //  }
+ for(c=0;c<256;c++)
+    {
+        hist[c] = 0;
+    }
 
+  // get min max
+  short min = 32767;
+  short max = -32768;
+  float weight = 0;
+  short *input = (short*)&source.vbuffer[0];
+  for(unsigned int i = 0; i < dimY; i++) 
+  {
+    scan = (QRgb*)mask.scanLine(i);
+    for(unsigned int j = 0; j < dimX; j++)
+    {
+      r = qRed(scan[j]);  
+      if (r > 0) {
+        pos = (short)round(*input);
+        if (pos < min)
+          min = pos;
+        if (pos > max)
+          max = pos;
+      }
+      input++;
+    }
+  }
+  weight = 255.0 / (max - min);
+  printf("min: %d, %d\n",min,max);
+
+  int index;
   // Let's start with the easy case
   if( source.interpretation == gdcm::PhotometricInterpretation::RGB )
     {
@@ -488,49 +513,59 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
     {
       if( source.pixelformat == gdcm::PixelFormat::INT8 || source.pixelformat == gdcm::PixelFormat::UINT8 )
       {
-        for(unsigned int i = 0; i < dimX*dimY; i++)
+        short *input = (short*)&source.vbuffer[0];
+        for(unsigned int i = 0; i < dimY; i++) 
+        {
+          scan = (QRgb*)mask.scanLine(i);
+          for(unsigned int j = 0; j < dimX; j++)
           {
-            r = qRed(scan[i]);
+            //scaled = *input * source.slope + source.intercept;
+            r = qRed(scan[j]);  
 
-            if (r == 255) {
-              pos = source.vbuffer[i];
-              hist[pos]++;
-              sum += pos;
-              sum2 += pos * pos;
+            if (r > 0) {
+              short value = *input;
+              index = (value - min) * weight;
+              hist[index]++;
+              //hist[pos]++;
+              sum += value;
+              sum2 += value * value;
               total++;
             }
+
+            input++;
           }
+        }
       }
     else if ( source.pixelformat == gdcm::PixelFormat::INT16 || source.pixelformat == gdcm::PixelFormat::UINT16 )
       {
         short *input = (short*)&source.vbuffer[0];
-        short scaled;
 
         for(unsigned int i = 0; i < dimY; i++) 
         {
           scan = (QRgb*)mask.scanLine(i);
           for(unsigned int j = 0; j < dimX; j++)
           {
-            scaled = *input * source.slope + source.intercept;
+            //scaled = *input * source.slope + source.intercept;
             r = qRed(scan[j]);  
          
-            if (r == 255) {
+            if (r > 0) {
 
-              scaled = *input * source.slope + source.intercept;
+              short value = *input; // * source.slope + source.intercept;
             
-              if (scaled <= source.center - 0.5 - (source.window - 1.0 ) / 2 )
-                pos = 0;
-              else if (scaled > source.center - 0.5 + (source.window - 1.0) / 2)
-                pos = 255;
-              else
-                pos = ((scaled - (source.center - 0.5)) / (source.window - 1.0) + 0.5) * 255;
+              //if (scaled <= source.center - 0.5 - (source.window - 1.0 ) / 2 )
+              //  pos = 0;
+              //else if (scaled > source.center - 0.5 + (source.window - 1.0) / 2)
+              //  pos = 255;
+              //else
+              //  pos = ((scaled - (source.center - 0.5)) / (source.window - 1.0) + 0.5) * 255;
 
               //hist[pos]++;
-              hist[scaled]++;
-              sum += scaled;
-              sum2 += scaled * scaled;
-              //sum += pos;
-              //sum2 += pos * pos;
+
+              //hist[scaled]++;
+              sum += value;
+              sum2 += value * value;
+              index = (value - min) * weight;
+              hist[index]++;
               total++;
             }
 
@@ -557,24 +592,23 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
   if (total > 0) {
 
     // calculate entropy
-    for ( std::pair<short , int> p : hist ) {
-      double px = static_cast<double>( p.second ) / (double)total;
-      sumlog -= px * log( px );
+    //for ( std::pair<short , int> p : hist ) {
+    //  double px = static_cast<double>( p.second ) / (double)total;
+    //  sumlog -= px * log( px );
 
-    //for(c=0;c<256;c++)
-    //{
-    //  if (hist[c] > 0) {
-    //     px = hist[c] / (double)total;
-    //     sumlog -= px * log(px);
+    for(c=0;c<256;c++)
+    {
+      if (hist[c] > 0) {
+         px = hist[c] / (double)total;
+         sumlog -= px * log(px);
          //total += c;
-     // }
+      }
     }
 
     *entropy = sumlog / M_LN2;
     *mean = sum / total;
     *stdev = sqrt((sum2 / total) - (*mean * *mean));
 
-    //printf("total=%d\n",total);
   } else {
     *entropy = -1;
     *mean = 0;
