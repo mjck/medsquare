@@ -387,10 +387,16 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
   const unsigned int* dimension = gimage.GetDimensions();
   int dimX = dimension[0];
   int dimY = dimension[1];
-  std::vector<float> average(dimX * dimY);
-  float *avg = &average[0];
+  //std::vector<float> average(dimX * dimY);
+  //float *avg = &average[0];
+  // get mask locations
+  std::vector<int> mask_locations;
+  this->getMaskLocations(mask, dimX, dimY, mask_locations);
 
-  //cout << "dimX: " << dimX << " dimY: " << dimY << std::endl;
+  printf("size of mask locations=%d\n", mask_locations.size());
+
+  std::vector<float> average(mask_locations.size());
+  float *avg = &average[0];
 
   // compute SNR and entropy for all combinations
   for(int k = 0; k < cmb.list.size(); k++) {
@@ -402,14 +408,36 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
     // zero average image
     std::fill(average.begin(), average.end(), 0);
 
+    printf("computing averages for comb: %d",k);
+
     for(int i = 0; i < num; i++) {
 
+         // calculate average
+          if (k==0)
+          for(int j=0; j<average.size(); j++)
+          {
+              printf("%f ",average[j]);
+          }
+
       // average image
-      this->calculateAverage(fileNames[cmb.list[k].vec[i]], mask, avg, factor);
+      //this->calculateAverage(fileNames[cmb.list[k].vec[i]], mask, avg, factor);
+      this->addAverage(fileNames[cmb.list[k].vec[i]], mask_locations, average);
     }
+    printf("\n");
+
+    // calculate average
+    for(int i=0; i<average.size(); i++)
+    {
+        if (k==0) printf("%f ",average[i]);
+        average[i] = average[i] * factor;
+    }
+    printf("\n");
+
+     // done averaging, now compute SNR and entropy for this set
+    this->getStatistics(average, &entropy, &mean, &stdev);
 
     // done averaging, now compute SNR and entropy for this set
-    this->stat_average(avg, mask, dimX, dimY, &entropy, &mean, &stdev);
+    //this->stat_average(avg, mask, dimX, dimY, &entropy, &mean, &stdev);
 
     // store snr and entropy
     if (isnormal(stdev))
@@ -418,7 +446,6 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
       cmb.list[k].snr = 0;
   
     cmb.list[k].entropy = entropy;
-
   }
 
   int index = 0;
@@ -613,6 +640,91 @@ inline short MSQDicomQualityControl::equalize(short input, double window, double
 /***********************************************************************************//**
  * 
  */
+void MSQDicomQualityControl::getMaskLocations(const QImage& mask, int dimX, int dimY, std::vector<int>& locations) 
+{
+  int r, index = 0;
+  QRgb *scan = (QRgb *)mask.scanLine(0);
+
+  locations.clear();
+
+  for(int i = 0; i < dimY; i++) 
+  {
+    scan = (QRgb*)mask.scanLine(i);
+    for(int j = 0; j < dimX; j++) {
+      r = qRed(scan[j]);
+      if (r > 0) {
+        locations.push_back(index);
+      }
+    }
+    index++;
+  }
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQDicomQualityControl::addAverage(std::string fileName, std::vector<int>& mask, std::vector<float>& average)
+{
+  gdcm::ImageReader reader;
+
+  const gdcm::File &file = reader.GetFile();
+  const gdcm::Image &gimage = reader.GetImage();
+  reader.SetFileName(fileName.c_str());
+  //printf("%s\n",fileName.c_str());
+  if (!reader.Read()) {
+    cout << "Could not read file " << fileName << std::endl;
+    //this->warningMessage(QString("Could not read file %1").arg(QString::fromStdString(fileName)), "Pleack check and try again."); 
+    // if it falls here, it is not a DICOM image.
+    return;
+  }
+
+  // get buffer to image
+  unsigned long len = gimage.GetBufferLength();
+  std::vector<char> vbuffer;
+  vbuffer.resize( len );
+  char *buffer = &vbuffer[0];
+  gimage.GetBuffer(buffer);
+
+  // Let's start with the easy case:
+  if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::RGB )
+    {
+      // RGB image
+      // undefined
+      return;
+    }
+  else if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME1 ||
+           gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME2 )
+    {
+      if( gimage.GetPixelFormat() == gdcm::PixelFormat::INT8 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT8 )
+      {
+        for(int i=0; i<mask.size(); i++)
+        {
+          average[i] += buffer[mask[i]];
+        }
+      }
+    else if ( gimage.GetPixelFormat() == gdcm::PixelFormat::INT16 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT16 )
+      {
+        short *input = (short*)buffer;
+        for(int i=0; i<mask.size(); i++)
+          {
+            average[i] += input[mask[i]];
+          }
+
+      }
+    else
+      {
+        return;
+      }
+    }
+  else
+    {
+      return;
+    }
+}
+
+/***********************************************************************************//**
+ * 
+ */
 void MSQDicomQualityControl::calculateAverage(std::string fileName, const QImage& mask, float *output,float factor)
 {
   double window = 256, center = 128;
@@ -703,35 +815,35 @@ void MSQDicomQualityControl::calculateAverage(std::string fileName, const QImage
     {
       if( gimage.GetPixelFormat() == gdcm::PixelFormat::INT8 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT8 )
       {
-        for(unsigned int i = 0; i < dimX*dimY; i++)
+          int index = 0;
+          for(unsigned int i = 0; i < dimY; i++) 
           {
-            r = qRed(scan[i]);
-            if (r > 0) {
-              output[i] = output[i] + factor * buffer[i];
+            scan = (QRgb*)mask.scanLine(i);
+            for(unsigned int j = 0; j < dimX; j++) {
+              r = qRed(scan[j]);
+              if (r > 0) {
+                output[index] = output[index] + factor * buffer[index];
+              }
             }
+            index++;
           }
       }
     else if ( gimage.GetPixelFormat() == gdcm::PixelFormat::INT16 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT16 )
       {
-        short *input = (short*)buffer;
-        //short *start = input + dimX * (dimY / 3);
-
-        for(unsigned int i = 0; i < dimX*dimY; i++)
-        //  {
-        //for(unsigned int i = 0; i < dimY / 3; i++)
+        int index = 0;
+        for(unsigned int i = 0; i < dimY; i++) 
         {
-          //short *offset = start + i * dimX + dimX / 3;
-          //for(unsigned int j = 0; j < dimX / 3; j++)
-          //{
-            //pos = equalize(offset[j], window, center);
-          r = qRed(scan[i]);
-          if (r > 0) {
-            //cout << "before: " << output[i];
-            //output[i] = output[i] + factor * (input[i] * slope + intercept);
-            output[i] = output[i] + factor * buffer[i];
-            //cout << " after: " << output[i] << std::endl;
+          scan = (QRgb*)mask.scanLine(i);
+          for(unsigned int j = 0; j < dimX; j++) {
+            r = qRed(scan[j]);
+            if (r > 0) {
+              //cout << "before: " << output[i];
+              //output[i] = output[i] + factor * (input[i] * slope + intercept);
+              output[index] = output[index] + factor * buffer[index];
+              //cout << " after: " << output[i] << std::endl;
+            }
           }
-          //}
+          index++;
         }
 
       }
@@ -746,6 +858,33 @@ void MSQDicomQualityControl::calculateAverage(std::string fileName, const QImage
     }
 
 }
+
+/***********************************************************************************//**
+ * 
+ */   
+void MSQDicomQualityControl::getStatistics(std::vector<float>& average, double *entropy, double *mean, double *stdev)
+{
+  //auto result = std::minmax_element(average.begin(), average.end());
+  //float min = *result.first;
+  //float max = *result.second;
+  float min = average[0];
+  float max = min;
+  for(int i=0; i<average.size(); i++)
+  {
+    if (average[i] < min)
+      min = average[i];
+    if (average[i] > max)
+      max = average[i];
+  }
+
+  printf("min: %f, max: %f\n",min,max);
+
+  *entropy = 0;
+  *mean = 0;
+  *stdev = 0;
+}
+
+
 /***********************************************************************************//**
  * 
  */
@@ -803,23 +942,23 @@ void MSQDicomQualityControl::stat_average(float *buffer, const QImage& mask, int
   printf("min=%d, max=%d\n",min,max);
 
   int index = 0;
-  for(unsigned int i = 0; i < dimX*dimY; i++)
+  input = buffer;
+  for(unsigned int i = 0; i < dimY; i++) 
   {
-    r = qRed(scan[i]);
-    if (r > 0) {
+    scan = (QRgb*)mask.scanLine(i);
+    for(unsigned int j = 0; j < dimX; j++)
+    {
+      r = qRed(scan[j]);
+      if (r > 0) {
 
-      short value = (short)round(buffer[i]);
-
-      //pos = equalize(buffer[i], window, center);
-      sum += value;
-      sum2 += value*value;
-      //hist[pos]++;
-
-      // freq
-      index = (value - min) * weight;
-      hist[index]++;
-
-      total++;
+        short value = (short)round(*input);
+        index = (value - min) * weight;
+        hist[index]++;
+        sum += value;
+        sum2 += value*value;
+        total++;
+      }
+      input++;
     }
   }
 
@@ -927,19 +1066,25 @@ void MSQDicomQualityControl::statistics(gdcm::Image const & gimage, char *buffer
     {
       if( gimage.GetPixelFormat() == gdcm::PixelFormat::INT8 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT8 )
       {
-        for(unsigned int i = 0; i < dimX*dimY; i++)
+         short *input = (short*)buffer;
+         for(unsigned int i = 0; i < dimY; i++) 
+        {
+          scan = (QRgb*)mask.scanLine(i);
+          for(unsigned int j = 0; j < dimX; j++)
           {
-            r = qRed(scan[i]);
+            r = qRed(scan[j]);
             if (r > 0) {
-              pos = buffer[i];
-              index = (pos - min) * weight;
+              short value = *input;
+              index = (value - min) * weight;
               hist[index]++;
               //hist[pos]++;
-              sum += pos;
-              sum2 += pos * pos;
+              sum += value;
+              sum2 += value * value;
               total++;
             }
+            input++;
           }
+        }
       }
     else if ( gimage.GetPixelFormat() == gdcm::PixelFormat::INT16 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT16 )
       {

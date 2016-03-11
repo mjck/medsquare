@@ -147,12 +147,17 @@ protected:
   void createInterface();
   double calculateStat(std::string fileName, const QImage& mask, int type);
   short equalize(short input, double window, double center);
+  void getMaskLocations(const QImage& mask, int dimX, int dimY, std::vector<int>& locations); 
   void fileCheckQualityRecursive(QTreeWidgetItem *item, const QImage& mask, 
     bool selection, double toppercfrom, double toppercto);
   void collectFilenamesRecursive(QTreeWidgetItem *item, bool selection, std::vector<std::string>& fileNames, std::vector<QTreeWidgetItem *>& qtItems);
   void fileCheckQualityCombinations(std::vector<std::string>& fileNames,  std::vector<QTreeWidgetItem *>& qtItems, 
     const QImage& mask, combination& cmb, int option);
   void statistics(gdcm::Image const & gimage, char *buffer, const QImage& mask, double *entropy, double *mean, double *stdev);
+  
+  void addAverage(std::string fileName, std::vector<int>& mask, std::vector<float>& average);
+  void getStatistics(std::vector<float>& average, double *entropy, double *mean, double *stdev);
+
   void calculateAverage(std::string fileName, const QImage& mask, float *output, float factor);
   void stat_average(float *buffer, const QImage& mask, int dimX, int dimY, double *entropy, double *mean, double *stdev);
 
