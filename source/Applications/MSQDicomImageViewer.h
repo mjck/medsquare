@@ -162,10 +162,11 @@ protected:
   void buildFrame();
   void createInterface();
   void loadImage(const QString& fileName, MSQDicomImage *dest);
-  void statistics(const MSQDicomImage& source, const QImage& mask, double *entropy, double *mean, double *stdev);
+  void statistics(const MSQDicomImage& source, std::vector<int>& mask, double *entropy, double *mean, double *stdev);
   //bool ConvertToFormat_RGB888(gdcm::Image const & gimage, char *buffer, QImage* &imageQt, 
   //  double window, double center, double slope, double intercept);
   bool convertToARGB32(MSQDicomImage &source);
+  void getMaskLocations(const QImage& mask, std::vector<int>& locations);
   void updateInformation();
   void updateViewer();
 };

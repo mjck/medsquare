@@ -450,15 +450,15 @@ void MSQDicomImageViewer::penSizeChanged()
 /***********************************************************************************//**
  *
  */
-void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& mask, double *entropy, double *mean, double *stdev)
+void MSQDicomImageViewer::statistics(const MSQDicomImage& source, std::vector<int>& mask, double *entropy, double *mean, double *stdev)
 {
-  short pos;
-  int c, r, total=0;
+  //short pos;
+  //int c, r, total=0;
   long hist[256];
   //std::map<short, int> hist;
-  unsigned int dimX = source.columns;
-  unsigned int dimY = source.rows;
-  double dimXdimY = dimX * dimY;
+  //unsigned int dimX = source.columns;
+  //unsigned int dimY = source.rows;
+  //double dimXdimY = dimX * dimY;
   double px, sumlog = 0.0;
   double sum = 0.0;
   double sum2 = 0.0;
@@ -467,38 +467,23 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
   *mean = 0;
   *stdev = 0;
 
-  QRgb *scan = (QRgb *)mask.scanLine(0);
+  //printf("inside\n");
+  if (mask.size() == 0)
+    return;
 
- for(c=0;c<256;c++)
-    {
-        hist[c] = 0;
-    }
+  //printf("going on\n");
 
-  // get min max
-  short min = 32767;
-  short max = -32768;
-  float weight = 0;
-  short *input = (short*)&source.vbuffer[0];
-  for(unsigned int i = 0; i < dimY; i++) 
-  {
-    scan = (QRgb*)mask.scanLine(i);
-    for(unsigned int j = 0; j < dimX; j++)
-    {
-      r = qRed(scan[j]);  
-      if (r > 0) {
-        pos = (short)round(*input);
-        if (pos < min)
-          min = pos;
-        if (pos > max)
-          max = pos;
-      }
-      input++;
-    }
+  for(int j=0; j<256; j++) {
+    hist[j] = 0;
   }
-  weight = 255.0 / (max - min);
-  printf("min: %d, %d\n",min,max);
 
+  float min;
+  float max;
+  float weight = 0;
   int index;
+
+  //printf("size=%d\n", mask.size());
+
   // Let's start with the easy case
   if( source.interpretation == gdcm::PhotometricInterpretation::RGB )
     {
@@ -507,70 +492,59 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
       *mean = 0;
       *stdev = 0;
       return;
-    }
+    } 
   else if( source.interpretation == gdcm::PhotometricInterpretation::MONOCHROME1 ||
            source.interpretation == gdcm::PhotometricInterpretation::MONOCHROME2 )
     {
       if( source.pixelformat == gdcm::PixelFormat::INT8 || source.pixelformat == gdcm::PixelFormat::UINT8 )
       {
-        short *input = (short*)&source.vbuffer[0];
-        for(unsigned int i = 0; i < dimY; i++) 
+        char *input = (char*)&source.vbuffer[0];
+
+        min = max = input[mask[0]];
+        for(int i=1; i<mask.size(); i++)
         {
-          scan = (QRgb*)mask.scanLine(i);
-          for(unsigned int j = 0; j < dimX; j++)
-          {
-            //scaled = *input * source.slope + source.intercept;
-            r = qRed(scan[j]);  
+          if (input[mask[i]] < min)
+            min = input[mask[i]];
+          if (input[mask[i]] > max)
+            max = input[mask[i]];
+        }
 
-            if (r > 0) {
-              short value = *input;
-              index = (value - min) * weight;
-              hist[index]++;
-              //hist[pos]++;
-              sum += value;
-              sum2 += value * value;
-              total++;
-            }
-
-            input++;
-          }
+        weight = 255.0 / (max - min);
+        //printf("u8 min: %f, %f\n",min,max);
+        for(int i=0; i<mask.size(); i++)
+        {
+          short value = input[mask[i]];
+          index = round((value - min) * weight);
+          hist[index]++;
+          sum += value;
+          sum2 += value * value;
         }
       }
-    else if ( source.pixelformat == gdcm::PixelFormat::INT16 || source.pixelformat == gdcm::PixelFormat::UINT16 )
+      else if ( source.pixelformat == gdcm::PixelFormat::INT16 || source.pixelformat == gdcm::PixelFormat::UINT16 )
       {
         short *input = (short*)&source.vbuffer[0];
-
-        for(unsigned int i = 0; i < dimY; i++) 
+        
+        min = max = input[mask[0]];
+        for(int i=1; i<mask.size(); i++)
         {
-          scan = (QRgb*)mask.scanLine(i);
-          for(unsigned int j = 0; j < dimX; j++)
-          {
-            //scaled = *input * source.slope + source.intercept;
-            r = qRed(scan[j]);  
-         
-            if (r > 0) {
+          if (input[mask[i]] < min)
+            min = input[mask[i]];
+          if (input[mask[i]] > max)
+            max = input[mask[i]];
+        }
 
-              short value = *input; // * source.slope + source.intercept;
-            
-              //if (scaled <= source.center - 0.5 - (source.window - 1.0 ) / 2 )
-              //  pos = 0;
-              //else if (scaled > source.center - 0.5 + (source.window - 1.0) / 2)
-              //  pos = 255;
-              //else
-              //  pos = ((scaled - (source.center - 0.5)) / (source.window - 1.0) + 0.5) * 255;
-
-              //hist[pos]++;
-
-              //hist[scaled]++;
-              sum += value;
-              sum2 += value * value;
-              index = (value - min) * weight;
-              hist[index]++;
-              total++;
-            }
-
-            input++;
-          }
+        weight = 255.0 / (max - min);
+        //printf("u16 min: %f, %f\n",min,max);
+        for(int i=0; i<mask.size(); i++)
+        {
+          //printf("%d: ",mask[i]);
+          short value = input[mask[i]];
+          //printf("%d\n",value);
+          index = round((value - min) * weight);
+          hist[index]++;
+          //printf("index=%d\n",index);
+          sum += value;
+          sum2 += value * value;
         }
       }
     else
@@ -580,40 +554,33 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, const QImage& 
         *stdev = 0;
         return;
       }
-    }
-  else
+    } 
+    else 
     {
-      *entropy = -1;
-      *mean = 0;
-      *stdev = 0;
-      return;
+        *entropy = -1;
+        *mean = 0;
+        *stdev = 0;
+        return;
     }
 
-  if (total > 0) {
+  // calculate entropy
+  //for ( std::pair<short , int> p : hist ) {
+  //  double px = static_cast<double>( p.second ) / (double)total;
+  //  sumlog -= px * log( px );
 
-    // calculate entropy
-    //for ( std::pair<short , int> p : hist ) {
-    //  double px = static_cast<double>( p.second ) / (double)total;
-    //  sumlog -= px * log( px );
-
-    for(c=0;c<256;c++)
-    {
-      if (hist[c] > 0) {
-         px = hist[c] / (double)total;
-         sumlog -= px * log(px);
-         //total += c;
-      }
+ // calculate entropy
+  for(int j=0; j<256; j++)
+  {
+    if (hist[j] > 0) {
+      px = hist[j] / (double)mask.size();
+      sumlog -= px * log(px);
     }
-
-    *entropy = sumlog / M_LN2;
-    *mean = sum / total;
-    *stdev = sqrt((sum2 / total) - (*mean * *mean));
-
-  } else {
-    *entropy = -1;
-    *mean = 0;
-    *stdev = 0;
   }
+
+  *entropy = sumlog / M_LN2;
+  *mean = sum / mask.size();
+  *stdev = sqrt((sum2 / mask.size()) - (*mean * *mean));
+
   // print entropy
   //printf("%f, %f\n",sumlog / M_LN2, sum / dimXdimY);
   //return sumlog / M_LN2;
@@ -837,6 +804,32 @@ bool MSQDicomImageViewer::convertToARGB32(MSQDicomImage &source)
 }
 
 /***********************************************************************************//**
+ * 
+ */
+void MSQDicomImageViewer::getMaskLocations(const QImage& mask, std::vector<int>& locations) 
+{
+  int r, index = 0;
+  int dimY = mask.height();
+  int dimX = mask.width();
+
+  QRgb *scan = (QRgb *)mask.scanLine(0);
+
+  locations.clear();
+
+  for(unsigned int i = 0; i < dimY; i++) 
+  {
+    scan = (QRgb*)mask.scanLine(i);
+    for(unsigned int j = 0; j < dimX; j++) {
+      r = qRed(scan[j]);
+      if (r > 0) {
+        locations.push_back(index);
+      }
+      index++;
+    }
+  }
+}
+
+/***********************************************************************************//**
  *
  */
 void MSQDicomImageViewer::updateInformation()
@@ -848,6 +841,9 @@ void MSQDicomImageViewer::updateInformation()
   QImage mask = mLabel->regionOfInterest();
   if ( mask.isNull() )
     return;
+
+  std::vector<int> mask_locations;
+  this->getMaskLocations(mask, mask_locations);
 
   // study and series description
   if ( foreground.studydesc.empty() )
@@ -899,7 +895,7 @@ void MSQDicomImageViewer::updateInformation()
   mHeader[2]->setText(topright);
 
   // Entropy
-  this->statistics(foreground, mask, &entrpy, &mean, &stdev);
+  this->statistics(foreground, mask_locations, &entrpy, &mean, &stdev);
   if (isnormal(stdev))
     snr = mean / stdev;
   else snr = 0;

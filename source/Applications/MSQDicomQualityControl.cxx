@@ -408,30 +408,30 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
     // zero average image
     std::fill(average.begin(), average.end(), 0);
 
-    printf("computing averages for comb: %d",k);
+    //printf("computing averages for comb: %d\n",k);
 
     for(int i = 0; i < num; i++) {
 
          // calculate average
-          if (k==0)
-          for(int j=0; j<average.size(); j++)
-          {
-              printf("%f ",average[j]);
-          }
+         //if (k==0)
+         //for(int j=0; j<average.size(); j++)
+         // {
+         //    printf("%d: %f ",j,average[j]);
+         //}
 
       // average image
       //this->calculateAverage(fileNames[cmb.list[k].vec[i]], mask, avg, factor);
       this->addAverage(fileNames[cmb.list[k].vec[i]], mask_locations, average);
     }
-    printf("\n");
+    //printf("\nafter\n");
 
     // calculate average
-    for(int i=0; i<average.size(); i++)
+    for(int j=0; j<average.size(); j++)
     {
-        if (k==0) printf("%f ",average[i]);
-        average[i] = average[i] * factor;
+        //if (k==0) printf("%d: %f ",j,average[j]);
+        average[j] = average[j] * factor;
     }
-    printf("\n");
+    //printf("\n");
 
      // done averaging, now compute SNR and entropy for this set
     this->getStatistics(average, &entropy, &mean, &stdev);
@@ -647,16 +647,16 @@ void MSQDicomQualityControl::getMaskLocations(const QImage& mask, int dimX, int 
 
   locations.clear();
 
-  for(int i = 0; i < dimY; i++) 
+  for(unsigned int i = 0; i < dimY; i++) 
   {
     scan = (QRgb*)mask.scanLine(i);
-    for(int j = 0; j < dimX; j++) {
+    for(unsigned int j = 0; j < dimX; j++) {
       r = qRed(scan[j]);
       if (r > 0) {
         locations.push_back(index);
       }
+      index++;
     }
-    index++;
   }
 }
 
@@ -864,11 +864,15 @@ void MSQDicomQualityControl::calculateAverage(std::string fileName, const QImage
  */   
 void MSQDicomQualityControl::getStatistics(std::vector<float>& average, double *entropy, double *mean, double *stdev)
 {
-  //auto result = std::minmax_element(average.begin(), average.end());
-  //float min = *result.first;
-  //float max = *result.second;
+  double px, sumlog = 0.0;
+  double sum = 0.0;
+  double sum2 = 0.0;
   float min = average[0];
   float max = min;
+  float weight = 0;
+  long hist[256];
+  short index, value;
+
   for(int i=0; i<average.size(); i++)
   {
     if (average[i] < min)
@@ -877,11 +881,43 @@ void MSQDicomQualityControl::getStatistics(std::vector<float>& average, double *
       max = average[i];
   }
 
-  printf("min: %f, max: %f\n",min,max);
+  //printf("**min: %f, max: %f\n",min, max);
 
+  // reset return values
   *entropy = 0;
   *mean = 0;
   *stdev = 0;
+
+  // reset histogram
+  for(int j=0; j<256; j++) {
+    hist[j] = 0;
+  }
+
+  // normalization factor
+  weight = 255.0 / (max - min);
+
+  for(int i=0; i<average.size(); i++)
+  {
+    value = average[i];
+    index = round((value - min) * weight);
+    hist[index]++;
+    sum += value;
+    sum2 += value * value;
+  }
+
+  // calculate entropy
+  for(int j=0; j<256; j++)
+  {
+    if (hist[j] > 0) {
+      px = hist[j] / (double)average.size();
+      sumlog -= px * log(px);
+    }
+  }
+
+  *entropy = sumlog / M_LN2;
+  *mean = sum / average.size();
+  *stdev = sqrt((sum2 / average.size()) - (*mean * *mean));
+
 }
 
 
