@@ -75,12 +75,13 @@ MSQDicomImageViewer::MSQDicomImageViewer()
   //this->colorTransferFunction = vtkColorTransferFunction::New();
   //this->colorTransferFunction->BuildFunctionFromTable( 
   //  center-window/2, center+window/2, 255, (double*) &this->colorTable);
+  this->perc = 80;
 
   // create interface
   createInterface();
 
-  roiType = 0;
-  highQuality = true;
+  this->roiType = 0;
+  this->highQuality = true;
 }
 
 /***********************************************************************************//**
@@ -175,12 +176,30 @@ void MSQDicomImageViewer::createInterface()
   buttonLayout->addWidget(mArc);
   QObject::connect(mArc, SIGNAL(clicked()), this, SLOT(arcButtonClick()));
 
+  mThreshold = new MSQDicomImageViewerButton(this);
+  mThreshold->setColor(QColor(0, 255, 0));
+  mThreshold->setMaximumSize(36,36);
+  mThreshold->setMinimumSize(36,36);
+  mThreshold->setType(4);
+  mThreshold->setCheckable(true);
+  buttonLayout->addWidget(mThreshold);
+  QObject::connect(mThreshold, SIGNAL(clicked()), this, SLOT(thresholdButtonClick()));
+
+  mPerc = new QLabel(this);
+  mPerc->setText(QString("%1%").arg(perc));
+  mPerc->setStyleSheet("QLabel { color: gray; }\n");
+  mPerc->setFont(sansFont);
+  mPerc->setMaximumSize(25,36);
+  mPerc->setMinimumSize(25,36);
+  buttonLayout->addWidget(mPerc);
+
   buttonGroup1->addButton(mWhole);
   buttonGroup1->addButton(mRect);
   buttonGroup1->addButton(mRectFilled);
   buttonGroup1->addButton(mEllipse);
   buttonGroup1->addButton(mEllipseFilled);
   buttonGroup1->addButton(mArc);
+  buttonGroup1->addButton(mThreshold);
 
   buttonLayout->addStretch();
 
@@ -273,6 +292,7 @@ void MSQDicomImageViewer::createInterface()
 
   //mLabel = new QLabel(this);
   mLabel = new MSQAspectRatioPixmapLabel(this);
+  mLabel->setThresholdPercentage(perc);
   //mLabel->setScaledContents(true);
   mLabel->setAlignment(Qt::AlignCenter);
   QObject::connect(mLabel, SIGNAL(changed()), this, SLOT(regionOfInterestChanged()));
@@ -382,9 +402,9 @@ MSQAspectRatioPixmapLabel *MSQDicomImageViewer::label()
  */
 void MSQDicomImageViewer::qualityChanged()
 {
-    MSQDicomImageViewerButton *wTools[6] = {
+    MSQDicomImageViewerButton *wTools[7] = {
       this->mWhole, this->mRect, this->mRectFilled,
-      this->mEllipse, this->mEllipseFilled, this->mArc 
+      this->mEllipse, this->mEllipseFilled, this->mArc , this->mThreshold
     };
 
     QAbstractButton *wOptions[4] = {
@@ -397,7 +417,7 @@ void MSQDicomImageViewer::qualityChanged()
 
       this->mQuality->setText("Quality: High");
 
-      for(int i=0; i<6; i++)
+      for(int i=0; i<7; i++)
         wTools[i]->setColor(QColor(0, 255, 0));
 
       for(int i=0; i<4; i++)
@@ -415,7 +435,7 @@ void MSQDicomImageViewer::qualityChanged()
 
       this->mQuality->setText("Quality: Low");
       
-      for(int i=0; i<6; i++)
+      for(int i=0; i<7; i++)
         wTools[i]->setColor(QColor(255, 0, 0));
 
       for(int i=0; i<4; i++)
@@ -720,6 +740,7 @@ bool MSQDicomImageViewer::convertToARGB32(MSQDicomImage &source)
 
   // create Qt image
   source.image = QImage(dimX, dimY, QImage::Format_ARGB32_Premultiplied);
+  source.buffer.clear();
 
   // Let's start with the easy case:
   if( source.interpretation == gdcm::PhotometricInterpretation::RGB )
@@ -740,6 +761,7 @@ bool MSQDicomImageViewer::convertToARGB32(MSQDicomImage &source)
         for(unsigned int j = 0; j < dimX; j++)
         {
           red = *input++; green=*input++; blue=*input++;
+          source.buffer.push_back(0.2126 * red + 0.7152 * green + 0.0722 * blue);
           *row++ = qRgba(red, green, blue, 255);
         }
       }
@@ -756,6 +778,7 @@ bool MSQDicomImageViewer::convertToARGB32(MSQDicomImage &source)
         for(unsigned int j = 0; j < dimX; j++)
         {
           *row++ = qRgba(*input, *input, *input, 255);
+          source.buffer.push_back(*input);
           input++;
         }
       }
@@ -779,6 +802,8 @@ bool MSQDicomImageViewer::convertToARGB32(MSQDicomImage &source)
             r = 255;
           else
             r = ((scaled - (source.center - 0.5)) / (source.window - 1.0) + 0.5) * 255;
+
+          source.buffer.push_back(scaled);
 
           *row++ = qRgba(
             qRed(source.colorTable[r]), 
@@ -844,6 +869,9 @@ void MSQDicomImageViewer::updateInformation()
 
   std::vector<int> mask_locations;
   this->getMaskLocations(mask, mask_locations);
+
+  int perc = mLabel->getThresholdPercentage();
+  mPerc->setText(QString("%1%").arg(perc));
 
   // study and series description
   if ( foreground.studydesc.empty() )
@@ -968,7 +996,7 @@ void MSQDicomImageViewer::updateViewer()
   painter.drawImage(0, 0, foreground.image);
 
   // set new pixmap
-  mLabel->setPixmap( QPixmap::fromImage(resultImage) );
+  mLabel->setPixmap( QPixmap::fromImage(resultImage), foreground.buffer );
 }
 
 /***********************************************************************************//**
@@ -1430,6 +1458,18 @@ void MSQDicomImageViewer::arcButtonClick()
   mLabel->setCursorEnabled(true);
   mLabel->setCursorFilled(false);
   roiType = 5;
+  //emit regionOfInterestChanged();
+}
+
+/***********************************************************************************//**
+ *
+ */
+void MSQDicomImageViewer::thresholdButtonClick()
+{
+  mLabel->setCursorToThreshold();
+  mLabel->setCursorEnabled(true);
+  mLabel->setCursorFilled(false);
+  roiType = 6;
   //emit regionOfInterestChanged();
 }
 

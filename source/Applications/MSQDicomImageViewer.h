@@ -52,6 +52,7 @@ public:
 
   QString fileName;
   std::vector<char> vbuffer;
+  std::vector<short> buffer;
 
   // Qt specific
   QImage image;
@@ -125,10 +126,12 @@ private slots:
   void ellipseButtonClick();
   void ellipseFilledButtonClick();
   void arcButtonClick();
+  void thresholdButtonClick();
 
 protected:
   int roiType;
   bool highQuality;
+  int perc;
 
   QLabel *mHeader[3];
   QLabel *mFooter[3];
@@ -136,8 +139,9 @@ protected:
   QWidget *mButtonBar;
   MSQDicomImageViewerButton *mWhole, *mRect, *mRectFilled;
   MSQDicomImageViewerButton *mEllipse, *mEllipseFilled;
-  MSQDicomImageViewerButton *mArc;
+  MSQDicomImageViewerButton *mArc, *mThreshold;
   QToolButton *mOnepx, *mThreepx, *mFivepx;
+  QLabel *mPerc;
   QToolButton *mQuality;
 
   //vtkColorTransferFunction *colorTransferFunction;

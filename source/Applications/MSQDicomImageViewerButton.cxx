@@ -69,7 +69,7 @@ void MSQDicomImageViewerButton::paintEvent(QPaintEvent * e)
             case 0: painter.drawRect(screen); break;
             case 1: painter.drawEllipse(screen); break;
             case 2: painter.drawArc(screen, 0, 180 * 16); break;
-            default:
+            case 3:
                 {
                     painter.drawRect(screen);
                     painter.drawRect(screen.left()+2,screen.top()+2,screen.width()-3,screen.height()-4);
@@ -84,6 +84,18 @@ void MSQDicomImageViewerButton::paintEvent(QPaintEvent * e)
                     painter.drawPath(path);
                     painter.drawEllipse(this->width() - x - 10, y + 4, 5, 5);
                 }
+                break;
+            case 4:
+                {
+                    QRectF left(x, y, x * 2.5, y * 2.0);
+                    QRectF right(x + x * 2.5, y, x * 2.5, y * 2.0);
+                    painter.drawLine(x, y + y, x + x * 5.0, y + y);
+                    painter.drawArc(right, 180 * 16, 180 * 16);
+                    painter.setBrush(paintbrush);
+                    painter.drawChord(left, 0, 180 * 16);
+                }
+                break;
+            default:
                 break;
         }
         
@@ -104,7 +116,7 @@ void MSQDicomImageViewerButton::paintEvent(QPaintEvent * e)
             case 0: painter.drawRect(screen); break;
             case 1: painter.drawEllipse(screen); break;
             case 2: painter.drawArc(screen, 0, 180 * 16); break;
-            default:
+            case 3:
                 {
                      painter.drawRect(screen);
                      painter.drawRect(screen.left()+2,screen.top()+2,screen.width()-3,screen.height()-4);
@@ -119,6 +131,18 @@ void MSQDicomImageViewerButton::paintEvent(QPaintEvent * e)
                      painter.drawPath(path);
                      painter.drawEllipse(this->width() - x - 10, y + 4, 5, 5);
                 }
+                break;
+            case 4:
+                {
+                    QRectF left(x, y, x * 2.5, y * 2.0);
+                    QRectF right(x + x * 2.5, y, x * 2.5, y * 2.0);
+                    painter.drawLine(x, y + y, x + x * 5.0, y + y);
+                    painter.drawArc(right, 180 * 16, 180 * 16);
+                    painter.setBrush(paintbrush);
+                    painter.drawChord(left, 0, 180 * 16);
+                }
+                break;
+            default:
                 break;
         }
         

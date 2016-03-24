@@ -38,19 +38,23 @@ public:
     void setCursorToRect();
     void setCursorToEllipse();
     void setCursorToArc();
+    void setCursorToThreshold();
+    void setThresholdPercentage(int perc);
+    int getThresholdPercentage();
     int getCursorType();
 
-    QImage regionOfInterest() const;
+    QImage regionOfInterest();
 
 private:
     void recalculateRect();
     void drawOverlay ( QPainter & p );
+    void threshold( QPainter & p );
 
 signals:
     void changed();
 
 public slots:
-    void setPixmap ( const QPixmap & );
+    void setPixmap ( const QPixmap &, std::vector<short> & im);
     void resizeEvent(QResizeEvent *);
 
 private slots:
@@ -63,12 +67,14 @@ private slots:
 private:
     QPixmap pix;
     QPixmap overlay;
+    std::vector<short> image;
 
     bool tracking;
     bool panning;
 
     int arcAngle;
     int arcLength;
+    int perc;
     
     int s0, s1, t0, t1;
     

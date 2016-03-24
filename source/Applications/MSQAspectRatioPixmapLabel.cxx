@@ -18,6 +18,8 @@
 //
 #include <QDebug>
 
+ #include <iostream>
+
 MSQAspectRatioPixmapLabel::MSQAspectRatioPixmapLabel(QWidget *parent) :
     QLabel(parent)
 {
@@ -39,6 +41,8 @@ MSQAspectRatioPixmapLabel::MSQAspectRatioPixmapLabel(QWidget *parent) :
     this->penSize = 1;
 
     this->highQuality = true;
+
+    this->perc = 80;
 
     //this->overlay = 0;
 }
@@ -140,44 +144,41 @@ void MSQAspectRatioPixmapLabel::setCursorToArc()
 /***********************************************************************************//**
  * 
  */
+void MSQAspectRatioPixmapLabel::setCursorToThreshold()
+{
+    this->cursorType = 3;
+    update();
+    emit changed();
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQAspectRatioPixmapLabel::setThresholdPercentage(int perc)
+{
+    this->perc = perc;
+}
+
+/***********************************************************************************//**
+ * 
+ */
+int MSQAspectRatioPixmapLabel::getThresholdPercentage()
+{
+    return this->perc;
+}
+
+/***********************************************************************************//**
+ * 
+ */
 void MSQAspectRatioPixmapLabel::paintEvent(QPaintEvent * e)
 {
     QLabel::paintEvent(e);
     //QPainter painter(this);
 
-    //QStyle *style = QWidget::style();
-    //int align = QStyle::visualAlignment(layoutDirection(), QFlag(Qt::AlignCenter));
-
-    // draw background
-    //painter.setOpacity(this->backgroundOpacity);
-    //painter.setCompositionMode(QPainter::CompositionMode_Source);
-    //this->paintBackground(painter, style, align);
-    //painter.fillRect(contentsRect(), Qt::transparent);
-
-    //painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
-    //painter.fillRect(contentsRect(), QColor(0, 0, 0, 120));
-    //if (foreground.width() > 0 && foreground.height() > 0) {
-       //foreground.setOpacity(this->foregroundOpacity);
-    //   this->paintForeground(painter, style, align);
-    //}
-    //painter.setCompositionMode(mode);
-    //painter.drawImage(0, 0, sourceImage);
-    //painter.setCompositionMode(QPainter::CompositionMode_DestinationOver);
-    //painter.fillRect(resultImage.rect(), Qt::white);
-    //painter.end();
-
-    //this->paintBackground(painter, style, align);
-
-    // draw foreground
-     //if (foreground.width() > 0 && foreground.height() > 0) {
-     //   painter.setOpacity(1.0 - this->backgroundOpacity);
-     //   this->paintForeground(painter, style, align);
-   // }
-
     if (this->cursorEnabled) {
 
         QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing); 
+        //painter.setRenderHint(QPainter::Antialiasing); 
         //painter.setRenderHint(QPainter::HighQualityAntialiasing);
 
         if (pix.width() > 0 && pix.height() > 0 && screen.width() > 0 && screen.height() > 0) {
@@ -220,27 +221,96 @@ void MSQAspectRatioPixmapLabel::paintEvent(QPaintEvent * e)
 
                 switch(this->cursorType)
                 {
-                    case 0: 
+                    case 0:
+                    case 3: 
                         painter.drawRect(screen);
-                    break;
+                        break;
                     case 1:
                         if ( this->cursorFilled )
                             painter.drawEllipse(screen);
                         else
                             painter.drawArc(screen, 0, 359 * 17);
-                    break;
+                        break;
                     case 2:
                         if (this->arcLength < 360)
                             painter.drawArc(screen, this->arcAngle * 16, this->arcLength * 16);
                         else
                             painter.drawArc(screen, 0, 359 * 16);
-                    break;
+                        break;
                 }
 
             } else {
                 
+                //printf("%d %d %f %f\n", pix.width(), pix.height(), screen.height(), screen.width());
                 drawOverlay( painter );
             }
+        }
+    }
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQAspectRatioPixmapLabel::threshold( QPainter & p )
+{
+    int index = 0;
+    int dimY = pix.height();
+    int dimX = pix.width();
+
+    int startx = pix.width() * normalized.left();
+    int endx = startx + pix.width() * normalized.width();
+    int starty = pix.height() * normalized.top();
+    int endy = starty + pix.height() * normalized.height();
+
+    if (startx < 0) startx = 0;
+    if (starty < 0) starty = 0;
+    if (startx > dimX-1) startx = dimX - 1;
+    if (starty > dimY-1) starty = dimY - 1;
+
+    if (endx < 0) endx = 0;
+    if (endy < 0) endy = 0;
+    if (endx > dimX-1) endx = dimX - 1;
+    if (endy > dimY-1) endy = dimY - 1;
+
+    //printf("startx: %d, endx: %d\n",startx,endx);
+    //printf("starty: %d, endy: %d\n",starty,endy);
+
+    std::map<short, int> hist;
+    std::map<short, int>::reverse_iterator rev_iter;
+
+    for(unsigned int i = starty; i <= endy; i++) {
+        for(unsigned int j = startx; j <= endx; j++) {
+          index = i * dimX + j;
+          hist[image[index]]++;
+        }
+    }
+
+    float top = 1.0 - ((float)perc / 100.0);
+
+    short a = (*hist.begin()).first;
+    short b = (*hist.rbegin()).first;
+    long total = 0;
+    for (rev_iter = hist.rbegin(); rev_iter != hist.rend(); ++rev_iter) {
+        total += (*rev_iter).second;
+        //std::cout << (*rev_iter).first << ": " << (*rev_iter).second << std::endl;
+    }
+
+    long count = 0;
+    short threshold = (*hist.rbegin()).first;
+    for (rev_iter = hist.rbegin(); count < top*total && rev_iter != hist.rend(); ++rev_iter) {
+        count += (*rev_iter).second;
+        threshold = (*rev_iter).first;
+    }
+
+    //printf("threshold=%d\n",threshold);
+
+    for(unsigned int i = starty; i < endy; i++) 
+    {
+        for(unsigned int j = startx; j < endx; j++) {
+          int index = i * dimX + j;
+          if (image[index] > threshold) {
+            p.drawPoint(j, i);
+          }
         }
     }
 }
@@ -295,6 +365,10 @@ void MSQAspectRatioPixmapLabel::drawOverlay( QPainter & p )
                     painter.drawArc(roi, this->arcAngle * 16, this->arcLength * 16);
                 else
                     painter.drawArc(roi, 0, 359 * 16);
+            break;
+            case 3:
+                    //printf("ROI: %f %f %f %f\n",roi.width(),roi.height(), normalized.width(), normalized.height());
+                    threshold( painter );
             break;
         };
     
@@ -412,7 +486,19 @@ void MSQAspectRatioPixmapLabel::wheelEvent(QWheelEvent *event)
             }
         
         }
+    } else if (this->cursorType == 3) {
+
+        perc -= numSteps * 5;
+
+        if (perc >= 100)
+            perc = 100;
+        else if (perc <= 0)
+            perc = 0;
+
+        //printf("perc = %d\n",perc);
+
     }
+
 
     update();
     emit changed();
@@ -450,7 +536,7 @@ void MSQAspectRatioPixmapLabel::recalculateRect()
 /***********************************************************************************//**
  * 
  */
-QImage MSQAspectRatioPixmapLabel::regionOfInterest() const
+QImage MSQAspectRatioPixmapLabel::regionOfInterest()
 {
     if ( pix.isNull() )
         return QImage();
@@ -497,6 +583,9 @@ QImage MSQAspectRatioPixmapLabel::regionOfInterest() const
                 else
                     painter.drawArc(roi, 0, 359.9 * 16);
             break;
+            case 3:
+                    threshold( painter );
+            break;
         };
     
     } else {
@@ -504,7 +593,7 @@ QImage MSQAspectRatioPixmapLabel::regionOfInterest() const
         pixroi.fill( Qt::white );
     }
 
-    printf("saving\n");
+    //printf("saving\n");
     pixroi.save( "region_of_interest.png" );
 
     //return pixroi.toImage();
@@ -514,10 +603,11 @@ QImage MSQAspectRatioPixmapLabel::regionOfInterest() const
 /***********************************************************************************//**
  * 
  */
-void MSQAspectRatioPixmapLabel::setPixmap ( const QPixmap & p )
+void MSQAspectRatioPixmapLabel::setPixmap ( const QPixmap & p, std::vector<short> & im)
 {
     pix = p;
     overlay = p;
+    image = im;
 
     QLabel::setPixmap(pix.scaled(this->size(),
         Qt::KeepAspectRatio, Qt::SmoothTransformation));
