@@ -272,6 +272,11 @@ void MSQAspectRatioPixmapLabel::threshold( QPainter & p )
     if (endx > dimX-1) endx = dimX - 1;
     if (endy > dimY-1) endy = dimY - 1;
 
+    if (endx < startx)
+        endx = startx;
+    if (endy < starty)
+        endy = starty;
+
     //printf("startx: %d, endx: %d\n",startx,endx);
     //printf("starty: %d, endy: %d\n",starty,endy);
 
@@ -504,6 +509,18 @@ void MSQAspectRatioPixmapLabel::wheelEvent(QWheelEvent *event)
     emit changed();
 
     event->accept();
+}
+
+/***********************************************************************************//**
+ * 
+ */
+QRect MSQAspectRatioPixmapLabel::getRect()
+{
+   return QRect(
+    pix.width() * normalized.left(),
+    pix.height() * normalized.top(),
+    pix.width() * normalized.width(),
+    pix.height() * normalized.height() );
 }
 
 /***********************************************************************************//**

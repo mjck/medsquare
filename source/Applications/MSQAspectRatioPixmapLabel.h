@@ -42,7 +42,7 @@ public:
     void setThresholdPercentage(int perc);
     int getThresholdPercentage();
     int getCursorType();
-
+    QRect getRect();
     QImage regionOfInterest();
 
 private:

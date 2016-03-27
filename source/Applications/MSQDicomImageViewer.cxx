@@ -867,6 +867,9 @@ void MSQDicomImageViewer::updateInformation()
   if ( mask.isNull() )
     return;
 
+  QRect roi = mLabel->getRect();
+  //printf("%d %d %d %d\n", roi.x(), roi.y(), roi.width(), roi.height());
+
   std::vector<int> mask_locations;
   this->getMaskLocations(mask, mask_locations);
 
