@@ -491,7 +491,7 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, std::vector<in
   if (mask.size() == 0)
     return;
 
-  //printf("going on\n");
+  //printf("going on with size = %d\n",mask.size());
 
   for(int j=0; j<256; j++) {
     hist[j] = 0;
@@ -529,7 +529,7 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, std::vector<in
             max = input[mask[i]];
         }
 
-        weight = 255.0 / (max - min);
+        weight = 255.0 / ((max - min) + 1);
         //printf("u8 min: %f, %f\n",min,max);
         for(int i=0; i<mask.size(); i++)
         {
@@ -553,13 +553,14 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, std::vector<in
             max = input[mask[i]];
         }
 
-        weight = 255.0 / (max - min);
+        weight = 255.0 / ((max - min) + 1);
         //printf("u16 min: %f, %f\n",min,max);
         for(int i=0; i<mask.size(); i++)
         {
           //printf("%d: ",mask[i]);
           short value = input[mask[i]];
           //printf("%d\n",value);
+          //printf("index=%d\n",index);
           index = round((value - min) * weight);
           hist[index]++;
           //printf("index=%d\n",index);
@@ -1504,6 +1505,22 @@ void MSQDicomImageViewer::enableToolBar(bool enable)
 QImage MSQDicomImageViewer::regionOfInterest() const
 {
   return mLabel->regionOfInterest();
+}
+
+/***********************************************************************************//**
+ *
+ */
+int MSQDicomImageViewer::getThresholdPercentage() 
+{
+  return mLabel->getThresholdPercentage();
+}
+
+/***********************************************************************************//**
+ *
+ */
+QImage MSQDicomImageViewer::rectangularRegionOfInterest() const
+{
+  return mLabel->rectangularRegionOfInterest();
 }
 
 /***********************************************************************************//**

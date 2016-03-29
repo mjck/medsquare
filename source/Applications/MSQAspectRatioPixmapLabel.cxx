@@ -300,20 +300,22 @@ void MSQAspectRatioPixmapLabel::threshold( QPainter & p )
         //std::cout << (*rev_iter).first << ": " << (*rev_iter).second << std::endl;
     }
 
-    long count = 0;
+    long count = 0;//(*hist.rbegin()).second;
     short threshold = (*hist.rbegin()).first;
-    for (rev_iter = hist.rbegin(); count < top*total && rev_iter != hist.rend(); ++rev_iter) {
+    for (rev_iter = hist.rbegin(); rev_iter != hist.rend(); ++rev_iter) {
         count += (*rev_iter).second;
-        threshold = (*rev_iter).first;
+        if (count >= top*total) {
+            threshold = (*rev_iter).first;
+            break;
+        }
     }
 
     //printf("threshold=%d\n",threshold);
-
     for(unsigned int i = starty; i < endy; i++) 
     {
         for(unsigned int j = startx; j < endx; j++) {
           int index = i * dimX + j;
-          if (image[index] > threshold) {
+          if (image[index] >= threshold) {
             p.drawPoint(j, i);
           }
         }
@@ -548,6 +550,42 @@ void MSQAspectRatioPixmapLabel::recalculateRect()
     }
 
     viewport.setRect(x, y, w, h);
+}
+
+/***********************************************************************************//**
+ * 
+ */
+QImage MSQAspectRatioPixmapLabel::rectangularRegionOfInterest()
+{
+    if ( pix.isNull() )
+        return QImage();
+
+    QImage pixroi ( pix.width(), pix.height(), QImage::Format_RGB32 );
+    QPainter painter( &pixroi );
+
+    QPen paintpen( Qt::white );
+    paintpen.setWidth(this->penSize);
+    painter.setPen( paintpen );
+    paintpen.setCapStyle(Qt::FlatCap);
+    paintpen.setJoinStyle(Qt::MiterJoin);
+    painter.setBrush ( QBrush ( Qt::white ) );
+    painter.setPen ( Qt::NoPen );
+
+    QRectF roi(
+        pix.width() * normalized.left(),
+        pix.height() * normalized.top(),
+        pix.width() * normalized.width(),
+        pix.height() * normalized.height() 
+    ); 
+
+    pixroi.fill( Qt::black );
+    painter.drawRect(roi);
+
+    //printf("saving\n");
+    pixroi.save( "region_of_interest_1.png" );
+
+    //return pixroi.toImage();
+    return pixroi.copy();
 }
 
 /***********************************************************************************//**

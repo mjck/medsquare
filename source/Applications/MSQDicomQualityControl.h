@@ -146,9 +146,15 @@ protected:
 
   void createInterface();
   double calculateStat(std::string fileName, const QImage& mask, int type);
+
+  void getImageLocations(gdcm::Image const & gimage, char *buffer, std::vector<int>& rectmask, std::vector<float>& image_locations);
+  void getThresholdLocations(gdcm::Image const & gimage, char *buffer, std::vector<int>& rectmask, std::vector<int>& thresh_mask, int perc);
+  double calculateThresholdStat(std::string fileName, const QImage& rectmask, int perc);
   short equalize(short input, double window, double center);
   void getMaskLocations(const QImage& mask, int dimX, int dimY, std::vector<int>& locations); 
-  void fileCheckQualityRecursive(QTreeWidgetItem *item, const QImage& mask, 
+  void fileCheckQualityIndividual(std::vector<std::string>& fileNames, std::vector<QTreeWidgetItem *>& qtItems, 
+    const QImage& mask, const QImage& rectmask, double toppercfrom, double toppercto);
+  void fileCheckQualityRecursive(QTreeWidgetItem *item, const QImage& mask, const QImage& rectmask,
     bool selection, double toppercfrom, double toppercto);
   void collectFilenamesRecursive(QTreeWidgetItem *item, bool selection, std::vector<std::string>& fileNames, std::vector<QTreeWidgetItem *>& qtItems);
   void fileCheckQualityCombinations(std::vector<std::string>& fileNames,  std::vector<QTreeWidgetItem *>& qtItems, 

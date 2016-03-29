@@ -107,6 +107,8 @@ public:
   virtual void setBackgroundColormap(vtkmsqLookupTable *lut);
 
   QImage regionOfInterest() const;
+  QImage rectangularRegionOfInterest() const;
+  int getThresholdPercentage();
 
   void showToolBar(bool show);
   void enableToolBar(bool enable);

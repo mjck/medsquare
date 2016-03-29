@@ -71,6 +71,7 @@ void MSQDicomQualityControl::createInterface()
   mMethodBox = new QComboBox;
   mMethodBox->addItem("Entropy measure");
   mMethodBox->addItem("SNR measure");
+  mMethodBox->addItem("SNR ratio");
   mMethodBox->addItem("SNR maximization");
   mMethodBox->addItem("Entropy minimization");
   mMethodBox->addItem("SNR max / Entropy min");
@@ -228,6 +229,225 @@ void MSQDicomQualityControl::setDicomTree(QTreeWidgetItem *topItem)
 }
 
 /***********************************************************************************//**
+ *
+ */
+void MSQDicomQualityControl::getImageLocations(gdcm::Image const & gimage, 
+  char *buffer, std::vector<int>& rectmask, std::vector<float>& image_locations)
+{
+ // Let's start with the easy case:
+  if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::RGB )
+    {
+      // RGB image
+      // undefined
+      return;
+    }
+  else if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME1 ||
+           gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME2 )
+    {
+      if( gimage.GetPixelFormat() == gdcm::PixelFormat::INT8 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT8 )
+      {
+        // build histogram
+        for(int i=0; i<rectmask.size(); i++)
+        {
+          image_locations.push_back(buffer[rectmask[i]]);
+        }
+
+      }
+    else if ( gimage.GetPixelFormat() == gdcm::PixelFormat::INT16 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT16 )
+      {
+        short *input = (short*)buffer;
+        
+        for(int i=0; i<rectmask.size(); i++)
+        {
+          image_locations.push_back(input[rectmask[i]]);
+        }
+
+      }
+    else
+      {
+        return;
+      }
+    }
+  else
+    {
+      return;
+    }
+}
+
+/***********************************************************************************//**
+ *
+ */
+void MSQDicomQualityControl::getThresholdLocations(gdcm::Image const & gimage, char *buffer, std::vector<int>& rectmask, std::vector<int>& threshmask, int perc)
+{
+   // get buffer to image
+  //unsigned long len = gimage.GetBufferLength();
+  //std::vector<char> vbuffer;
+  //vbuffer.resize( len );
+  //char *buffer = &vbuffer[0];
+  //gimage.GetBuffer(buffer);
+
+  std::map<short, int> hist;
+  std::map<short, int>::reverse_iterator rev_iter;
+  float top = 1.0 - ((float)perc / 100.0);
+  int index = 0;
+
+  // Let's start with the easy case:
+  if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::RGB )
+    {
+      // RGB image
+      // undefined
+      return;
+    }
+  else if( gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME1 ||
+           gimage.GetPhotometricInterpretation() == gdcm::PhotometricInterpretation::MONOCHROME2 )
+    {
+      if( gimage.GetPixelFormat() == gdcm::PixelFormat::INT8 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT8 )
+      {
+        // build histogram
+        
+        for(int i=0; i<rectmask.size(); i++)
+        {
+          hist[buffer[rectmask[i]]]++;
+        }
+
+        short a = (*hist.begin()).first;
+        short b = (*hist.rbegin()).first;
+        long total = 0;
+        for (rev_iter = hist.rbegin(); rev_iter != hist.rend(); ++rev_iter) {
+            total += (*rev_iter).second;
+            //std::cout << (*rev_iter).first << ": " << (*rev_iter).second << std::endl;
+        }
+
+        long count = 0;//(*hist.rbegin()).second;
+        short threshold = (*hist.rbegin()).first;
+        for (rev_iter = hist.rbegin(); rev_iter != hist.rend(); ++rev_iter) {
+            count += (*rev_iter).second;
+            if (count >= top*total) {
+                threshold = (*rev_iter).first;
+                break;
+            }
+        }
+
+        for(int i=0; i<rectmask.size(); i++)
+        {
+          if (buffer[rectmask[i]] >= threshold) {
+            threshmask.push_back(rectmask[i]);
+          }
+        }
+
+      }
+    else if ( gimage.GetPixelFormat() == gdcm::PixelFormat::INT16 || gimage.GetPixelFormat() == gdcm::PixelFormat::UINT16 )
+      {
+        short *input = (short*)buffer;
+        
+        for(int i=0; i<rectmask.size(); i++)
+        {
+          hist[input[rectmask[i]]]++;
+        }
+
+        short a = (*hist.begin()).first;
+        short b = (*hist.rbegin()).first;
+        long total = 0;
+        for (rev_iter = hist.rbegin(); rev_iter != hist.rend(); ++rev_iter) {
+            total += (*rev_iter).second;
+            //std::cout << (*rev_iter).first << ": " << (*rev_iter).second << std::endl;
+        }
+
+        long count = 0;//(*hist.rbegin()).second;
+        short threshold = (*hist.rbegin()).first;
+        for (rev_iter = hist.rbegin(); rev_iter != hist.rend(); ++rev_iter) {
+            count += (*rev_iter).second;
+            if (count >= top*total) {
+                threshold = (*rev_iter).first;
+                break;
+            }
+        }
+
+        for(int i=0; i<rectmask.size(); i++)
+        {
+          if (input[rectmask[i]] >= threshold) {
+            threshmask.push_back(rectmask[i]);
+          }
+        }
+
+      }
+    else
+      {
+        return;
+      }
+    }
+  else
+    {
+      return;
+    }
+
+}
+
+/***********************************************************************************//**
+ * 
+ */
+double MSQDicomQualityControl::calculateThresholdStat(std::string fileName, const QImage& rectmask, int perc)
+{
+  gdcm::ImageReader reader;
+
+  const gdcm::File &file = reader.GetFile();
+  const gdcm::Image &gimage = reader.GetImage();
+  reader.SetFileName(fileName.c_str());
+  //printf("%s\n",fileName.c_str());
+  if (!reader.Read()) {
+    //this->warningMessage(QString("Could not read file %1").arg(QString::fromStdString(fileName)), "Pleack check and try again."); 
+    // if it falls here, it is not a DICOM image.
+    return -1;
+  }
+
+  unsigned long len = gimage.GetBufferLength();
+  std::vector<char> vbuffer;
+  vbuffer.resize( len );
+  char *buffer = &vbuffer[0];
+  gimage.GetBuffer(buffer);
+
+  const unsigned int* dimension = gimage.GetDimensions();
+  int dimX = dimension[0];
+  int dimY = dimension[1];
+
+  // get rectangular mask locations
+  std::vector<int> mask_locations;
+  this->getMaskLocations(rectmask, dimX, dimY, mask_locations);
+
+  // get thresholding locations
+  std::vector<int> thresh_locations;
+  this->getThresholdLocations(gimage, buffer, mask_locations, thresh_locations, perc);
+
+  // get image locations
+  std::vector<float> image1_locations;
+  this->getImageLocations(gimage, buffer, mask_locations, image1_locations);
+
+  // get image locations
+  std::vector<float> image2_locations;
+  this->getImageLocations(gimage, buffer, thresh_locations, image2_locations);
+
+  // Calculate stats
+  double entropy1, mean1, stdev1, snr1;
+  this->getStatistics(image1_locations, &entropy1, &mean1, &stdev1);
+  if (isnormal(stdev1))
+    snr1 = mean1 / stdev1;
+  else snr1 = 0;
+
+  // Calculate stats
+  double entropy2, mean2, stdev2, snr2;
+  this->getStatistics(image2_locations, &entropy2, &mean2, &stdev2);
+  if (isnormal(stdev2))
+    snr2 = mean2 / stdev2;
+  else snr2 = 0;
+
+  if (snr1 == 0)
+    return 0;
+  else 
+    return snr2 / snr1;
+
+}
+
+/***********************************************************************************//**
  * 
  */
 double MSQDicomQualityControl::calculateStat(std::string fileName, const QImage& mask, int type)
@@ -249,19 +469,46 @@ double MSQDicomQualityControl::calculateStat(std::string fileName, const QImage&
     return -1;
   }
 
+  unsigned long len = gimage.GetBufferLength();
+  std::vector<char> vbuffer;
+  vbuffer.resize( len );
+  char *buffer = &vbuffer[0];
+  gimage.GetBuffer(buffer);
+
+  const unsigned int* dimension = gimage.GetDimensions();
+  int dimX = dimension[0];
+  int dimY = dimension[1];
+
+  // get rectangular mask locations
+  std::vector<int> mask_locations;
+  this->getMaskLocations(mask, dimX, dimY, mask_locations);
+
+  // get image locations
+  std::vector<float> image_locations;
+  this->getImageLocations(gimage, buffer, mask_locations, image_locations);
+
+  double entropy, mean, stdev;
+  this->getStatistics(image_locations, &entropy, &mean, &stdev);
+
+  if (type == 0)
+    return entropy;
+  else {
+    if (isnormal(stdev))
+      return mean / stdev;
+    else return 0;
+  }
+
   //const gdcm::Image &image = reader.GetImage();
   //const gdcm::DataSet &ds = file.GetDataSet();
-
-   // window and level
+  // window and level
   //if( ds.FindDataElement( twindowcenter ) && ds.FindDataElement( twindowwidth) )
   //{
-   // const gdcm::DataElement& windowcenter = ds.GetDataElement( twindowcenter );
-   // const gdcm::DataElement& windowwidth = ds.GetDataElement( twindowwidth );
-   // const gdcm::ByteValue *bvwc = windowcenter.GetByteValue();
-   // const gdcm::ByteValue *bvww = windowwidth.GetByteValue();
-
-   // if( bvwc && bvww ) // Can be Type 2
-   // {
+ // const gdcm::DataElement& windowcenter = ds.GetDataElement( twindowcenter );
+ // const gdcm::DataElement& windowwidth = ds.GetDataElement( twindowwidth );
+ // const gdcm::ByteValue *bvwc = windowcenter.GetByteValue();
+ // const gdcm::ByteValue *bvww = windowwidth.GetByteValue();
+ // if( bvwc && bvww ) // Can be Type 2
+ // {
         //gdcm::Attributes<0x0028,0x1050> at;
   //       gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elwc;
   //       std::stringstream ss1;
@@ -278,7 +525,6 @@ double MSQDicomQualityControl::calculateStat(std::string fileName, const QImage&
   //       gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elww;
   //       elww.SetLength( count * vrsize );
   //       elww.Read( ss2 );
-
   //       if (elwc.GetLength() > 0)
   //       {
   //         window = elww.GetValue(0);
@@ -287,25 +533,24 @@ double MSQDicomQualityControl::calculateStat(std::string fileName, const QImage&
   //   }
   // }
 
-  unsigned long len = gimage.GetBufferLength();
-  std::vector<char> vbuffer;
-  vbuffer.resize( len );
-  char *buffer = &vbuffer[0];
-  gimage.GetBuffer(buffer);
+  // unsigned long len = gimage.GetBufferLength();
+  // std::vector<char> vbuffer;
+  // vbuffer.resize( len );
+  // char *buffer = &vbuffer[0];
+  // gimage.GetBuffer(buffer);
 
-  // Calculate entropy
-  double entropy, mean, stdev;
+  // // Calculate entropy
+  // double entropy, mean, stdev;
 
-  this->statistics(gimage, buffer, mask, &entropy, &mean, &stdev);
+  // this->statistics(gimage, buffer, mask, &entropy, &mean, &stdev);
 
-  if (type == 0)
-    return entropy;
-  else {
-    if (isnormal(stdev))
-      return mean / stdev;
-    else
-      return 0;
-  }
+  // if (type == 0)
+  //   return entropy;
+  // else {
+  //   if (isnormal(stdev))
+  //     return mean / stdev;
+  //   else return 0;
+  // }
 
     //if (type == 1)
     //return mean;
@@ -339,7 +584,7 @@ void MSQDicomQualityControl::collectFilenamesRecursive(QTreeWidgetItem *item, bo
         // fetch entropy values
         for(int i=0; i<item->childCount(); i++) {
 
-          if ((selection && item->child(i)->checkState(0)) || !selection) {
+          if ((selection && item->child(i)->checkState(0) && item->child(i)->isSelected()) || !selection) {
 
             fileNames.push_back(item->child(i)->text(0).toStdString());
             qtItems.push_back(item->child(i));
@@ -451,7 +696,7 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
   int index = 0;
   double val;
 
-  if (option == 2) {
+  if (option == 3) {
 
     double max_snr = cmb.list[0].snr;
     for(int k = 1; k < cmb.list.size(); k++)
@@ -464,7 +709,7 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
 
     cout <<  "selected " << index << " ==> snr: " << max_snr << std::endl;
 
-  } else if (option == 3) {
+  } else if (option == 4) {
 
     double min_entropy = cmb.list[0].entropy;
     for(int k = 1; k < cmb.list.size(); k++)
@@ -477,7 +722,7 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
 
     cout <<  "selected " << index << " ==> entropy: " << min_entropy << std::endl;
 
-  } else if (option == 4) {
+  } else if (option == 5) {
  
     double max_snr = cmb.list[0].snr;
     double min_entropy = cmb.list[0].entropy;
@@ -533,8 +778,93 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
 /***********************************************************************************//**
  * 
  */
+void MSQDicomQualityControl::fileCheckQualityIndividual(
+  std::vector<std::string>& fileNames, 
+  std::vector<QTreeWidgetItem *>& qtItems,
+  const QImage& mask, const QImage& rectmask, 
+  double toppercfrom, double toppercto)
+{
+  std::vector<stat_pair> vec;
+
+  double value, valuerect;
+  double sum=0, sum2=0;
+  double mean=0, stdev=0;
+
+  // calculate statistics
+  for(int i=0; i<fileNames.size(); i++) {
+
+      if (mMethodBox->currentIndex() < 2) {
+
+        value = calculateStat(fileNames[i], mask, 
+          mMethodBox->currentIndex());
+
+        //printf("val=%f\n",value);
+      
+      } else {
+
+        value = calculateThresholdStat(fileNames[i], rectmask, 
+          mDicomViewer->getThresholdPercentage());
+
+        //printf("val=%f\n",value);
+
+      }
+ 
+      sum += value;
+      sum2 += value * value;
+
+      vec.push_back(std::make_pair(value, i));
+
+  }
+
+  mean = sum / vec.size();
+  stdev = sqrt((sum2 / vec.size()) - (mean * mean));
+
+  if (this->mRangeButton->isChecked()) {
+
+    //printf("using range\n");
+  
+    // sort
+    std::sort(vec.begin(), vec.end(), stat_compare);
+
+    int fromp = vec.size()*toppercfrom;
+    int top = vec.size()*toppercto;
+
+    // uncheck
+    for(int i=0; i<vec.size(); i++) {
+      if (i >= fromp && i < top)
+        qtItems[vec[i].second]->setCheckState(0, Qt::Checked);
+      else
+        qtItems[vec[i].second]->setCheckState(0, Qt::Unchecked);
+    }
+
+  } else {
+  
+    double from = mean + stdev * mDistFrom->text().toDouble();
+    double to = mean + stdev * mDistTo->text().toDouble();
+    double nfrom = mean - stdev * mDistTo->text().toDouble();
+    double nto = mean - stdev * mDistFrom->text().toDouble();
+
+    //printf("using distribution [from=%lf, to=%lf], %lf, [from=%lf, to=%lf]\n", nfrom, nto, mean, from, to);
+
+    for(int i=0; i<vec.size(); i++) {
+
+      if ((vec[i].first >= from && vec[i].first <= to) || 
+          (vec[i].first >= nfrom && vec[i].first <= nto))
+         qtItems[vec[i].second]->setCheckState(0, Qt::Checked);
+       else
+         qtItems[vec[i].second]->setCheckState(0, Qt::Unchecked);
+
+    }
+
+  }
+
+}
+
+/***********************************************************************************//**
+ * 
+ */
 void MSQDicomQualityControl::fileCheckQualityRecursive(QTreeWidgetItem *item, 
-  const QImage& mask, bool selection, double toppercfrom, double toppercto)
+  const QImage& mask, const QImage& rectmask, bool selection, double toppercfrom, double toppercto)
 {
   if (item->childCount() > 0) {
 
@@ -545,7 +875,7 @@ void MSQDicomQualityControl::fileCheckQualityRecursive(QTreeWidgetItem *item,
         for(int i=0; i<item->childCount(); i++) {
 
           if ((selection && item->child(i)->checkState(0)) || !selection)
-            fileCheckQualityRecursive(item->child(i), mask, selection, toppercfrom, toppercto);
+            fileCheckQualityRecursive(item->child(i), mask, rectmask, selection, toppercfrom, toppercto);
 
         } 
     
@@ -553,7 +883,7 @@ void MSQDicomQualityControl::fileCheckQualityRecursive(QTreeWidgetItem *item,
 
         std::vector<stat_pair> vec;
 
-        double value;
+        double value, valuerect;
         double sum=0, sum2=0;
         double mean=0, stdev=0;
 
@@ -562,7 +892,13 @@ void MSQDicomQualityControl::fileCheckQualityRecursive(QTreeWidgetItem *item,
 
           if ((selection && item->child(i)->checkState(0)) || !selection) {
           
-            value = calculateStat(item->child(i)->text(0).toStdString(), mask, mMethodBox->currentIndex());
+            if (mMethodBox->currentIndex() < 2) {
+              value = calculateStat(item->child(i)->text(0).toStdString(), mask, mMethodBox->currentIndex());
+            } else {
+              value = calculateThresholdStat(item->child(i)->text(0).toStdString(), rectmask, 
+                mDicomViewer->getThresholdPercentage());
+            }
+
               //mEntropyButton->isChecked() ? 0 : (mMeanButton->isChecked() ? 1 : 2));
             //item->setData(1, Qt::UserRole, QVariant(entropy));
 
@@ -585,6 +921,9 @@ void MSQDicomQualityControl::fileCheckQualityRecursive(QTreeWidgetItem *item,
         
           // sort
           std::sort(vec.begin(), vec.end(), stat_compare);
+
+          printf("min = %f\n",vec[0].first);
+          printf("max = %f\n",vec[vec.size()-1].first);
 
           int fromp = vec.size()*toppercfrom;
           int top = vec.size()*toppercto;
@@ -894,7 +1233,7 @@ void MSQDicomQualityControl::getStatistics(std::vector<float>& average, double *
   }
 
   // normalization factor
-  weight = 255.0 / (max - min);
+  weight = 255.0 / ((max - min) + 1);
 
   for(int i=0; i<average.size(); i++)
   {
@@ -1215,13 +1554,24 @@ void MSQDicomQualityControl::checkQuality()
   mProgressDialog->setLabelText("Check quality of DICOM files... Please wait");
   mProgressDialog->show();
 
-  if (mMethodBox->currentIndex() < 2) {
+  if (mMethodBox->currentIndex() < 3) {
 
-    fileCheckQualityRecursive(mDicomTree, 
+    std::vector<std::string> fileNames;
+    std::vector<QTreeWidgetItem *> qtItems;
+    collectFilenamesRecursive(mDicomTree, this->mSelectionButton->isChecked(), fileNames, qtItems);
+
+    fileCheckQualityIndividual(fileNames, qtItems, 
       this->mDicomViewer->regionOfInterest(),
-      this->mSelectionButton->isChecked(), 
-      mQualityFrom->text().toDouble() / 100.0,
-      mQualityTo->text().toDouble() / 100.0);
+      this->mDicomViewer->rectangularRegionOfInterest(),
+       mQualityFrom->text().toDouble() / 100.0,
+       mQualityTo->text().toDouble() / 100.0);
+
+    //fileCheckQualityRecursive(mDicomTree, 
+    //  this->mDicomViewer->regionOfInterest(),
+    //  this->mDicomViewer->rectangularRegionOfInterest(),
+    //  this->mSelectionButton->isChecked(), 
+    //  mQualityFrom->text().toDouble() / 100.0,
+    //  mQualityTo->text().toDouble() / 100.0);
 
   } else {
 

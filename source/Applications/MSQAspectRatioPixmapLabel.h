@@ -44,6 +44,7 @@ public:
     int getCursorType();
     QRect getRect();
     QImage regionOfInterest();
+    QImage rectangularRegionOfInterest();
 
 private:
     void recalculateRect();
