@@ -638,7 +638,7 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
   std::vector<int> mask_locations;
   this->getMaskLocations(mask, dimX, dimY, mask_locations);
 
-  printf("size of mask locations=%d\n", mask_locations.size());
+  printf("size of mask locations=%lu\n", mask_locations.size());
 
   std::vector<float> average(mask_locations.size());
   float *avg = &average[0];
@@ -798,14 +798,14 @@ void MSQDicomQualityControl::fileCheckQualityIndividual(
         value = calculateStat(fileNames[i], mask, 
           mMethodBox->currentIndex());
 
-        //printf("val=%f\n",value);
+        printf("%d: value=%f\n",i,value);
       
       } else {
 
         value = calculateThresholdStat(fileNames[i], rectmask, 
           mDicomViewer->getThresholdPercentage());
 
-        //printf("val=%f\n",value);
+        printf("%d: value=%f\n",i,value);
 
       }
  
@@ -1220,6 +1220,7 @@ void MSQDicomQualityControl::getStatistics(std::vector<float>& average, double *
       max = average[i];
   }
 
+  printf("size=%lu\n",average.size());
   //printf("**min: %f, max: %f\n",min, max);
 
   // reset return values
@@ -1579,7 +1580,7 @@ void MSQDicomQualityControl::checkQuality()
     std::vector<QTreeWidgetItem *> qtItems;
     collectFilenamesRecursive(mDicomTree, this->mSelectionButton->isChecked(), fileNames, qtItems);
 
-    printf("done collecting files = %d\n", fileNames.size());
+    printf("done collecting files = %lu\n", fileNames.size());
 
     combination cmb;
     cmb.generate(fileNames.size());

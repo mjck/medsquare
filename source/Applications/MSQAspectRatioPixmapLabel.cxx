@@ -258,9 +258,13 @@ void MSQAspectRatioPixmapLabel::threshold( QPainter & p )
     int dimX = pix.width();
 
     int startx = pix.width() * normalized.left();
-    int endx = startx + pix.width() * normalized.width();
+    int endx = pix.width() * normalized.right();
     int starty = pix.height() * normalized.top();
-    int endy = starty + pix.height() * normalized.height();
+    int endy = pix.height() * normalized.bottom();
+
+    //int endx = pix.width() * normalized.width() -1;
+    //int starty = pix.height() * normalized.top();
+    //int endy = pix.height() * normalized.height() -1;
 
     if (startx < 0) startx = 0;
     if (starty < 0) starty = 0;
@@ -276,6 +280,8 @@ void MSQAspectRatioPixmapLabel::threshold( QPainter & p )
         endx = startx;
     if (endy < starty)
         endy = starty;
+
+     //printf("*sx: %d, sy: %d, ex: %d, ey: %d\n", startx, starty, endx, endy);
 
     //printf("startx: %d, endx: %d\n",startx,endx);
     //printf("starty: %d, endy: %d\n",starty,endy);
@@ -571,7 +577,7 @@ QImage MSQAspectRatioPixmapLabel::rectangularRegionOfInterest()
     painter.setBrush ( QBrush ( Qt::white ) );
     painter.setPen ( Qt::NoPen );
 
-    QRectF roi(
+    QRect roi(
         pix.width() * normalized.left(),
         pix.height() * normalized.top(),
         pix.width() * normalized.width(),
@@ -616,6 +622,8 @@ QImage MSQAspectRatioPixmapLabel::regionOfInterest()
         pix.width() * normalized.width(),
         pix.height() * normalized.height() 
     ); 
+
+    //printf("sx: %f, sy: %f, ex: %f, ey: %f\n", roi.left(), roi.top(), roi.right(), roi.bottom());
 
     if ( this->cursorEnabled )
     {

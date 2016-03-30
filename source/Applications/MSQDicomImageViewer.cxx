@@ -502,7 +502,7 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, std::vector<in
   float weight = 0;
   int index;
 
-  //printf("size=%d\n", mask.size());
+  printf("mask size=%d\n", mask.size());
 
   // Let's start with the easy case
   if( source.interpretation == gdcm::PhotometricInterpretation::RGB )
@@ -863,9 +863,14 @@ void MSQDicomImageViewer::updateInformation()
   QString topleft="", topmid="", topright="";
   QString botleft="", botmid="", botright="";
   double entrpy, mean, stdev, snr;
+  double entrpy2, mean2, stdev2, snr2;
 
   QImage mask = mLabel->regionOfInterest();
   if ( mask.isNull() )
+    return;
+
+  QImage mask_rect = mLabel->rectangularRegionOfInterest();
+  if ( mask_rect.isNull() )
     return;
 
   QRect roi = mLabel->getRect();
@@ -873,6 +878,9 @@ void MSQDicomImageViewer::updateInformation()
 
   std::vector<int> mask_locations;
   this->getMaskLocations(mask, mask_locations);
+
+  std::vector<int> mask_rect_locations;
+  this->getMaskLocations(mask_rect, mask_rect_locations);
 
   int perc = mLabel->getThresholdPercentage();
   mPerc->setText(QString("%1%").arg(perc));
@@ -926,11 +934,17 @@ void MSQDicomImageViewer::updateInformation()
 
   mHeader[2]->setText(topright);
 
-  // Entropy
+  // stats
   this->statistics(foreground, mask_locations, &entrpy, &mean, &stdev);
   if (isnormal(stdev))
     snr = mean / stdev;
   else snr = 0;
+
+  // stats
+  this->statistics(foreground, mask_rect_locations, &entrpy2, &mean2, &stdev2);
+  if (isnormal(stdev2))
+    snr2 = mean2 / stdev2;
+  else snr2 = 0;
 
   botleft = QString("<FONT COLOR=Firebrick>Entropy: %1</FONT>").arg(entrpy);
   botleft += QString("<br>Image size: %1 x ").arg(foreground.columns);
@@ -947,6 +961,8 @@ void MSQDicomImageViewer::updateInformation()
   mFooter[1]->setText(botmid);
 
   botright = QString("<FONT COLOR=RoyalBlue>SNR: %1</FONT>").arg(snr);
+  botright += QString("<br><FONT COLOR=RoyalBlue>SNR Ratio: %1</FONT>").arg(snr / snr2);
+  //botright = QString("<FONT COLOR=RoyalBlue>SNR: %1</FONT>").arg(snr);
   //botright += QString("<br><FONT COLOR=RoyalBlue>SD: %1</FONT>").arg(stdev);
 
   // slice thickness
