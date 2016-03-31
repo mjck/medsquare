@@ -281,8 +281,7 @@ void MSQAspectRatioPixmapLabel::threshold( QPainter & p )
     if (endy < starty)
         endy = starty;
 
-     //printf("*sx: %d, sy: %d, ex: %d, ey: %d\n", startx, starty, endx, endy);
-
+    //printf("*sx: %d, sy: %d, ex: %d, ey: %d\n", startx, starty, endx, endy);
     //printf("startx: %d, endx: %d\n",startx,endx);
     //printf("starty: %d, endy: %d\n",starty,endy);
 

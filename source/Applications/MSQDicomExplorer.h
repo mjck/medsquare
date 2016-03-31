@@ -27,6 +27,11 @@
 
 #define MAX_COLORMAPS 5
 
+typedef struct {
+   int slice;
+   int component;
+} average_type;
+
 class MSQFileWithName : public gdcm::FileWithName
 {
 public:
@@ -197,13 +202,13 @@ private:
   bool exportToAnalyze(const QString& fileName, const QString& fileNameAnalyze);
   bool exportToAnalyze(const QStringList& fileNames, const QString& fileNameAnalyze, int components=1);
   bool averageAndExportToAnalyze(const QStringList& fileNames, const QString& fileNameAnalyze, 
-    std::vector<int>& labels, int components=1);
+    std::vector<average_type>& labels, int components=1);
 
   void fileExportToAnalyze(QString preffix, QTreeWidgetItem *item, long count);
   void fileExport2DRecursive(QString preffix, QTreeWidgetItem *item, bool selected, long *count);
   void fileExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count);
-  void fileAverageAndExport3DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, 
-    bool selected, long *count, std::vector<int>& labels, int *comp);
+  void fileAverageAndExport3DAnd4DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, 
+    bool selected, long *count, std::vector<average_type>& labels, int *comp, int *comp2);
   void fileExport4DRecursive(QStringList& fileNames, QTreeWidgetItem *item, MSQBTable& btable, bool selected, long *count, int *comp);
 
   void fileImportSelectionAsXML(QVariantMap& map, QTreeWidgetItem *item, bool selected, long *count);
