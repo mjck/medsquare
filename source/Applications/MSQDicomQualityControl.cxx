@@ -386,7 +386,8 @@ void MSQDicomQualityControl::getThresholdLocations(gdcm::Image const & gimage, c
 /***********************************************************************************//**
  * 
  */
-double MSQDicomQualityControl::calculateThresholdStat(std::string fileName, const QImage& rectmask, int perc)
+double MSQDicomQualityControl::calculateStat(std::string fileName, 
+  const QImage& mask, const QImage& rectmask, int perc, int type, int roi_type)
 {
   gdcm::ImageReader reader;
 
@@ -410,155 +411,168 @@ double MSQDicomQualityControl::calculateThresholdStat(std::string fileName, cons
   int dimX = dimension[0];
   int dimY = dimension[1];
 
-  // get rectangular mask locations
-  std::vector<int> mask_locations;
-  this->getMaskLocations(rectmask, dimX, dimY, mask_locations);
+  // get background locations
+  std::vector<int> back_locations;
+  this->getMaskLocations(rectmask, dimX, dimY, back_locations);
 
-  // get thresholding locations
-  std::vector<int> thresh_locations;
-  this->getThresholdLocations(gimage, buffer, mask_locations, thresh_locations, perc);
+  // get foreground locations (ROI)
+  std::vector<int> fore_locations;
+  if (roi_type < 6) {
+    this->getMaskLocations(mask, dimX, dimY, fore_locations);
+  } else {
+    this->getThresholdLocations(gimage, buffer, back_locations, fore_locations, perc);
+  }
 
   // get image locations
-  std::vector<float> image1_locations;
-  this->getImageLocations(gimage, buffer, mask_locations, image1_locations);
+  std::vector<float> image_back;
+  this->getImageLocations(gimage, buffer, back_locations, image_back);
 
   // get image locations
-  std::vector<float> image2_locations;
-  this->getImageLocations(gimage, buffer, thresh_locations, image2_locations);
+  std::vector<float> image_fore;
+  this->getImageLocations(gimage, buffer, fore_locations, image_fore);
 
   // Calculate stats
   double entropy1, mean1, stdev1, snr1;
-  this->getStatistics(image1_locations, &entropy1, &mean1, &stdev1);
+  this->getStatistics(image_back, &entropy1, &mean1, &stdev1);
   if (isnormal(stdev1))
     snr1 = mean1 / stdev1;
   else snr1 = 0;
 
   // Calculate stats
   double entropy2, mean2, stdev2, snr2;
-  this->getStatistics(image2_locations, &entropy2, &mean2, &stdev2);
+  this->getStatistics(image_fore, &entropy2, &mean2, &stdev2);
   if (isnormal(stdev2))
     snr2 = mean2 / stdev2;
   else snr2 = 0;
 
-  if (snr1 == 0)
-    return 0;
-  else 
-    return snr2 / snr1;
+  switch(type) {
+    case 0:
+      return entropy2;
+      break;
+    case 1:
+      return snr2;
+      break;
+    default:
+      if (snr1 == 0)
+        return 0;
+      else 
+        return snr2 / snr1;
+  }
 
 }
 
 /***********************************************************************************//**
  * 
  */
-double MSQDicomQualityControl::calculateStat(std::string fileName, const QImage& mask, int type)
-{
+// double MSQDicomQualityControl::calculateStat(std::string fileName, const QImage& mask, int type)
+// {
 
-  //double window = 256, center = 128;
-  //gdcm::Tag twindowcenter(0x0028, 0x1050);
-  //gdcm::Tag twindowwidth(0x0028, 0x1051);
+//   //double window = 256, center = 128;
+//   //gdcm::Tag twindowcenter(0x0028, 0x1050);
+//   //gdcm::Tag twindowwidth(0x0028, 0x1051);
 
-  gdcm::ImageReader reader;
+//   gdcm::ImageReader reader;
 
-  const gdcm::File &file = reader.GetFile();
-  const gdcm::Image &gimage = reader.GetImage();
-  reader.SetFileName(fileName.c_str());
-  //printf("%s\n",fileName.c_str());
-  if (!reader.Read()) {
-    //this->warningMessage(QString("Could not read file %1").arg(QString::fromStdString(fileName)), "Pleack check and try again."); 
-    // if it falls here, it is not a DICOM image.
-    return -1;
-  }
+//   const gdcm::File &file = reader.GetFile();
+//   const gdcm::Image &gimage = reader.GetImage();
+//   reader.SetFileName(fileName.c_str());
+//   //printf("%s\n",fileName.c_str());
+//   if (!reader.Read()) {
+//     //this->warningMessage(QString("Could not read file %1").arg(QString::fromStdString(fileName)), "Pleack check and try again."); 
+//     // if it falls here, it is not a DICOM image.
+//     return -1;
+//   }
 
-  unsigned long len = gimage.GetBufferLength();
-  std::vector<char> vbuffer;
-  vbuffer.resize( len );
-  char *buffer = &vbuffer[0];
-  gimage.GetBuffer(buffer);
+//   unsigned long len = gimage.GetBufferLength();
+//   std::vector<char> vbuffer;
+//   vbuffer.resize( len );
+//   char *buffer = &vbuffer[0];
+//   gimage.GetBuffer(buffer);
 
-  const unsigned int* dimension = gimage.GetDimensions();
-  int dimX = dimension[0];
-  int dimY = dimension[1];
+//   const unsigned int* dimension = gimage.GetDimensions();
+//   int dimX = dimension[0];
+//   int dimY = dimension[1];
 
-  // get rectangular mask locations
-  std::vector<int> mask_locations;
-  this->getMaskLocations(mask, dimX, dimY, mask_locations);
+//   // get rectangular mask locations
+//   std::vector<int> mask_locations;
+//   this->getMaskLocations(mask, dimX, dimY, mask_locations);
 
-  // get image locations
-  std::vector<float> image_locations;
-  this->getImageLocations(gimage, buffer, mask_locations, image_locations);
+//   // get image locations
+//   std::vector<float> image_locations;
+//   this->getImageLocations(gimage, buffer, mask_locations, image_locations);
 
-  double entropy, mean, stdev;
-  this->getStatistics(image_locations, &entropy, &mean, &stdev);
+//   double entropy, mean, stdev;
+//   this->getStatistics(image_locations, &entropy, &mean, &stdev);
 
-  if (type == 0)
-    return entropy;
-  else {
-    if (isnormal(stdev))
-      return mean / stdev;
-    else return 0;
-  }
+//   if (type == 0)
+//     return entropy;
+//   else {
+//     if (isnormal(stdev))
+//       return mean / stdev;
+//     else return 0;
+//   }
 
-  //const gdcm::Image &image = reader.GetImage();
-  //const gdcm::DataSet &ds = file.GetDataSet();
-  // window and level
-  //if( ds.FindDataElement( twindowcenter ) && ds.FindDataElement( twindowwidth) )
-  //{
- // const gdcm::DataElement& windowcenter = ds.GetDataElement( twindowcenter );
- // const gdcm::DataElement& windowwidth = ds.GetDataElement( twindowwidth );
- // const gdcm::ByteValue *bvwc = windowcenter.GetByteValue();
- // const gdcm::ByteValue *bvww = windowwidth.GetByteValue();
- // if( bvwc && bvww ) // Can be Type 2
- // {
-        //gdcm::Attributes<0x0028,0x1050> at;
-  //       gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elwc;
-  //       std::stringstream ss1;
-  //       std::string swc = std::string( bvwc->GetPointer(), bvwc->GetLength() );
-  //       ss1.str( swc );
-  //       gdcm::VR vr = gdcm::VR::DS;
-  //       unsigned int vrsize = vr.GetSizeof();
-  //       unsigned int count = gdcm::VM::GetNumberOfElementsFromArray(swc.c_str(), (unsigned int)swc.size());
-  //       elwc.SetLength( count * vrsize );
-  //       elwc.Read( ss1 );
-  //       std::stringstream ss2;
-  //       std::string sww = std::string( bvww->GetPointer(), bvww->GetLength() );
-  //       ss2.str( sww );
-  //       gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elww;
-  //       elww.SetLength( count * vrsize );
-  //       elww.Read( ss2 );
-  //       if (elwc.GetLength() > 0)
-  //       {
-  //         window = elww.GetValue(0);
-  //         center = elwc.GetValue(0);
-  //       }
-  //   }
-  // }
+//   //const gdcm::Image &image = reader.GetImage();
+//   //const gdcm::DataSet &ds = file.GetDataSet();
+//   // window and level
+//   //if( ds.FindDataElement( twindowcenter ) && ds.FindDataElement( twindowwidth) )
+//   //{
+//  // const gdcm::DataElement& windowcenter = ds.GetDataElement( twindowcenter );
+//  // const gdcm::DataElement& windowwidth = ds.GetDataElement( twindowwidth );
+//  // const gdcm::ByteValue *bvwc = windowcenter.GetByteValue();
+//  // const gdcm::ByteValue *bvww = windowwidth.GetByteValue();
+//  // if( bvwc && bvww ) // Can be Type 2
+//  // {
+//         //gdcm::Attributes<0x0028,0x1050> at;
+//   //       gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elwc;
+//   //       std::stringstream ss1;
+//   //       std::string swc = std::string( bvwc->GetPointer(), bvwc->GetLength() );
+//   //       ss1.str( swc );
+//   //       gdcm::VR vr = gdcm::VR::DS;
+//   //       unsigned int vrsize = vr.GetSizeof();
+//   //       unsigned int count = gdcm::VM::GetNumberOfElementsFromArray(swc.c_str(), (unsigned int)swc.size());
+//   //       elwc.SetLength( count * vrsize );
+//   //       elwc.Read( ss1 );
+//   //       std::stringstream ss2;
+//   //       std::string sww = std::string( bvww->GetPointer(), bvww->GetLength() );
+//   //       ss2.str( sww );
+//   //       gdcm::Element<gdcm::VR::DS,gdcm::VM::VM1_n> elww;
+//   //       elww.SetLength( count * vrsize );
+//   //       elww.Read( ss2 );
+//   //       if (elwc.GetLength() > 0)
+//   //       {
+//   //         window = elww.GetValue(0);
+//   //         center = elwc.GetValue(0);
+//   //       }
+//   //   }
+//   // }
 
-  // unsigned long len = gimage.GetBufferLength();
-  // std::vector<char> vbuffer;
-  // vbuffer.resize( len );
-  // char *buffer = &vbuffer[0];
-  // gimage.GetBuffer(buffer);
+//   // unsigned long len = gimage.GetBufferLength();
+//   // std::vector<char> vbuffer;
+//   // vbuffer.resize( len );
+//   // char *buffer = &vbuffer[0];
+//   // gimage.GetBuffer(buffer);
 
-  // // Calculate entropy
-  // double entropy, mean, stdev;
+//   // // Calculate entropy
+//   // double entropy, mean, stdev;
 
-  // this->statistics(gimage, buffer, mask, &entropy, &mean, &stdev);
+//   // this->statistics(gimage, buffer, mask, &entropy, &mean, &stdev);
 
-  // if (type == 0)
-  //   return entropy;
-  // else {
-  //   if (isnormal(stdev))
-  //     return mean / stdev;
-  //   else return 0;
-  // }
+//   // if (type == 0)
+//   //   return entropy;
+//   // else {
+//   //   if (isnormal(stdev))
+//   //     return mean / stdev;
+//   //   else return 0;
+//   // }
 
-    //if (type == 1)
-    //return mean;
-  //else return stdev;
-  //return (type == 0) ? entropy : mean;
-  //printf("entropy=%f, mean=%f\n",entropy,mean);
+//     //if (type == 1)
+//     //return mean;
+//   //else return stdev;
+//   //return (type == 0) ? entropy : mean;
+//   //printf("entropy=%f, mean=%f\n",entropy,mean);
 
-}
+// }
 
 /***********************************************************************************//**
  * 
@@ -638,7 +652,7 @@ void MSQDicomQualityControl::fileCheckQualityCombinations(
   std::vector<int> mask_locations;
   this->getMaskLocations(mask, dimX, dimY, mask_locations);
 
-  printf("size of mask locations=%lu\n", mask_locations.size());
+  //printf("size of mask locations=%lu\n", mask_locations.size());
 
   std::vector<float> average(mask_locations.size());
   float *avg = &average[0];
@@ -793,22 +807,14 @@ void MSQDicomQualityControl::fileCheckQualityIndividual(
   // calculate statistics
   for(int i=0; i<fileNames.size(); i++) {
 
-      if (mMethodBox->currentIndex() < 2) {
+      value = calculateStat(fileNames[i], 
+        mask, rectmask, 
+        mDicomViewer->getThresholdPercentage(),
+        mMethodBox->currentIndex(),
+        mDicomViewer->getRoiType());
 
-        value = calculateStat(fileNames[i], mask, 
-          mMethodBox->currentIndex());
+      printf("%d: value=%f\n",i,value);
 
-        printf("%d: value=%f\n",i,value);
-      
-      } else {
-
-        value = calculateThresholdStat(fileNames[i], rectmask, 
-          mDicomViewer->getThresholdPercentage());
-
-        printf("%d: value=%f\n",i,value);
-
-      }
- 
       sum += value;
       sum2 += value * value;
 
@@ -860,108 +866,108 @@ void MSQDicomQualityControl::fileCheckQualityIndividual(
 
 }
 
-/***********************************************************************************//**
- * 
- */
-void MSQDicomQualityControl::fileCheckQualityRecursive(QTreeWidgetItem *item, 
-  const QImage& mask, const QImage& rectmask, bool selection, double toppercfrom, double toppercto)
-{
-  if (item->childCount() > 0) {
+// /***********************************************************************************//**
+//  * 
+//  */
+// void MSQDicomQualityControl::fileCheckQualityRecursive(QTreeWidgetItem *item, 
+//   const QImage& mask, const QImage& rectmask, bool selection, double toppercfrom, double toppercto)
+// {
+//   if (item->childCount() > 0) {
 
-    if ((selection && item->checkState(0)) || !selection || item->parent() == NULL) {
+//     if ((selection && item->checkState(0)) || !selection || item->parent() == NULL) {
 
-      if (item->child(0)->childCount() > 0)
-      {
-        for(int i=0; i<item->childCount(); i++) {
+//       if (item->child(0)->childCount() > 0)
+//       {
+//         for(int i=0; i<item->childCount(); i++) {
 
-          if ((selection && item->child(i)->checkState(0)) || !selection)
-            fileCheckQualityRecursive(item->child(i), mask, rectmask, selection, toppercfrom, toppercto);
+//           if ((selection && item->child(i)->checkState(0)) || !selection)
+//             fileCheckQualityRecursive(item->child(i), mask, rectmask, selection, toppercfrom, toppercto);
 
-        } 
+//         } 
     
-      } else {
+//       } else {
 
-        std::vector<stat_pair> vec;
+//         std::vector<stat_pair> vec;
 
-        double value, valuerect;
-        double sum=0, sum2=0;
-        double mean=0, stdev=0;
+//         double value, valuerect;
+//         double sum=0, sum2=0;
+//         double mean=0, stdev=0;
 
-        // fetch entropy values
-        for(int i=0; i<item->childCount(); i++) {
+//         // fetch entropy values
+//         for(int i=0; i<item->childCount(); i++) {
 
-          if ((selection && item->child(i)->checkState(0)) || !selection) {
+//           if ((selection && item->child(i)->checkState(0)) || !selection) {
           
-            if (mMethodBox->currentIndex() < 2) {
-              value = calculateStat(item->child(i)->text(0).toStdString(), mask, mMethodBox->currentIndex());
-            } else {
-              value = calculateThresholdStat(item->child(i)->text(0).toStdString(), rectmask, 
-                mDicomViewer->getThresholdPercentage());
-            }
+//             if (mMethodBox->currentIndex() < 2) {
+//               value = calculateStat(item->child(i)->text(0).toStdString(), mask, mMethodBox->currentIndex());
+//             } else {
+//               value = calculateThresholdStat(item->child(i)->text(0).toStdString(), rectmask, 
+//                 mDicomViewer->getThresholdPercentage());
+//             }
 
-              //mEntropyButton->isChecked() ? 0 : (mMeanButton->isChecked() ? 1 : 2));
-            //item->setData(1, Qt::UserRole, QVariant(entropy));
+//               //mEntropyButton->isChecked() ? 0 : (mMeanButton->isChecked() ? 1 : 2));
+//             //item->setData(1, Qt::UserRole, QVariant(entropy));
 
-            sum += value;
-            sum2 += value * value;
+//             sum += value;
+//             sum2 += value * value;
 
-            vec.push_back(std::make_pair(value, i));
-            //printf("%f, %d\n", value, i);
-            //printf("%d %d\n",i, item->child(i)->checkState(0));
-          }
+//             vec.push_back(std::make_pair(value, i));
+//             //printf("%f, %d\n", value, i);
+//             //printf("%d %d\n",i, item->child(i)->checkState(0));
+//           }
 
-           mean = sum / vec.size();
-           stdev = sqrt((sum2 / vec.size()) - (mean * mean));
+//            mean = sum / vec.size();
+//            stdev = sqrt((sum2 / vec.size()) - (mean * mean));
 
-        }
+//         }
 
-        if (this->mRangeButton->isChecked()) {
+//         if (this->mRangeButton->isChecked()) {
 
-          //printf("using range\n");
+//           //printf("using range\n");
         
-          // sort
-          std::sort(vec.begin(), vec.end(), stat_compare);
+//           // sort
+//           std::sort(vec.begin(), vec.end(), stat_compare);
 
-          printf("min = %f\n",vec[0].first);
-          printf("max = %f\n",vec[vec.size()-1].first);
+//           printf("min = %f\n",vec[0].first);
+//           printf("max = %f\n",vec[vec.size()-1].first);
 
-          int fromp = vec.size()*toppercfrom;
-          int top = vec.size()*toppercto;
+//           int fromp = vec.size()*toppercfrom;
+//           int top = vec.size()*toppercto;
 
-          // uncheck
-          for(int i=0; i<vec.size(); i++) {
-            if (i >= fromp && i < top)
-              item->child(vec[i].second)->setCheckState(0, Qt::Checked);
-            else
-              item->child(vec[i].second)->setCheckState(0, Qt::Unchecked);
-          }
+//           // uncheck
+//           for(int i=0; i<vec.size(); i++) {
+//             if (i >= fromp && i < top)
+//               item->child(vec[i].second)->setCheckState(0, Qt::Checked);
+//             else
+//               item->child(vec[i].second)->setCheckState(0, Qt::Unchecked);
+//           }
 
-        } else {
+//         } else {
         
-          double from = mean + stdev * mDistFrom->text().toDouble();
-          double to = mean + stdev * mDistTo->text().toDouble();
-          double nfrom = mean - stdev * mDistTo->text().toDouble();
-          double nto = mean - stdev * mDistFrom->text().toDouble();
+//           double from = mean + stdev * mDistFrom->text().toDouble();
+//           double to = mean + stdev * mDistTo->text().toDouble();
+//           double nfrom = mean - stdev * mDistTo->text().toDouble();
+//           double nto = mean - stdev * mDistFrom->text().toDouble();
 
-          //printf("using distribution [from=%lf, to=%lf], %lf, [from=%lf, to=%lf]\n", nfrom, nto, mean, from, to);
+//           //printf("using distribution [from=%lf, to=%lf], %lf, [from=%lf, to=%lf]\n", nfrom, nto, mean, from, to);
 
-          for(int i=0; i<vec.size(); i++) {
+//           for(int i=0; i<vec.size(); i++) {
 
-            if ((vec[i].first >= from && vec[i].first <= to) || 
-                (vec[i].first >= nfrom && vec[i].first <= nto))
-               item->child(vec[i].second)->setCheckState(0, Qt::Checked);
-             else
-               item->child(vec[i].second)->setCheckState(0, Qt::Unchecked);
+//             if ((vec[i].first >= from && vec[i].first <= to) || 
+//                 (vec[i].first >= nfrom && vec[i].first <= nto))
+//                item->child(vec[i].second)->setCheckState(0, Qt::Checked);
+//              else
+//                item->child(vec[i].second)->setCheckState(0, Qt::Unchecked);
 
-          }
+//           }
 
-        }
+//         }
 
-      }
+//       }
 
-    }
-  }
-}
+//     }
+//   }
+// }
 
 /***********************************************************************************//**
  * 

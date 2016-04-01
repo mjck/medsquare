@@ -108,6 +108,7 @@ public:
 
   QImage regionOfInterest() const;
   QImage rectangularRegionOfInterest() const;
+  int getRoiType();
   int getThresholdPercentage();
 
   void showToolBar(bool show);

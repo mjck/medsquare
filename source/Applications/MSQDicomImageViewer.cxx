@@ -502,7 +502,7 @@ void MSQDicomImageViewer::statistics(const MSQDicomImage& source, std::vector<in
   float weight = 0;
   int index;
 
-  printf("mask size=%d\n", mask.size());
+  //printf("mask size=%d\n", mask.size());
 
   // Let's start with the easy case
   if( source.interpretation == gdcm::PhotometricInterpretation::RGB )
@@ -1491,6 +1491,14 @@ void MSQDicomImageViewer::thresholdButtonClick()
   mLabel->setCursorFilled(false);
   roiType = 6;
   //emit regionOfInterestChanged();
+}
+
+/***********************************************************************************//**
+ *
+ */
+int MSQDicomImageViewer::getRoiType()
+{
+  return roiType;
 }
 
 /***********************************************************************************//**

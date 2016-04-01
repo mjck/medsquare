@@ -145,11 +145,11 @@ protected:
   //QCheckBox *mFilledButton;
 
   void createInterface();
-  double calculateStat(std::string fileName, const QImage& mask, int type);
+  double calculateStat(std::string fileName, const QImage& mask, const QImage& rectmask, int perc, int type, int roi_type);
 
   void getImageLocations(gdcm::Image const & gimage, char *buffer, std::vector<int>& rectmask, std::vector<float>& image_locations);
   void getThresholdLocations(gdcm::Image const & gimage, char *buffer, std::vector<int>& rectmask, std::vector<int>& thresh_mask, int perc);
-  double calculateThresholdStat(std::string fileName, const QImage& rectmask, int perc);
+  //double calculateThresholdStat(std::string fileName, const QImage& rectmask, int perc);
   short equalize(short input, double window, double center);
   void getMaskLocations(const QImage& mask, int dimX, int dimY, std::vector<int>& locations); 
   void fileCheckQualityIndividual(std::vector<std::string>& fileNames, std::vector<QTreeWidgetItem *>& qtItems, 
