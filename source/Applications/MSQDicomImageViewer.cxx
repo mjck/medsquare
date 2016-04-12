@@ -117,6 +117,52 @@ void MSQDicomImageViewer::createInterface()
 
   QFont sansFont("Helvetica [Cronyx]", 10);
 
+  QVBoxLayout *loadSaveLayout = new QVBoxLayout;
+  loadSaveLayout->setSpacing(0);
+  loadSaveLayout->setContentsMargins(0, 0, 0, 0);
+
+  mLoad = new QToolButton(this);
+  mLoad->setStyleSheet(
+                "QToolButton { color: gray; }\n"
+                "QToolButton:hover {\n"
+                "   color: lime;\n"
+                "}\n"
+                "QToolButton:pressed {\n"
+                "   color: lime;\n"
+                "}\n"
+                "QToolButton:checked {\n"
+                "   color: lime;\n}" );
+  mLoad->setMaximumHeight(12);
+  mLoad->setMinimumHeight(12);
+  mLoad->setContentsMargins(0, 0, 0, 0);
+  mLoad->setText("Open");
+  mLoad->setFont(sansFont);
+  QObject::connect(mLoad, SIGNAL(clicked()), this, SLOT(loadSettingsClick()));
+  //buttonLayout->addStretch();
+  //buttonLayout->addWidget(mLoad);
+  loadSaveLayout->addWidget(mLoad);
+
+  mSave = new QToolButton(this);
+  mSave->setStyleSheet(
+                "QToolButton { color: gray; }\n"
+                "QToolButton:hover {\n"
+                "   color: lime;\n"
+                "}\n"
+                "QToolButton:pressed {\n"
+                "   color: lime;\n"
+                "}\n"
+                "QToolButton:checked {\n"
+                "   color: lime;\n}" );
+  mSave->setMaximumHeight(12);
+  mSave->setMinimumHeight(12);
+  mSave->setContentsMargins(0, 0, 0, 0);
+  mSave->setText("Save");
+  mSave->setFont(sansFont);
+  QObject::connect(mSave, SIGNAL(clicked()), this, SLOT(saveSettingsClick()));
+  //buttonLayout->addWidget(mSave);
+  loadSaveLayout->addWidget(mSave);
+  buttonLayout->addLayout(loadSaveLayout);
+
   QButtonGroup *buttonGroup1 = new QButtonGroup(this);
   buttonGroup1->setExclusive(true);
 
@@ -202,6 +248,8 @@ void MSQDicomImageViewer::createInterface()
   buttonGroup1->addButton(mThreshold);
 
   buttonLayout->addStretch();
+
+ 
 
   QButtonGroup *buttonGroup2 = new QButtonGroup(this);
   buttonGroup2->setExclusive(true);
@@ -396,6 +444,21 @@ MSQAspectRatioPixmapLabel *MSQDicomImageViewer::label()
   return mLabel;
 }
 
+/***********************************************************************************//**
+ *
+ */
+void MSQDicomImageViewer::loadSettingsClick()
+{
+  mLabel->loadSettings();
+}
+
+/***********************************************************************************//**
+ *
+ */
+void MSQDicomImageViewer::saveSettingsClick()
+{
+  mLabel->saveSettings();
+}
 
 /***********************************************************************************//**
  *

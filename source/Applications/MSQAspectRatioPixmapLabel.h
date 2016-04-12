@@ -16,10 +16,12 @@
 #ifndef MSQ_ASPECTRATIOPIXMAPLABEL_H
 #define MSQ_ASPECTRATIOPIXMAPLABEL_H
 
+#include <QDir>
 #include <QLabel>
 #include <QPixmap>
 #include <QPainter>
 #include <QResizeEvent>
+#include <QFileDialog>
 
 class MSQAspectRatioPixmapLabel : public QLabel
 {
@@ -45,6 +47,8 @@ public:
     QRect getRect();
     QImage regionOfInterest();
     QImage rectangularRegionOfInterest();
+    void saveSettings();
+    void loadSettings();
 
 private:
     void recalculateRect();
@@ -66,6 +70,9 @@ private slots:
     void paintEvent(QPaintEvent *);
 
 private:
+    QString currentFileName;
+    QString currentPath;
+
     QPixmap pix;
     QPixmap overlay;
     std::vector<short> image;

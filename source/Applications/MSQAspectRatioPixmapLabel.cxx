@@ -44,7 +44,62 @@ MSQAspectRatioPixmapLabel::MSQAspectRatioPixmapLabel(QWidget *parent) :
 
     this->perc = 80;
 
+    this->currentFileName = "";
+    this->currentPath = QDir::currentPath();
     //this->overlay = 0;
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQAspectRatioPixmapLabel::loadSettings()
+{
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Load settings"), currentPath, tr("ROI settings (*.roi)"));
+
+    if (!fileName.isEmpty())
+    {
+        QFile file(fileName);
+        file.open(QIODevice::ReadOnly | QIODevice::Text);
+        QTextStream in(&file);
+
+        qreal x, y, width, height;
+        in >> x;
+        in >> y;
+        in >> width;
+        in >> height;
+
+        currentFileName = fileName;
+        currentPath = QFileInfo(fileName).path();
+
+        this->normalized.setRect(x, y, width, height);
+        
+        update();
+        emit changed();
+    }
+}
+
+/***********************************************************************************//**
+ * 
+ */
+void MSQAspectRatioPixmapLabel::saveSettings()
+{
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Save settings"),
+        currentPath, tr("ROI settings (*.roi)"));
+
+    if (!fileName.isEmpty())
+    {
+        QFile file(fileName);
+        file.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream out(&file);
+
+        out << this->normalized.left() << " "
+            << this->normalized.top() << " "
+            << this->normalized.width() << " "
+            << this->normalized.height() << "\n";
+
+        currentPath = QFileInfo(fileName).path();
+        currentFileName = fileName;
+    }
 }
 
 /***********************************************************************************//**

@@ -130,6 +130,8 @@ private slots:
   void ellipseFilledButtonClick();
   void arcButtonClick();
   void thresholdButtonClick();
+  void saveSettingsClick();
+  void loadSettingsClick();
 
 protected:
   int roiType;
@@ -145,7 +147,7 @@ protected:
   MSQDicomImageViewerButton *mArc, *mThreshold;
   QToolButton *mOnepx, *mThreepx, *mFivepx;
   QLabel *mPerc;
-  QToolButton *mQuality;
+  QToolButton *mQuality, *mLoad, *mSave;
 
   //vtkColorTransferFunction *colorTransferFunction;
   //double colorTable[256][3];
