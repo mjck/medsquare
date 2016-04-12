@@ -67,12 +67,17 @@ void MSQAspectRatioPixmapLabel::loadSettings()
         in >> y;
         in >> width;
         in >> height;
+        this->normalized.setRect(x, y, width, height);
+
+        in >> x;
+        in >> y;
+        in >> width;
+        in >> height;
+        this->screen.setRect(x, y, width, height);
 
         currentFileName = fileName;
         currentPath = QFileInfo(fileName).path();
 
-        this->normalized.setRect(x, y, width, height);
-        
         update();
         emit changed();
     }
@@ -96,6 +101,11 @@ void MSQAspectRatioPixmapLabel::saveSettings()
             << this->normalized.top() << " "
             << this->normalized.width() << " "
             << this->normalized.height() << "\n";
+
+        out << this->screen.left() << " "
+            << this->screen.top() << " "
+            << this->screen.width() << " "
+            << this->screen.height() << "\n";
 
         currentPath = QFileInfo(fileName).path();
         currentFileName = fileName;
