@@ -18,12 +18,12 @@
 
 #include <QtGui>
 
-QT_MODULE(Gui)
+//QT_MODULE(Gui)
 
 class MSQGeometryItem;
 class MSQGeometryDialogPrivate;
 
-class Q_GUI_EXPORT MSQGeometryDialog : public QDialog
+class MSQGeometryDialog : public QDialog
 {
 Q_OBJECT
 

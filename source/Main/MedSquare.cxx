@@ -322,7 +322,7 @@ void MedSquare::setCurrentFile(const QString &fileName)
  */
 void MedSquare::setCurrentImage(int iCurrent)
 {
-  if (iCurrent >= 0 and iCurrent < this->getImageOpenNum() /*and iCurrent != this->imageSelected*/){
+  if (iCurrent >= 0 && iCurrent < this->getImageOpenNum() /*and iCurrent != this->imageSelected*/){
     this->imageSelected = iCurrent;
 
     const char *filename = this->getImagePropertiesAt(this->imageSelected)->GetUserDefinedValue("Filename");
@@ -358,7 +358,7 @@ void MedSquare::setCurrentImage(int iCurrent)
  */
 void MedSquare::useOrthogonalViewer()
 {
-  if (this->viewer and this->imageSelected >= 0 and this->imageSelected < this->getImageOpenNum())
+  if (this->viewer && this->imageSelected >= 0 && this->imageSelected < this->getImageOpenNum())
   {
     viewer->setInput(this->imageList.value(this->imageSelected));
   }
@@ -636,7 +636,7 @@ void MedSquare::fileClose(int iClosed)
  */
 void MedSquare::fileCloseSelected()
 {
-  if (this->getImageSelectedIdx() >= 0 and this->getImageSelectedIdx() < this->getImageOpenNum())
+  if (this->getImageSelectedIdx() >= 0 && this->getImageSelectedIdx() < this->getImageOpenNum())
   {
 	this->fileClose(this->getImageSelectedIdx());
   }
@@ -701,7 +701,7 @@ vtkmsqImageItem* MedSquare::getCurrentImage()
  */
 vtkImageData* MedSquare::getImageDataAt(int i)
 {
-  if (i >= 0 and i < this->getImageOpenNum())
+  if (i >= 0 && i < this->getImageOpenNum())
   {
 	vtkmsqImageItem* imageItem = this->imageList.value(i);
     return imageItem->GetImage();
@@ -714,7 +714,7 @@ vtkImageData* MedSquare::getImageDataAt(int i)
  */
 vtkmsqMedicalImageProperties* MedSquare::getImagePropertiesAt(int i)
 {
-  if (i >= 0 and i < this->getImageOpenNum())
+  if (i >= 0 && i < this->getImageOpenNum())
   {
     vtkmsqImageItem* imageItem = this->imageList.value(i);
 	return imageItem->GetProperties();
@@ -727,7 +727,7 @@ vtkmsqMedicalImageProperties* MedSquare::getImagePropertiesAt(int i)
  */
 vtkmsqLookupTable* MedSquare::getImageLookupTableAt(int i)
 {
-  if (i >= 0 and i < this->getImageOpenNum())
+  if (i >= 0 && i < this->getImageOpenNum())
   {
     vtkmsqImageItem* imageItem = this->imageList.value(i);
 	return imageItem->GetColormap();

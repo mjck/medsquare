@@ -193,7 +193,7 @@ vtkMatrix4x4* vtkmsqMedicalImageProperties::GetDirectionCosineMatrixPerpendicula
     maxvalj = -99999.9;
     for(j = 0; j < 3; j++){
       val = fabs(dircosMatrix->GetElement(i, j));
-      if (val > maxvalj and dircosMatrixPerp->GetElement(i-1, j) == 0.0){
+      if (val > maxvalj && dircosMatrixPerp->GetElement(i-1, j) == 0.0){
         maxvalj = val;
         maxj = j;
       }
@@ -258,7 +258,7 @@ void vtkmsqMedicalImageProperties::GetReorientedExtent(int original[6], int reor
   }
 
   for(int i = 0; i < 6; i++){
-    if (buffer[i] < 0 and absolute)
+    if (buffer[i] < 0 && absolute)
       reoriented[i] = -buffer[i];
     else
       reoriented[i] = buffer[i];
@@ -302,7 +302,7 @@ void vtkmsqMedicalImageProperties::GetReorientedDouble3(double original[3], doub
   }
 
   for(int i = 0; i < 3; i++){
-    if (buffer[i] < 0.0 and absolute){
+    if (buffer[i] < 0.0 && absolute){
       reoriented[i] = -buffer[i];
     }
     else

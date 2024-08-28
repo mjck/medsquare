@@ -49,7 +49,8 @@ vtkColorTransferFunction* vtkmsqLookupTable::GetColorTransferFunctionHot()
   vtkColorTransferFunction* colorTransfer=vtkColorTransferFunction::New();
   int m = this->GetNumberOfTableValues(); // get table size
   int n = (int) (3.0 / 8 * m);
-  double rgb[m][3];
+  //double rgb[m][3];
+  auto rgb = new double[m][3];
   int indx = 0;
   for (i = 1; i <= n; i++)
   {

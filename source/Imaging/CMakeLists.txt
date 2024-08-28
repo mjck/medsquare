@@ -26,16 +26,15 @@ SET(IMAGING_HEADERS
   #vtkmsqLookupTable.h
 )
 
-QT4_WRAP_CPP(MOCSrcs ${IMAGING_HEADERS} )
+#QT4_WRAP_CPP(MOCSrcs ${IMAGING_HEADERS} )
 ADD_DEFINITIONS(-DQT_GUI_LIBS -DQT_CORE_LIB -DQT_XML_LIB)
 
 # --------------------------------------------------------------------------
 # You probably do not need to modify anything below this line
 
 # Create the vtkmsqImaging C++ library.
-ADD_LIBRARY (vtkmsqImaging ${IMAGING_SRCS} ${UISrcs} ${MOCSrcs})
+ADD_LIBRARY (vtkmsqImaging ${IMAGING_SRCS} ../IO/MSQPListParser.cxx)
 TARGET_LINK_LIBRARIES (vtkmsqImaging 
-  #vtkCommon
   vtkImaging 
   vtkzlib 
   vtkmsqIO 

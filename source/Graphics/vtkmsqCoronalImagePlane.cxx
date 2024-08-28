@@ -170,7 +170,7 @@ void vtkmsqCoronalImagePlane::ComputePickedImageCoordinates(double pickedPositio
     vtkSmartPointer<vtkMatrix4x4> dircosMatrix = this->InputProperties->GetDirectionCosineMatrixPerpendicular();
     for(int i = 0; i < 3; i++){
       for(int j = 0; j < 3; j++){
-        if (dircosMatrix->GetElement(i, j) < 0 and j != 1) // j != SliceNumber
+        if (dircosMatrix->GetElement(i, j) < 0 && j != 1) // j != SliceNumber
         {
           imageCoords[j] = imageCoords[j] + extent[2*j+1];
         }

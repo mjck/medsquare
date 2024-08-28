@@ -36,14 +36,14 @@ SET(IO_HEADERS
   MSQPListParser.h
 )
 
-QT4_WRAP_CPP(MOCSrcs ${IO_HEADERS} )
+#QT4_WRAP_CPP(MOCSrcs ${IO_HEADERS} )
 ADD_DEFINITIONS(-DQT_GUI_LIBS -DQT_CORE_LIB -DQT_XML_LIB)
 
 # --------------------------------------------------------------------------
 # You probably do not need to modify anything below this line
 
 # Create the vtkmsqIO C++ library.
-ADD_LIBRARY (vtkmsqIO ${IO_SRCS} ${UISrcs} ${MOCSrcs})
+ADD_LIBRARY (vtkmsqIO ${IO_SRCS} )
 TARGET_LINK_LIBRARIES (vtkmsqIO 
   gdcmCommon
   gdcmMSFF

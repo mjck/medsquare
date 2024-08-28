@@ -61,8 +61,8 @@ SET(MSQDicomExplorerHeaders
 SET(MSQDicomExplorerResources MSQDicomExplorer.qrc)
 
 QT4_ADD_RESOURCES(RCCSrcs ${MSQDicomExplorerResources})
-QT4_WRAP_UI(UIHeaders ${UIS})
-QT4_WRAP_CPP(MOCSrcs ${MSQDicomExplorerHeaders} )
+#QT4_WRAP_UI(UIHeaders ${UIS})
+#QT4_WRAP_CPP(MOCSrcs ${MSQDicomExplorerHeaders} )
 ADD_DEFINITIONS(-DQT_GUI_LIBS -DQT_CORE_LIB)
 SET_SOURCE_FILES_PROPERTIES(${MSQDicomExplorerSrcs} PROPERTIES
                             OBJECT_DEPENDS "${UIHeaders}")
@@ -77,7 +77,15 @@ IF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
   SET (MSQDicomExplorerSrcs ${MSQDicomExplorerSrcs} ${UIS})
 ENDIF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
 
-ADD_EXECUTABLE ( DicomExplorer WIN32 MACOSX_BUNDLE ${MSQDicomExplorerSrcs} ${UISrcs} ${MOCSrcs} ${RCCSrcs})
+ADD_EXECUTABLE ( DicomExplorer 
+  ${MSQDicomExplorerHeaders} 
+  ${MSQDicomExplorerSrcs} ${UISrcs} ${MOCSrcs} ${RCCSrcs} 
+  ../IO/MSQPListParser.cxx 
+  ../IO/MSQXMLParser.cxx 
+  ../IO/vtkmsqImageInterleaving.cxx 
+  ../Imaging/MSQColormapFactory.cxx 
+  ../Imaging/vtkmsqImageAverage.cxx)
+SET_TARGET_PROPERTIES( DicomExplorer PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
 
 TARGET_LINK_LIBRARIES (DicomExplorer
   QVTK

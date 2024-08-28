@@ -25,6 +25,8 @@
 #include <iostream>
 #include <string>
 
+#define M_LN2      0.693147180559945309417
+
 typedef std::pair<double, int> stat_pair;
 bool stat_compare(const stat_pair& a, const stat_pair& b)
 {

@@ -83,8 +83,8 @@ SET(MedSquareHeaders
 SET(MedSquareResources MedSquare.qrc)
 
 QT4_ADD_RESOURCES(RCCSrcs ${MedSquareResources})
-QT4_WRAP_UI(UIHeaders ${UIS})
-QT4_WRAP_CPP(MOCSrcs ${MedSquareHeaders} )
+#QT4_WRAP_UI(UIHeaders ${UIS})
+#QT4_WRAP_CPP(MOCSrcs ${MedSquareHeaders} )
 ADD_DEFINITIONS(-DQT_GUI_LIBS -DQT_CORE_LIB)
 SET_SOURCE_FILES_PROPERTIES(${MedSquareSrcs} PROPERTIES
                             OBJECT_DEPENDS "${UIHeaders}")
@@ -99,7 +99,15 @@ IF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
   SET (MedSquareSrcs ${MedSquareSrcs} ${UIS})
 ENDIF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
 
-ADD_EXECUTABLE ( MedSquare WIN32 MACOSX_BUNDLE ${MedSquareSrcs} ${UISrcs} ${MOCSrcs} ${RCCSrcs})
+#ADD_EXECUTABLE ( MedSquare WIN32 MACOSX_BUNDLE ${MedSquareSrcs} ${UISrcs} ${MOCSrcs} ${RCCSrcs})
+ADD_EXECUTABLE ( MedSquare 
+  ${MedSquareSrcs} 
+  "${MedSquareHeaders}" 
+  ${UISrcs} ${MOCSrcs} ${RCCSrcs}
+  ../IO/vtkmsqOBJWriter.cxx 
+  ../IO/MSQPListParser.cxx 
+  ../Imaging/MSQColormapFactory.cxx)
+SET_TARGET_PROPERTIES(MedSquare PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
 
 TARGET_LINK_LIBRARIES (MedSquare
   QVTK

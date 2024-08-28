@@ -45,6 +45,7 @@
 #include "vtkmsqRectangleActor2D.h"
 #include "vtkmsqInteractorStyleImage.h"
 
+#define M_LN2      0.693147180559945309417
 /*
    if      (x  <= c - 0.5 - (w-1)/2), then y = ymin
 >           else if (x > c - 0.5 + (w-1)/2), then y = ymax,

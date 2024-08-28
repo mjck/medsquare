@@ -233,6 +233,7 @@ int vtkmsqOBJWriter::RequestData(vtkInformation *vtkNotUsed(request),
 
   idStart = idNext;
 
+  return 1;
 }
 
 
