@@ -103,6 +103,7 @@ ENDIF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
 ADD_EXECUTABLE ( MedSquare 
   ${MedSquareSrcs} 
   "${MedSquareHeaders}" 
+  MedSquare.rc 
   ${UISrcs} ${MOCSrcs} ${RCCSrcs}
   ../IO/vtkmsqOBJWriter.cxx 
   ../IO/MSQPListParser.cxx 

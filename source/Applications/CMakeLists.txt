@@ -58,7 +58,7 @@ SET(MSQDicomExplorerHeaders
   MSQDicomExplorer.h
 )
 
-SET(MSQDicomExplorerResources MSQDicomExplorer.qrc)
+SET(MSQDicomExplorerResources MSQDicomExplorer.qrc )
 
 QT4_ADD_RESOURCES(RCCSrcs ${MSQDicomExplorerResources})
 #QT4_WRAP_UI(UIHeaders ${UIS})
@@ -79,7 +79,8 @@ ENDIF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
 
 ADD_EXECUTABLE ( DicomExplorer 
   ${MSQDicomExplorerHeaders} 
-  ${MSQDicomExplorerSrcs} ${UISrcs} ${MOCSrcs} ${RCCSrcs} 
+  ${MSQDicomExplorerSrcs} ${UISrcs} ${MOCSrcs} ${RCCSrcs}
+  DicomExplorer.rc 
   ../IO/MSQPListParser.cxx 
   ../IO/MSQXMLParser.cxx 
   ../IO/vtkmsqImageInterleaving.cxx 
