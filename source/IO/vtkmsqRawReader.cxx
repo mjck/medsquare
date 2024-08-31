@@ -20,6 +20,9 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
 
 #include <vtksys/SystemTools.hxx>
 #include <vtkzlib/zlib.h>
@@ -175,11 +178,73 @@ void vtkmsqRawReaderUpdate(vtkmsqRawReader *self, vtkImageData *data, OT *outPtr
 
 }
 
+int vtkmsqRawReader::RequestData(
+  vtkInformation* request, 
+  vtkInformationVector** vtkNotUsed(inputVector), 
+  vtkInformationVector* outputVector)
+{
+  int outputPort = request->Get(vtkDemandDrivenPipeline::FROM_OUTPUT_PORT());
+  if (outputPort > 1) {
+    return 1;
+  }
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+
+  int extent[6];
+  outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
+
+  // get data object, allocate memory
+  vtkImageData *data = static_cast<vtkImageData *>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  this->AllocateOutputData(data, outInfo, extent);
+
+    gzFile zfp;
+  void *ptr;
+
+  if (!this->FileName && !this->FilePattern)
+  {
+    vtkErrorMacro("Either a valid FileName or FilePattern must be specified.");
+    return 0;
+  }
+
+  // open image for reading
+  std::string imagefilename = this->FileName;
+  // NOTE: gzFile operations act just like FILE * operations when the files
+  // are not in gzip format.
+  // This greatly simplifies the following code, and gzFile types are used
+  // everywhere.
+  if (!(zfp = gzopen(imagefilename.c_str(), "rb")))
+  {
+    imagefilename += ".gz";
+    if (!(zfp = gzopen(imagefilename.c_str(), "rb")))
+      return 0;
+  }
+
+  int *ext = data->GetExtent();
+
+  data->GetPointData()->GetScalars()->SetName("RawImage");
+
+  //vtkDebugMacro(
+  // cout <<   "Reading extent: " << ext[0] << ", " << ext[1] << ", " << ext[2] << ", " << ext[3] << ", " << ext[4] << ", " << ext[5] << endl;//);
+
+  // Call the correct templated function for the output
+  ptr = data->GetScalarPointer();
+  switch (this->GetDataScalarType())
+  {
+    vtkTemplateMacro(vtkmsqRawReaderUpdate(this, data, (VTK_TT *)(ptr), zfp));
+    default:
+      vtkErrorMacro(<< "UpdateFromFile: Unknown data type");
+  }
+
+  // close file
+  gzclose(zfp);
+
+  return 1;
+}
+
 /***********************************************************************************//**
  * This function reads a data from a file.  The datas extent/axes
  * are assumed to be the same as the file extent/order.
  */
-void vtkmsqRawReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
+/*void vtkmsqRawReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
 {
   vtkImageData *data = this->AllocateOutputData(output, outInfo);
 
@@ -209,8 +274,8 @@ void vtkmsqRawReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo
 
   data->GetPointData()->GetScalars()->SetName("RawImage");
 
-  vtkDebugMacro(
-      "Reading extent: " << ext[0] << ", " << ext[1] << ", " << ext[2] << ", " << ext[3] << ", " << ext[4] << ", " << ext[5]);
+  //vtkDebugMacro(
+   cout <<   "Reading extent: " << ext[0] << ", " << ext[1] << ", " << ext[2] << ", " << ext[3] << ", " << ext[4] << ", " << ext[5] << endl;//);
 
   // Call the correct templated function for the output
   ptr = data->GetScalarPointer();
@@ -224,6 +289,7 @@ void vtkmsqRawReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo
   // close file
   gzclose(zfp);
 }
+*/
 
 /***********************************************************************************//**
  * 

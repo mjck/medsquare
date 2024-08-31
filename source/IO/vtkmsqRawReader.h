@@ -9,19 +9,19 @@
 class VTK_MSQ_IO_EXPORT vtkmsqRawReader: public vtkMedicalImageReader2
 {
 public:
-  static vtkmsqRawReader *New();vtkTypeMacro(vtkmsqRawReader, vtkMedicalImageReader2)
+  static vtkmsqRawReader *New();
+  vtkTypeMacro(vtkmsqRawReader, vtkMedicalImageReader2)
   ;
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(ostream& os, vtkIndent indent) VTK_OVERRIDE;
 
   // Description:
   // Is the given file an Raw file with right information?
-  virtual int CanReadFile(const char* fname);
+  int CanReadFile(const char* fname);
 
   // Description:
   // Get/Set property object
-  vtkGetObjectMacro(MedicalImageProperties,vtkmsqMedicalImageProperties)
-  ;vtkSetObjectMacro(MedicalImageProperties,vtkmsqMedicalImageProperties)
-  ;
+  vtkGetObjectMacro(MedicalImageProperties,vtkmsqMedicalImageProperties);
+  vtkSetObjectMacro(MedicalImageProperties,vtkmsqMedicalImageProperties);
 
   // Description:
   // Set image orientation
@@ -31,7 +31,7 @@ public:
   // Valid extensions
   virtual const char* GetFileExtensions()
   {
-    return ".raw .RAW";
+    return ".raw .raw.gz .RAW .RAW.gz" ;
   }
 
   // Description: 
@@ -49,10 +49,11 @@ protected:
   vtkmsqRawReader();
   ~vtkmsqRawReader();
 
-  virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
+  //virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
+  virtual int RequestData(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector);
 
 private:
-  vtkmsqRawReader(const vtkmsqRawReader&); // Not implemented.
-  void operator=(const vtkmsqRawReader&); // Not implemented.
+  vtkmsqRawReader(const vtkmsqRawReader&) VTK_DELETE_FUNCTION; // Not implemented.
+  void operator=(const vtkmsqRawReader&) VTK_DELETE_FUNCTION; // Not implemented.
 };
 #endif

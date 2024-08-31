@@ -498,7 +498,7 @@ int MSQImageIO::loadRawImage(const QString &fileName)
       break;
   }
 
-  imageReader->UpdateWholeExtent();
+  imageReader->Update();//WholeExtent();
 
   // update image
   vtkImageData *newImage = vtkImageData::New();
