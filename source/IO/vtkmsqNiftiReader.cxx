@@ -20,6 +20,9 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
 
 #include <vtkzlib/zlib.h>
 #include <iostream>
@@ -342,9 +345,24 @@ void vtkmsqNiftiReaderUpdate(vtkmsqNiftiReader *self, vtkImageData *data, OT *ou
  * This function reads a data from a file.  The datas extent/axes
  * are assumed to be the same as the file extent/order.
  */
-void vtkmsqNiftiReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
+int vtkmsqNiftiReader::RequestData(
+  vtkInformation* request, 
+  vtkInformationVector** vtkNotUsed(inputVector), 
+  vtkInformationVector* outputVector)
 {
-  vtkImageData *data = this->AllocateOutputData(output, outInfo);
+  int outputPort = request->Get(vtkDemandDrivenPipeline::FROM_OUTPUT_PORT());
+  if (outputPort > 1) {
+    return 1;
+  }
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+
+  int extent[6];
+  outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
+
+  // get data object, allocate memory
+  vtkImageData *data = static_cast<vtkImageData *>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+  this->AllocateOutputData(data, outInfo, extent);
 
   gzFile zfp;
   void *ptr;
@@ -352,7 +370,7 @@ void vtkmsqNiftiReader::ExecuteData(vtkDataObject *output, vtkInformation *outIn
   if (!this->FileName && !this->FilePattern)
   {
     vtkErrorMacro("Either a valid FileName or FilePattern must be specified.");
-    return;
+    return 0;
   }
 
   char * t_imagefilename = nifti_findimgname(this->FileName, 1);
@@ -367,7 +385,7 @@ void vtkmsqNiftiReader::ExecuteData(vtkDataObject *output, vtkInformation *outIn
   {
     imagefilename += ".gz";
     if (!(zfp = gzopen(imagefilename.c_str(), "rb")))
-      return;
+      return 0;
   }
 
   int is_nii = is_nifti_file(this->FileName);
@@ -400,6 +418,8 @@ void vtkmsqNiftiReader::ExecuteData(vtkDataObject *output, vtkInformation *outIn
 
   // close file
   gzclose(zfp);
+
+  return 1;
 }
 
 /***********************************************************************************//**

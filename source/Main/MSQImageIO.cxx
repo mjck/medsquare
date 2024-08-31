@@ -229,7 +229,7 @@ int MSQImageIO::loadNiftiImage(const QString &fileName)
   // read in Analyze image
   imageReader->SetFileName(fileName.toLocal8Bit().constData());
   imageReader->LegacyAnalyze75ModeOn();
-  imageReader->UpdateWholeExtent();
+  imageReader->Update();
 
   // update image
   vtkImageData *newImage = vtkImageData::New();
@@ -337,7 +337,7 @@ int MSQImageIO::loadMetaImage(const QString &fileName)
 
   // read in Analyze image
   imageReader->SetFileName(fileName.toLocal8Bit().constData());
-  imageReader->UpdateWholeExtent();
+  imageReader->Update();
 
   // update image
   vtkImageData *newImage = vtkImageData::New();
@@ -360,9 +360,8 @@ int MSQImageIO::loadMetaImage(const QString &fileName)
 int MSQImageIO::loadAnalyzeImage(const QString &fileName)
 {
   // instantiate reader
-  vtkSmartPointer<vtkNIFTIImageReader> imageReader =
-      //vtkSmartPointer<vtkmsqAnalyzeReader>::New();
-      vtkSmartPointer<vtkNIFTIImageReader>::New();
+  vtkSmartPointer<vtkmsqAnalyzeReader> imageReader =
+      vtkSmartPointer<vtkmsqAnalyzeReader>::New();
 
   // instantiate connection between vtk and qt events
   vtkSmartPointer<vtkEventQtSlotConnect> connection = vtkSmartPointer<
@@ -383,7 +382,6 @@ int MSQImageIO::loadAnalyzeImage(const QString &fileName)
   medSquare->updateStatusBar(tr("Reading Analyze image..."), true);
 
   // read in Analyze image
-  printf("name=%s\n", fileName.toLocal8Bit().constData());
   imageReader->SetFileName(fileName.toLocal8Bit().constData());
   imageReader->Update();
 
@@ -393,7 +391,7 @@ int MSQImageIO::loadAnalyzeImage(const QString &fileName)
 
   // update properties
   vtkmsqMedicalImageProperties *newProperties = vtkmsqMedicalImageProperties::New();
-  //newProperties->DeepCopy(imageReader->GetMedicalImageProperties());
+  newProperties->DeepCopy(imageReader->GetMedicalImageProperties());
 
   int success = medSquare->updateImageAndProperties(newImage, newProperties);
 

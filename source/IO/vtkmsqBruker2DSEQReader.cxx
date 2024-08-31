@@ -20,6 +20,9 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
 
 //#include <vtksys/ios/fstream>
 //#include <vtksys/ios/sstream>
@@ -1161,9 +1164,24 @@ void vtkmsqBruker2DSEQReaderUpdate(vtkmsqBruker2DSEQReader *self, vtkImageData *
  * This function reads a data from a file.  The datas extent/axes
  * are assumed to be the same as the file extent/order.
  */
-void vtkmsqBruker2DSEQReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
+int vtkmsqBruker2DSEQReader::RequestData(
+  vtkInformation* request, 
+  vtkInformationVector** vtkNotUsed(inputVector), 
+  vtkInformationVector* outputVector)
 {
-  vtkImageData *data = this->AllocateOutputData(output, outInfo);
+  int outputPort = request->Get(vtkDemandDrivenPipeline::FROM_OUTPUT_PORT());
+  if (outputPort > 1) {
+    return 1;
+  }
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+
+  int extent[6];
+  outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
+
+  // get data object, allocate memory
+  vtkImageData *data = static_cast<vtkImageData *>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+  this->AllocateOutputData(data, outInfo, extent);
 
   gzFile zfp;
   void *ptr;
@@ -1171,7 +1189,7 @@ void vtkmsqBruker2DSEQReader::ExecuteData(vtkDataObject *output, vtkInformation 
   if (!this->FileName && !this->FilePattern)
   {
     vtkErrorMacro("Either a valid FileName or FilePattern must be specified.");
-    return;
+    return 0;
   }
 
   // open image for reading
@@ -1185,7 +1203,7 @@ void vtkmsqBruker2DSEQReader::ExecuteData(vtkDataObject *output, vtkInformation 
   {
     imagefilename += ".gz";
     if (!(zfp = gzopen(imagefilename.c_str(), "rb")))
-      return;
+      return 0;
   }
 
   int *ext = data->GetExtent();
@@ -1206,6 +1224,8 @@ void vtkmsqBruker2DSEQReader::ExecuteData(vtkDataObject *output, vtkInformation 
 
   // close file
   gzclose(zfp);
+
+  return 1;
 }
 
 /***********************************************************************************//**

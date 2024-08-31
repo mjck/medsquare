@@ -58,7 +58,8 @@ protected:
 
   virtual int RequestInformation(vtkInformation* request,
       vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
+  //virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
+  virtual int RequestData(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector);
 
 private:
   vtkmsqBruker2DSEQReader(const vtkmsqBruker2DSEQReader&); // Not implemented.

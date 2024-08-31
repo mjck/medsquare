@@ -20,6 +20,9 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
 
 #include <vtksys/SystemTools.hxx>
 #include <vtkzlib/zlib.h>
@@ -430,7 +433,6 @@ int vtkmsqAnalyzeReader::RequestInformation(vtkInformation* request,
   // Get .hdr file name
   std::string headerfilename = GetAnalyzeHeaderFileName(this->GetFileName());
 
-  printf("reading header\n");
   if (!(fp = fopen(headerfilename.c_str(), "rb")))
   {
     vtkErrorMacro("Unable to open file " << headerfilename.c_str());
@@ -443,7 +445,6 @@ int vtkmsqAnalyzeReader::RequestInformation(vtkInformation* request,
   // close file
   fclose(fp);
 
-  printf("handle swapping\n");
   // if the machine and file endianess are different
   // perform the byte swapping on it
   if (this->GetAutoByteSwapping())
@@ -470,8 +471,6 @@ int vtkmsqAnalyzeReader::RequestInformation(vtkInformation* request,
       this->header.dime.pixdim[3]);
 
   this->SetNumberOfScalarComponents(this->header.dime.dim[4]);
-
-  printf("done image\n");
 
   // This probably needs to be changed, since we need a way to store
   // image metainformation along with the image data
@@ -526,8 +525,7 @@ int vtkmsqAnalyzeReader::RequestInformation(vtkInformation* request,
   };
 
   // call father to finish up
-  printf("read file\n");
-  return 1;//this->Superclass::RequestInformation(request, inputVector, outputVector);
+  return this->Superclass::RequestInformation(request, inputVector, outputVector);
 }
 
 /***********************************************************************************//**
@@ -606,12 +604,24 @@ void vtkmsqAnalyzeReaderUpdate(vtkmsqAnalyzeReader *self, vtkImageData *data, OT
  * This function reads a data from a file.  The datas extent/axes
  * are assumed to be the same as the file extent/order.
  */
-void vtkmsqAnalyzeReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
+int vtkmsqAnalyzeReader::RequestData(
+  vtkInformation* request, 
+  vtkInformationVector** vtkNotUsed(inputVector), 
+  vtkInformationVector* outputVector)
 {
-  printf("before here\n");
-  vtkImageData *data = this->AllocateOutputData(output, outInfo);
+  int outputPort = request->Get(vtkDemandDrivenPipeline::FROM_OUTPUT_PORT());
+  if (outputPort > 1) {
+    return 1;
+  }
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
 
-  printf("reading image...\n");
+  int extent[6];
+  outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
+
+  // get data object, allocate memory
+  vtkImageData *data = static_cast<vtkImageData *>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+  this->AllocateOutputData(data, outInfo, extent);
 
   gzFile zfp;
   void *ptr;
@@ -619,7 +629,7 @@ void vtkmsqAnalyzeReader::ExecuteData(vtkDataObject *output, vtkInformation *out
   if (!this->FileName && !this->FilePattern)
   {
     vtkErrorMacro("Either a valid FileName or FilePattern must be specified.");
-    return;
+    return 0;
   }
 
   // open image for reading
@@ -633,7 +643,7 @@ void vtkmsqAnalyzeReader::ExecuteData(vtkDataObject *output, vtkInformation *out
   {
     imagefilename += ".gz";
     if (!(zfp = gzopen(imagefilename.c_str(), "rb")))
-      return;
+      return 0;
   }
 
   int *ext = data->GetExtent();
@@ -654,6 +664,8 @@ void vtkmsqAnalyzeReader::ExecuteData(vtkDataObject *output, vtkInformation *out
 
   // close file
   gzclose(zfp);
+
+  return 1;
 }
 
 /***********************************************************************************//**

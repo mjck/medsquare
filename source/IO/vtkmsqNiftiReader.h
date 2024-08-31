@@ -96,7 +96,7 @@ public:
   // Valid extensions
   virtual const char* GetFileExtensions()
   {
-    return ".nia .nii .hdr .img .NIA .NII .HDR .IMG";
+    return ".nia .nii .nii.gz .hdr .img .NIA .NII .HDR .IMG";
   }
 
   // Description: 
@@ -122,7 +122,8 @@ protected:
 
   virtual int RequestInformation(vtkInformation* request,
       vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
+  //virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
+  virtual int RequestData(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector);
 
 private:
   vtkmsqNiftiReader(const vtkmsqNiftiReader&); // Not implemented.

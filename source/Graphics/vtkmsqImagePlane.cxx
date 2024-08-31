@@ -281,9 +281,6 @@ double vtkmsqImagePlane::Pick(double selectionX, double selectionY, vtkRenderer 
   double pos[3];
   this->ImagePicker->GetPickPosition(pos);
   this->AdjustPickPosition(pos);
-
-  vtkActor *pickedActor = (vtkActor *) this->ImagePicker->GetViewProp();
-  cout << pickedActor << endl;
   
   this->ComputePickedImageCoordinates(pos, imageCoords);
 

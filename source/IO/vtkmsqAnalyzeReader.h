@@ -88,7 +88,7 @@ public:
   // Valid extensions
   virtual const char* GetFileExtensions()
   {
-    return ".hdr .img .HDR .IMG";
+    return ".hdr .img .img.gz .HDR .IMG .IMG .IMG.GZ";
   }
 
   // Description: 
@@ -113,7 +113,8 @@ protected:
 
   virtual int RequestInformation(vtkInformation* request,
       vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
+  //virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
+  virtual int RequestData(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector);
 
 private:
   vtkmsqAnalyzeReader(const vtkmsqAnalyzeReader&); // Not implemented.
