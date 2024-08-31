@@ -9,6 +9,7 @@
 #define MSQ_IMAGE_IO_H
 
 #include <QObject>
+#include <QApplication>
 
 #include "MedSquare.h"
 
@@ -21,7 +22,7 @@
 #include "vtkmsqRawHeader.h"
 
 #include <vtksys/SystemTools.hxx>
-#include <vtksys/stl/string>
+#include <string>
 
 class MSQImageIO: public QObject
 {

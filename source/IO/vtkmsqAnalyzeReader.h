@@ -61,7 +61,7 @@
 class VTK_MSQ_IO_EXPORT vtkmsqAnalyzeReader: public vtkMedicalImageReader2
 {
 public:
-  static vtkmsqAnalyzeReader *New();vtkTypeRevisionMacro(vtkmsqAnalyzeReader,vtkMedicalImageReader2)
+  static vtkmsqAnalyzeReader *New();vtkTypeMacro(vtkmsqAnalyzeReader,vtkMedicalImageReader2)
   ;
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -113,7 +113,7 @@ protected:
 
   virtual int RequestInformation(vtkInformation* request,
       vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  virtual void ExecuteData(vtkDataObject *);
+  virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
 
 private:
   vtkmsqAnalyzeReader(const vtkmsqAnalyzeReader&); // Not implemented.

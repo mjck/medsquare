@@ -39,6 +39,7 @@ public:
   virtual double* GetOrigin();
   virtual double* GetPoint1();
   virtual double* GetPoint2();
+  //void refresh();
 
 public slots:
   virtual void setComponent(int component);

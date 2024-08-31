@@ -19,6 +19,16 @@
 #include "MSQDicomImageViewer.h"
 
 #include <QtGui>
+#include <QLabel>
+#include <QWidget>
+#include <QLineEdit>
+#include <QComboBox>
+#include <QCheckBox>
+#include <QWidgetItem>
+#include <QButtonGroup>
+#include <QPushButton>
+#include <QProgressDialog>
+#include <QTreeWidgetItem>
 
 #include "gdcmSorter.h"
 #include "gdcmElement.h"

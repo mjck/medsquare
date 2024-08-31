@@ -1,8 +1,15 @@
 #ifndef MSQ_OPENRAW_DIALOG_H
 #define MSQ_OPENRAW_DIALOG_H
 
-#include <QtGui/QDialog>
 #include <QtGui>
+#include <QDialog>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QComboBox>
+#include <QDialog>
+#include <QGridLayout>
+#include <QDialogButtonBox>
 
 #include "vtkSmartPointer.h"
 #include "vtkmsqRawHeader.h"

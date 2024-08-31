@@ -263,15 +263,15 @@ void MSQWindowLevelWidget::calculateOptimalRange(double percentLow, double perce
   if (this->image->GetNumberOfScalarComponents() > 1)
   {
     vtkImageExtractComponents* ext = vtkImageExtractComponents::New();
-    ext->SetInput(image);
+    ext->SetInputData(image);
     ext->SetComponents(0);
     ext->Update();
-    accumulate->SetInput(ext->GetOutput());
+    accumulate->SetInputConnection(ext->GetOutputPort());
     ext->Delete();
   }
   else
   {
-    accumulate->SetInput(this->image);
+    accumulate->SetInputData(this->image);
   }
 
   // Calculate histogram

@@ -32,16 +32,16 @@
 #define MSQ_LITTLE_ENDIAN 1
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqNiftiReader, "$Revision: 0.1 $");
+//vtkCxxRevisionMacro(vtkmsqNiftiReader, "$Revision: 0.1 $");
 vtkStandardNewMacro(vtkmsqNiftiReader);
 /** \endcond */
 
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetNiftiExtension(const vtkstd::string& filename)
+static std::string GetNiftiExtension(const std::string& filename)
 {
-  vtkstd::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
+  std::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
 
   // If the last extension is .gz, then need to pull off 2 extensions.
   //.gz is the only valid compression extension.
@@ -72,16 +72,16 @@ static vtkstd::string GetNiftiExtension(const vtkstd::string& filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetNiftiRootName(const vtkstd::string& filename)
+static std::string GetNiftiRootName(const std::string& filename)
 {
-  const vtkstd::string fileExt = GetNiftiExtension(filename);
+  const std::string fileExt = GetNiftiExtension(filename);
 
   // Create a base filename
   // i.e Image.HDR --> Image
   if (fileExt.length() > 0 && filename.length() > fileExt.length())
   {
-    const vtkstd::string::size_type it = filename.find_last_of(fileExt);
-    vtkstd::string baseName(filename, 0, it - (fileExt.length() - 1));
+    const std::string::size_type it = filename.find_last_of(fileExt);
+    std::string baseName(filename, 0, it - (fileExt.length() - 1));
     return (baseName);
   }
 
@@ -92,10 +92,10 @@ static vtkstd::string GetNiftiRootName(const vtkstd::string& filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetNiftiHeaderFileName(const vtkstd::string & filename)
+static std::string GetNiftiHeaderFileName(const std::string & filename)
 {
-  vtkstd::string HeaderFileName(filename);
-  const vtkstd::string fileExt = GetNiftiExtension(filename);
+  std::string HeaderFileName(filename);
+  const std::string fileExt = GetNiftiExtension(filename);
 
   //    Accomodate either all caps or all lower-case filenames.
   if ((fileExt == ".IMG") || (fileExt == ".IMG.gz"))
@@ -255,7 +255,7 @@ int vtkmsqNiftiReader::RequestInformation(vtkInformation* request,
     vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 
 {
-  vtkstd::string headerfilename = GetNiftiHeaderFileName(this->FileName);
+  std::string headerfilename = GetNiftiHeaderFileName(this->FileName);
 
   this->nii_header = nifti_image_read(headerfilename.c_str(), false);
   if (this->nii_header != NULL)
@@ -342,9 +342,9 @@ void vtkmsqNiftiReaderUpdate(vtkmsqNiftiReader *self, vtkImageData *data, OT *ou
  * This function reads a data from a file.  The datas extent/axes
  * are assumed to be the same as the file extent/order.
  */
-void vtkmsqNiftiReader::ExecuteData(vtkDataObject *output)
+void vtkmsqNiftiReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
 {
-  vtkImageData *data = this->AllocateOutputData(output);
+  vtkImageData *data = this->AllocateOutputData(output, outInfo);
 
   gzFile zfp;
   void *ptr;
@@ -356,7 +356,7 @@ void vtkmsqNiftiReader::ExecuteData(vtkDataObject *output)
   }
 
   char * t_imagefilename = nifti_findimgname(this->FileName, 1);
-  vtkstd::string imagefilename(t_imagefilename);
+  std::string imagefilename(t_imagefilename);
   delete t_imagefilename;
 
   // NOTE: gzFile operations act just like FILE * operations when the files

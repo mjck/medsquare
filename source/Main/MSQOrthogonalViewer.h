@@ -17,6 +17,9 @@
 #define MSQ_ORTHOGONAL_VIEWER_H
 
 #include <QtGui>
+#include <QMenu>
+#include <QSlider>
+#include <QSplitter>
 
 #include "MSQSliceNavigationWidget.h"
 #include "MSQViewer.h"

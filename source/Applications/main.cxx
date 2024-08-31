@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 
   QApplication app(argc, argv);
 
-  QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
+  //QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
 
   QSplashScreen *splash = new QSplashScreen(QPixmap(":/images/splash.png"), Qt::WindowStaysOnTopHint);
   splash->show();
@@ -46,16 +46,16 @@ int main(int argc, char** argv)
   app.processEvents();
   
   // Right now, insert a delay
-  QTimer::singleShot(1000, splash, SLOT(close()));
+  QTimer::singleShot(1200, splash, SLOT(close()));
 
   app.setApplicationName("DICOM Explorer");
 
   MSQDicomExplorer mainwindow;
-  mainwindow.setIconSize(QSize(32,32));
-  mainwindow.resize(1200, 800);
+  mainwindow.setIconSize(QSize(32, 32));
+  mainwindow.resize(1000, 800);
 
   // Delay main window from showing up
-  QTimer::singleShot(1000, &mainwindow, SLOT(show()));
+  QTimer::singleShot(1200, &mainwindow, SLOT(show()));
 
   return app.exec();
 }

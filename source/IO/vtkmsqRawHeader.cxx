@@ -16,7 +16,7 @@
 #include "vtkmsqRawHeader.h"
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqRawHeader, "$Revision: 1.0 $");
+//vtkCxxRevisionMacro(vtkmsqRawHeader, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkmsqRawHeader);
 /** \endcond */
 

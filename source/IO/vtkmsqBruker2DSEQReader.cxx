@@ -21,9 +21,12 @@
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 
-#include <vtksys/ios/fstream>
-#include <vtksys/ios/sstream>
-#include <vtksys/ios/iostream>
+//#include <vtksys/ios/fstream>
+//#include <vtksys/ios/sstream>
+//#include <vtksys/ios/iostream>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 #include <vtksys/SystemTools.hxx>
 #include <vtkzlib/zlib.h>
 
@@ -80,7 +83,7 @@
 #define MSQ_DIFFGRAD             "DiffGrad"
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqBruker2DSEQReader, "$Revision: 0.1 $");
+//vtkCxxRevisionMacro(vtkmsqBruker2DSEQReader, "$Revision: 0.1 $");
 vtkStandardNewMacro(vtkmsqBruker2DSEQReader);
 /** \endcond */
 
@@ -109,15 +112,15 @@ vtkmsqBruker2DSEQReader::~vtkmsqBruker2DSEQReader()
  */
 int vtkmsqBruker2DSEQReader::CanReadFile(const char* fname)
 {
-  vtkstd::string file2Dseq = vtksys::SystemTools::CollapseFullPath(fname);
+  std::string file2Dseq = vtksys::SystemTools::CollapseFullPath(fname);
   vtksys::SystemTools::ConvertToUnixSlashes(file2Dseq);
-  vtkstd::string path = vtksys::SystemTools::GetFilenamePath(file2Dseq);
-  vtkstd::string pathalt = vtksys::SystemTools::GetFilenamePath(file2Dseq);
-  vtkstd::string filereco = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
+  std::string path = vtksys::SystemTools::GetFilenamePath(file2Dseq);
+  std::string pathalt = vtksys::SystemTools::GetFilenamePath(file2Dseq);
+  std::string filereco = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
   filereco += MSQ_RECO_FILE;
-  vtkstd::string filed3proc = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
+  std::string filed3proc = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
   filed3proc += MSQ_DTHREEPROC_FILE;
-  vtkstd::vector<std::string> pathComponents;
+  std::vector<std::string> pathComponents;
   vtksys::SystemTools::SplitPath(path.c_str(), pathComponents);
   if (pathComponents.size() < 3)
   {
@@ -128,14 +131,14 @@ int vtkmsqBruker2DSEQReader::CanReadFile(const char* fname)
   pathComponents.pop_back();
   pathalt = vtksys::SystemTools::JoinPath(pathComponents);
 
-  vtkstd::string fileacqp = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
+  std::string fileacqp = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
   fileacqp += MSQ_ACQP_FILE;
-  vtkstd::string filemethod = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
+  std::string filemethod = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
   filemethod += MSQ_METHOD_FILE;
 
-  vtkstd::string readFileBufferString = "";
+  std::string readFileBufferString = "";
   char readFileBuffer[512] = "";
-  vtkstd::string::size_type index;
+  std::string::size_type index;
   unsigned long length2DSEQ = 0;
   unsigned long calcLength = 1;
 
@@ -149,8 +152,8 @@ int vtkmsqBruker2DSEQReader::CanReadFile(const char* fname)
   length2DSEQ = vtksys::SystemTools::FileLength(file2Dseq.c_str());
 
   // Check reco for existance.
-  vtkstd::ifstream reco_InputStream;
-  reco_InputStream.open(filereco.c_str(), vtkstd::ios::in);
+  std::ifstream reco_InputStream;
+  reco_InputStream.open(filereco.c_str(), std::ios::in);
   if (reco_InputStream.fail())
   {
     return 0;
@@ -162,28 +165,28 @@ int vtkmsqBruker2DSEQReader::CanReadFile(const char* fname)
 
     // Get the image data type.
     index = readFileBufferString.find(MSQ_RECO_wordtype);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
       std::string tempString = MSQ_RECO_wordtype;
       std::string dattypeString = readFileBufferString.substr(
           index + tempString.length());
-      if (dattypeString.find(MSQ_BRUKER_SIGNED_CHAR) != vtkstd::string::npos)
+      if (dattypeString.find(MSQ_BRUKER_SIGNED_CHAR) != std::string::npos)
       {
         calcLength *= (unsigned long) sizeof(char);
       }
-      else if (dattypeString.find(MSQ_BRUKER_UNSIGNED_CHAR) != vtkstd::string::npos)
+      else if (dattypeString.find(MSQ_BRUKER_UNSIGNED_CHAR) != std::string::npos)
       {
         calcLength *= (unsigned long) sizeof(unsigned char);
       }
-      else if (dattypeString.find(MSQ_BRUKER_SIGNED_SHORT) != vtkstd::string::npos)
+      else if (dattypeString.find(MSQ_BRUKER_SIGNED_SHORT) != std::string::npos)
       {
         calcLength *= (unsigned long) sizeof(short);
       }
-      else if (dattypeString.find(MSQ_BRUKER_SIGNED_INT) != vtkstd::string::npos)
+      else if (dattypeString.find(MSQ_BRUKER_SIGNED_INT) != std::string::npos)
       {
         calcLength *= (unsigned long) sizeof(int);
       }
-      else if (dattypeString.find(MSQ_BRUKER_FLOAT) != vtkstd::string::npos)
+      else if (dattypeString.find(MSQ_BRUKER_FLOAT) != std::string::npos)
       {
         calcLength *= (unsigned long) sizeof(float);
       }
@@ -217,8 +220,8 @@ int vtkmsqBruker2DSEQReader::CanReadFile(const char* fname)
   }
 
   // Check d3proc for existance.
-  vtkstd::ifstream d3proc_InputStream;
-  d3proc_InputStream.open(filed3proc.c_str(), vtkstd::ios::in);
+  std::ifstream d3proc_InputStream;
+  d3proc_InputStream.open(filed3proc.c_str(), std::ios::in);
   if (d3proc_InputStream.fail())
   {
     return 0;
@@ -231,11 +234,11 @@ int vtkmsqBruker2DSEQReader::CanReadFile(const char* fname)
 
     // Get the x size.
     index = readFileBufferString.find(MSQ_IM_SIX);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
       unsigned long xDim = 0;
-      vtkstd::string tempString = MSQ_IM_SIX;
-      vtkstd::istringstream im_sixString(
+      std::string tempString = MSQ_IM_SIX;
+      std::istringstream im_sixString(
           readFileBufferString.substr(index + tempString.length()));
       if (!im_sixString)
       {
@@ -248,11 +251,11 @@ int vtkmsqBruker2DSEQReader::CanReadFile(const char* fname)
 
     // Get the y size.
     index = readFileBufferString.find(MSQ_IM_SIY);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
       unsigned long yDim = 0;
-      vtkstd::string tempString = MSQ_IM_SIY;
-      vtkstd::istringstream im_siyString(
+      std::string tempString = MSQ_IM_SIY;
+      std::istringstream im_siyString(
           readFileBufferString.substr(index + tempString.length()));
       if (!im_siyString)
       {
@@ -265,11 +268,11 @@ int vtkmsqBruker2DSEQReader::CanReadFile(const char* fname)
 
     // Get the z size.
     index = readFileBufferString.find(MSQ_IM_SIZ);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
       unsigned long zDim = 0;
-      vtkstd::string tempString = MSQ_IM_SIZ;
-      vtkstd::istringstream im_sizString(
+      std::string tempString = MSQ_IM_SIZ;
+      std::istringstream im_sizString(
           readFileBufferString.substr(index + tempString.length()));
       if (!im_sizString)
       {
@@ -282,11 +285,11 @@ int vtkmsqBruker2DSEQReader::CanReadFile(const char* fname)
 
     // Get the t size.
     index = readFileBufferString.find(MSQ_IM_SIT);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
       unsigned long tDim = 0;
-      vtkstd::string tempString = MSQ_IM_SIT;
-      vtkstd::istringstream im_sizString(
+      std::string tempString = MSQ_IM_SIT;
+      std::istringstream im_sizString(
           readFileBufferString.substr(index + tempString.length()));
       if (!im_sizString)
       {
@@ -317,17 +320,17 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
     vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 
 {
-  vtkstd::string file2Dseq = vtksys::SystemTools::CollapseFullPath(this->FileName);
+  std::string file2Dseq = vtksys::SystemTools::CollapseFullPath(this->FileName);
   vtksys::SystemTools::ConvertToUnixSlashes(file2Dseq);
-  vtkstd::string path = vtksys::SystemTools::GetFilenamePath(file2Dseq);
-  vtkstd::string pathalt = vtksys::SystemTools::GetFilenamePath(file2Dseq);
-  vtkstd::string filereco = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
+  std::string path = vtksys::SystemTools::GetFilenamePath(file2Dseq);
+  std::string pathalt = vtksys::SystemTools::GetFilenamePath(file2Dseq);
+  std::string filereco = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
   filereco += MSQ_RECO_FILE;
-  vtkstd::string filed3proc = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
+  std::string filed3proc = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
   filed3proc += MSQ_DTHREEPROC_FILE;
-  vtkstd::string filemethod = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
+  std::string filemethod = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
   filemethod += MSQ_METHOD_FILE;
-  vtkstd::vector<vtkstd::string> pathComponents;
+  std::vector<std::string> pathComponents;
 
   vtksys::SystemTools::SplitPath(path.c_str(), pathComponents);
   if (pathComponents.size() < 3)
@@ -340,16 +343,16 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
   pathComponents.pop_back();
   pathalt = vtksys::SystemTools::JoinPath(pathComponents);
 
-  vtkstd::string fileacqp = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
+  std::string fileacqp = path + MSQ_FORWARDSLASH_DIRECTORY_SEPARATOR;
   fileacqp += MSQ_ACQP_FILE;
 
-  vtkstd::string readFileBufferString = "";
+  std::string readFileBufferString = "";
   char readFileBuffer[512] = "";
-  vtkstd::string::size_type index;
-  vtkstd::string::size_type tempIndex = 0;
-  vtkstd::vector<double> imageFOV(3);
-  vtkstd::vector<double> imageRes(3);
-  vtkstd::vector<unsigned int> imageDim(4);
+  std::string::size_type index;
+  std::string::size_type tempIndex = 0;
+  std::vector<double> imageFOV(3);
+  std::vector<double> imageRes(3);
+  std::vector<unsigned int> imageDim(4);
   bool numDimensions = false;
   bool byteOrder = false;
   bool slicesNotInSameOrientation = false;
@@ -357,16 +360,16 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
   int numSeperation = 0;
   int numRecoTranspose = -1;
   double sliceThick = 0;
-  vtkstd::string seperationMode = "";
-  vtkstd::vector<double> dirx(3, 0), diry(3, 0), dirz(3, 0);
-  vtkstd::vector<int> recoTransposition;
+  std::string seperationMode = "";
+  std::vector<double> dirx(3, 0), diry(3, 0), dirz(3, 0);
+  std::vector<int> recoTransposition;
   int acq_dim = -1;
   int transpose = 0;
   bool diffusionEPI = false;
   int diffusionDirs = 0;
-  vtkstd::string sliceOrient = "";
+  std::string sliceOrient = "";
 
-  vtkstd::ifstream d3proc_InputStream;
+  std::ifstream d3proc_InputStream;
   d3proc_InputStream.open(filed3proc.c_str(), std::ios::in);
   if (d3proc_InputStream.fail())
   {
@@ -380,10 +383,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Get the x size.
     index = readFileBufferString.find(MSQ_IM_SIX);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
-      vtkstd::string tempString = MSQ_IM_SIX;
-      vtkstd::istringstream im_sixString(
+      std::string tempString = MSQ_IM_SIX;
+      std::istringstream im_sixString(
           readFileBufferString.substr(index + tempString.length()));
       if (!im_sixString)
       {
@@ -397,10 +400,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Get the y size.
     index = readFileBufferString.find(MSQ_IM_SIY);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
-      vtkstd::string tempString = MSQ_IM_SIY;
-      vtkstd::istringstream im_siyString(
+      std::string tempString = MSQ_IM_SIY;
+      std::istringstream im_siyString(
           readFileBufferString.substr(index + tempString.length()));
       if (!im_siyString)
       {
@@ -414,10 +417,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Get the z size.
     index = readFileBufferString.find(MSQ_IM_SIZ);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
-      vtkstd::string tempString = MSQ_IM_SIZ;
-      vtkstd::istringstream im_sizString(
+      std::string tempString = MSQ_IM_SIZ;
+      std::istringstream im_sizString(
           readFileBufferString.substr(index + tempString.length()));
       if (!im_sizString)
       {
@@ -432,10 +435,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Get the t size
     index = readFileBufferString.find(MSQ_IM_SIT);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
-      vtkstd::string tempString = MSQ_IM_SIT;
-      vtkstd::istringstream im_sitString(
+      std::string tempString = MSQ_IM_SIT;
+      std::istringstream im_sitString(
           readFileBufferString.substr(index + tempString.length()));
       if (!im_sitString)
       {
@@ -451,8 +454,8 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
   }
   d3proc_InputStream.close();
 
-  vtkstd::ifstream reco_InputStream;
-  reco_InputStream.open(filereco.c_str(), vtkstd::ios::in);
+  std::ifstream reco_InputStream;
+  reco_InputStream.open(filereco.c_str(), std::ios::in);
   if (reco_InputStream.fail())
   {
     vtkErrorMacro("reco file: " << filereco << " cannot be opened");
@@ -465,10 +468,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Set number of dimensions and get fov.
     index = readFileBufferString.find(MSQ_RECO_fov);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
       tempIndex = readFileBufferString.find("2");
-      if (tempIndex != vtkstd::string::npos)
+      if (tempIndex != std::string::npos)
       {
         reco_InputStream >> imageFOV[0] >> imageFOV[1];
         imageFOV[2] = 0;
@@ -477,7 +480,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
       else
       {
         tempIndex = readFileBufferString.find("3");
-        if (tempIndex != vtkstd::string::npos)
+        if (tempIndex != std::string::npos)
         {
           reco_InputStream >> imageFOV[0] >> imageFOV[1] >> imageFOV[2];
           numDimensions = true;
@@ -494,38 +497,38 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Get data type
     index = readFileBufferString.find(MSQ_RECO_wordtype);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
       tempIndex = readFileBufferString.find(MSQ_BRUKER_SIGNED_CHAR);
-      if (tempIndex != vtkstd::string::npos)
+      if (tempIndex != std::string::npos)
       {
         this->SetDataScalarTypeToUnsignedChar();
       }
       else
       {
         tempIndex = readFileBufferString.find(MSQ_BRUKER_UNSIGNED_CHAR);
-        if (tempIndex != vtkstd::string::npos)
+        if (tempIndex != std::string::npos)
         {
           this->SetDataScalarTypeToUnsignedChar();
         }
         else
         {
           tempIndex = readFileBufferString.find(MSQ_BRUKER_SIGNED_SHORT);
-          if (tempIndex != vtkstd::string::npos)
+          if (tempIndex != std::string::npos)
           {
             this->SetDataScalarTypeToShort();
           }
           else
           {
             tempIndex = readFileBufferString.find(MSQ_BRUKER_SIGNED_INT);
-            if (tempIndex != vtkstd::string::npos)
+            if (tempIndex != std::string::npos)
             {
               this->SetDataScalarTypeToInt();
             }
             else
             {
               tempIndex = readFileBufferString.find(MSQ_BRUKER_FLOAT);
-              if (tempIndex != vtkstd::string::npos)
+              if (tempIndex != std::string::npos)
               {
                 this->SetDataScalarTypeToFloat();
               }
@@ -544,10 +547,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // OK, handle RECO_transposition!
     index = readFileBufferString.find(MSQ_RECO_transposition);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
-      vtkstd::string tempString = MSQ_RECO_transposition;
-      vtkstd::istringstream recoTransposeString(
+      std::string tempString = MSQ_RECO_transposition;
+      std::istringstream recoTransposeString(
           readFileBufferString.substr(index + tempString.length()));
       if (!recoTransposeString)
       {
@@ -569,17 +572,17 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Set byte order
     index = readFileBufferString.find(MSQ_RECO_byte_order);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
       tempIndex = readFileBufferString.find(MSQ_BRUKER_LITTLE_ENDIAN);
-      if (tempIndex != vtkstd::string::npos)
+      if (tempIndex != std::string::npos)
       {
         SetDataByteOrder(VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN);
       }
       else
       {
         tempIndex = readFileBufferString.find(MSQ_BRUKER_BIG_ENDIAN);
-        if (tempIndex != vtkstd::string::npos)
+        if (tempIndex != std::string::npos)
         {
           SetDataByteOrder(VTK_FILE_BYTE_ORDER_BIG_ENDIAN);
         }
@@ -619,8 +622,8 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
   }
 
   // Open the acqp file & extract relevant info.
-  vtkstd::ifstream acqp_InputStream;
-  vtkstd::string acqpFileString = "";
+  std::ifstream acqp_InputStream;
+  std::string acqpFileString = "";
   acqp_InputStream.open(fileacqp.c_str(), std::ios::in);
 
   if (acqp_InputStream.fail())
@@ -649,10 +652,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Get ACQ_dim.
     index = acqpFileString.find(MSQ_ACQ_dim);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
-      vtkstd::string tempString = MSQ_ACQ_dim;
-      vtkstd::istringstream acqDimString(
+      std::string tempString = MSQ_ACQ_dim;
+      std::istringstream acqDimString(
           acqpFileString.substr(index + tempString.length()));
       if (!acqDimString)
       {
@@ -666,10 +669,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     //Get the slice thickness
     index = acqpFileString.find(MSQ_ACQ_slice_thick);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
-      vtkstd::string tempString = MSQ_ACQ_slice_thick;
-      vtkstd::istringstream sliceThickString(
+      std::string tempString = MSQ_ACQ_slice_thick;
+      std::istringstream sliceThickString(
           acqpFileString.substr(index + tempString.length()));
       if (!sliceThickString)
       {
@@ -684,10 +687,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Get the slice seperation.
     index = acqpFileString.find(MSQ_ACQ_slice_sepn);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
-      vtkstd::string tempString = MSQ_ACQ_slice_sepn;
-      vtkstd::istringstream sliceSepString(
+      std::string tempString = MSQ_ACQ_slice_sepn;
+      std::istringstream sliceSepString(
           acqpFileString.substr(index + tempString.length()));
       if (!sliceSepString)
       {
@@ -699,7 +702,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
       sliceSepString >> numSeperation;
       if (numSeperation > 0)
       {
-        vtkstd::vector<double> imageSliceSeperation(numSeperation);
+        std::vector<double> imageSliceSeperation(numSeperation);
         for (unsigned int i = 0; i < (unsigned int) numSeperation; i++)
         {
           acqp_InputStream >> imageSliceSeperation[i];
@@ -709,13 +712,13 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
     // Get direction cosines.
     index = acqpFileString.find(MSQ_ACQ_grad_matrix);
-    if (index != vtkstd::string::npos)
+    if (index != std::string::npos)
     {
-      vtkstd::string tempString = MSQ_ACQ_grad_matrix;
+      std::string tempString = MSQ_ACQ_grad_matrix;
       int numMatrix = 0, dim1 = 0, dim2 = 0;
       tempString = acqpFileString.substr(index + tempString.length());
       // MS VC++ cannot handle commas, so replace with spaces.
-      for (vtkstd::string::iterator iter = tempString.begin(); iter != tempString.end();
+      for (std::string::iterator iter = tempString.begin(); iter != tempString.end();
           iter++)
       {
         if (*iter == ',')
@@ -723,7 +726,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
           *iter = ' ';
         }
       }
-      vtkstd::istringstream gradMatrixString(tempString);
+      std::istringstream gradMatrixString(tempString);
       if (!gradMatrixString)
       {
         acqp_InputStream.close();
@@ -773,7 +776,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
         {
           // Transpose read/phase.
           transpose = 1;
-          vtkstd::vector<double> temp(3, 0);
+          std::vector<double> temp(3, 0);
           for (i = 0; i < 3; i++)
           {
             temp[i] = dirx[i];
@@ -785,7 +788,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
         {
           // Transpose read/phase.
           transpose = 1;
-          vtkstd::vector<double> temp(3, 0);
+          std::vector<double> temp(3, 0);
           for (i = 0; i < 3; i++)
           {
             temp[i] = dirx[i];
@@ -797,7 +800,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
         {
           // Transpose phase/slice.
           transpose = 2;
-          vtkstd::vector<double> temp(3, 0);
+          std::vector<double> temp(3, 0);
           for (i = 0; i < 3; i++)
           {
             temp[i] = diry[i];
@@ -809,7 +812,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
         {
           // Transpose read/slice.
           transpose = 3;
-          vtkstd::vector<double> temp(3, 0);
+          std::vector<double> temp(3, 0);
           for (i = 0; i < 3; i++)
           {
             temp[i] = dirx[i];
@@ -821,9 +824,9 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
         // If not then only use the first slice (may change this behavior later).
         if ((numMatrix - 1) > 0)
         {
-          vtkstd::vector<double> gradMatrixX(3, 0);
-          vtkstd::vector<double> gradMatrixY(3, 0);
-          vtkstd::vector<double> gradMatrixZ(3, 0);
+          std::vector<double> gradMatrixX(3, 0);
+          std::vector<double> gradMatrixY(3, 0);
+          std::vector<double> gradMatrixZ(3, 0);
           for (int j = 0; j < (numMatrix - 1); j++)
           {
             int l = 0;
@@ -855,7 +858,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
             if ((acq_dim == 2) && recoTransposition[j + 1])
             {
               // Transpose read/phase.
-              vtkstd::vector<double> temp(3, 0);
+              std::vector<double> temp(3, 0);
               for (i = 0; i < 3; i++)
               {
                 temp[i] = gradMatrixX[i];
@@ -866,7 +869,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
             else if (recoTransposition[j + 1] == 1)
             {
               // Transpose read/phase.
-              vtkstd::vector<double> temp(3, 0);
+              std::vector<double> temp(3, 0);
               for (i = 0; i < 3; i++)
               {
                 temp[i] = gradMatrixX[i];
@@ -877,7 +880,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
             else if (recoTransposition[j + 1] == 2)
             {
               // Transpose phase/slice.
-              vtkstd::vector<double> temp(3, 0);
+              std::vector<double> temp(3, 0);
               for (i = 0; i < 3; i++)
               {
                 temp[i] = gradMatrixY[i];
@@ -888,7 +891,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
             else if (recoTransposition[j + 1] == 3)
             {
               // Transpose read/slice.
-              vtkstd::vector<double> temp(3, 0);
+              std::vector<double> temp(3, 0);
               for (i = 0; i < 3; i++)
               {
                 temp[i] = gradMatrixX[i];
@@ -897,9 +900,9 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
               }
             }
             // Compare with original
-            if (!vtkstd::equal(dirx.begin(), dirx.end(), gradMatrixX.begin())
-                || !vtkstd::equal(diry.begin(), diry.end(), gradMatrixY.begin())
-                || !vtkstd::equal(dirz.begin(), dirz.end(), gradMatrixZ.begin()))
+            if (!std::equal(dirx.begin(), dirx.end(), gradMatrixX.begin())
+                || !std::equal(diry.begin(), diry.end(), gradMatrixY.begin())
+                || !std::equal(dirz.begin(), dirz.end(), gradMatrixZ.begin()))
             {
               slicesNotInSameOrientation = true;
               break;
@@ -919,8 +922,8 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
   acqp_InputStream.close();
 
   // try opening method file for details on the sequence
-  vtkstd::ifstream method_InputStream;
-  vtkstd::string methodFileString = "";
+  std::ifstream method_InputStream;
+  std::string methodFileString = "";
   method_InputStream.open(filemethod.c_str(), std::ios::in);
   if (method_InputStream.fail())
   {
@@ -935,18 +938,18 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
       // Get Method.
       index = methodFileString.find(MSQ_Method_DiffGrad);
-      if (index != vtkstd::string::npos)
+      if (index != std::string::npos)
       {
         diffusionEPI = true;
       }
 
       // Get number of diffusion directions
       index = methodFileString.find(MSQ_Method_NoDiffExp);
-      if (index != vtkstd::string::npos)
+      if (index != std::string::npos)
       {
         // Get number of gradient directions
-        vtkstd::string tempString = MSQ_Method_NoDiffExp;
-        vtkstd::istringstream methodDiffExpString(
+        std::string tempString = MSQ_Method_NoDiffExp;
+        std::istringstream methodDiffExpString(
             methodFileString.substr(index + tempString.length()));
 
         if (methodDiffExpString)
@@ -957,14 +960,14 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
       // Get slice orientation
       index = methodFileString.find(MSQ_PVM_SliceOrient);
-      if (index != vtkstd::string::npos)
+      if (index != std::string::npos)
       {
         method_InputStream.getline(readFileBuffer, sizeof(readFileBuffer));
         methodFileString = readFileBuffer;
 
         // Check if is is axial
         tempIndex = methodFileString.find("axial");
-        if (tempIndex != vtkstd::string::npos)
+        if (tempIndex != std::string::npos)
         {
           this->MedicalImageProperties->SetOrientationType(
               vtkMedicalImageProperties::AXIAL);
@@ -972,7 +975,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
         else
         {
           tempIndex = methodFileString.find("coronal");
-          if (tempIndex != vtkstd::string::npos)
+          if (tempIndex != std::string::npos)
           {
             this->MedicalImageProperties->SetOrientationType(
                 vtkMedicalImageProperties::CORONAL);
@@ -985,10 +988,10 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
 
       // Get spacing
       index = methodFileString.find(MSQ_PVM_SpatResol);
-      if (index != vtkstd::string::npos)
+      if (index != std::string::npos)
       {
         tempIndex = methodFileString.find("2");
-        if (tempIndex != vtkstd::string::npos)
+        if (tempIndex != std::string::npos)
         {
           method_InputStream >> imageRes[0] >> imageRes[1];
           imageRes[2] = 0;
@@ -996,7 +999,7 @@ int vtkmsqBruker2DSEQReader::RequestInformation(vtkInformation* request,
         else
         {
           tempIndex = methodFileString.find("3");
-          if (tempIndex != vtkstd::string::npos)
+          if (tempIndex != std::string::npos)
           {
             method_InputStream >> imageRes[0] >> imageRes[1] >> imageRes[2];
           }
@@ -1158,9 +1161,9 @@ void vtkmsqBruker2DSEQReaderUpdate(vtkmsqBruker2DSEQReader *self, vtkImageData *
  * This function reads a data from a file.  The datas extent/axes
  * are assumed to be the same as the file extent/order.
  */
-void vtkmsqBruker2DSEQReader::ExecuteData(vtkDataObject *output)
+void vtkmsqBruker2DSEQReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
 {
-  vtkImageData *data = this->AllocateOutputData(output);
+  vtkImageData *data = this->AllocateOutputData(output, outInfo);
 
   gzFile zfp;
   void *ptr;
@@ -1172,7 +1175,7 @@ void vtkmsqBruker2DSEQReader::ExecuteData(vtkDataObject *output)
   }
 
   // open image for reading
-  vtkstd::string imagefilename(this->FileName);
+  std::string imagefilename(this->FileName);
 
   // NOTE: gzFile operations act just like FILE * operations when the files
   // are not in gzip format.

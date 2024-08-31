@@ -19,7 +19,7 @@ SET (GRAPHICS_SRCS
 
 # Create the vtkmsqGraphics C++ library.
 ADD_LIBRARY (vtkmsqGraphics ${GRAPHICS_SRCS})
-TARGET_LINK_LIBRARIES (vtkmsqGraphics vtkmsqImaging vtkmsqIO vtkFiltering vtkGraphics vtkRendering vtkzlib)
+TARGET_LINK_LIBRARIES (vtkmsqGraphics vtkmsqImaging vtkmsqIO vtkzlib ${VTK_LIBRARIES})
 
 # Create the vtkmsqGraphics Tcl library.
 IF (VTK_WRAP_TCL AND MEDSQUARE_WRAP_TCL)

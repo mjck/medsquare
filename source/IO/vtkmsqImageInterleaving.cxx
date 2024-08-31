@@ -33,25 +33,41 @@ int vtkmsqImageInterleaving::RequestData(vtkInformation *vtkNotUsed(request),
   vtkImageData *input = vtkImageData::SafeDownCast(
       inInfo->Get(vtkDataObject::DATA_OBJECT()));
  
-  vtkImageData *output = vtkImageData::SafeDownCast(
-      outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  //vtkImageData *output = vtkImageData::SafeDownCast(
+  //    outInfo->Get(vtkDataObject::DATA_OBJECT()));
  
-  int extent[6];
-  input->GetExtent(extent);
-  int nc=input->GetNumberOfScalarComponents();
+  vtkImageData *output = static_cast<vtkImageData *>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+  if (output) {
+    int extent[6];
+    //input->GetExtent(extent);
+    outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
 
-  //printf("%d %d %d %d %d %d\n",extent[0],extent[1],extent[2],extent[3],extent[4],extent[5]);
+    int nc=input->GetNumberOfScalarComponents();
 
-  output->SetNumberOfScalarComponents(this->NumberOfFrames);
-  extent[5] = (extent[5] + 1) / this->NumberOfFrames - 1;
+    output->SetNumberOfScalarComponents(this->NumberOfFrames, outInfo);
+    extent[5] = (extent[5] + 1) / this->NumberOfFrames - 1;
 
-  //printf("%d %d %d %d %d %d\n",extent[0],extent[1],extent[2],extent[3],extent[4],extent[5]);
+    //outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
+    this->AllocateOutputData(output, outInfo, extent);
 
-  output->SetExtent(extent);
-  output->SetUpdateExtent(output->GetExtent());
-  output->SetWholeExtent(output->GetExtent());
+  }
 
-  output->AllocateScalars();
+  // int extent[6];
+  // input->GetExtent(extent);
+  // int nc=input->GetNumberOfScalarComponents();
+
+  // //printf("%d %d %d %d %d %d\n",extent[0],extent[1],extent[2],extent[3],extent[4],extent[5]);
+
+  // output->SetNumberOfScalarComponents(this->NumberOfFrames);
+  // extent[5] = (extent[5] + 1) / this->NumberOfFrames - 1;
+
+  // //printf("%d %d %d %d %d %d\n",extent[0],extent[1],extent[2],extent[3],extent[4],extent[5]);
+
+  // output->SetExtent(extent);
+  // output->SetUpdateExtent(output->GetExtent());
+  // output->SetWholeExtent(output->GetExtent());
+
+  // output->AllocateScalars();
   
   this->SimpleExecute(input, output);
  

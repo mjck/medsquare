@@ -17,6 +17,7 @@
 
 #include <QList>
 #include <QString>
+#include <QApplication>
 
 MSQSliceExporter::MSQSliceExporter(MedSquare *medSquare) : medSquare(medSquare)
 {
@@ -51,7 +52,7 @@ void MSQSliceExporter::exportSlices(vtkmsqImageItem *image,QString path, QString
     image->GetProperties()->GetReorientedDouble3(spacing, spacing);
   }
 
-  reslicer->SetInput(image->GetImage());
+  reslicer->SetInputData(image->GetImage());
   reslicer->SetOutputDimensionality(2);
   reslicer->SetOutputSpacing(spacing);
   reslicer->SetInterpolationModeToLinear();

@@ -9,7 +9,7 @@
 class VTK_MSQ_IO_EXPORT vtkmsqRawReader: public vtkMedicalImageReader2
 {
 public:
-  static vtkmsqRawReader *New();vtkTypeRevisionMacro(vtkmsqRawReader, vtkMedicalImageReader2)
+  static vtkmsqRawReader *New();vtkTypeMacro(vtkmsqRawReader, vtkMedicalImageReader2)
   ;
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -49,7 +49,7 @@ protected:
   vtkmsqRawReader();
   ~vtkmsqRawReader();
 
-  virtual void ExecuteData(vtkDataObject *);
+  virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
 
 private:
   vtkmsqRawReader(const vtkmsqRawReader&); // Not implemented.

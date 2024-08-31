@@ -79,7 +79,7 @@ void MSQGeometryWidget::buildWidget()
 
   this->geometryTree->header()->setHorizontalScrollMode(
       QAbstractItemView::ScrollPerPixel);
-  this->geometryTree->header()->setResizeMode(QHeaderView::ResizeToContents);
+  this->geometryTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
  
   //add buttons
   addAction = new QAction(QIcon(":/images/plus.png"), tr("&Add..."), this);
@@ -136,7 +136,7 @@ void MSQGeometryWidget::addGeometryItem(const QString& name, vtkPolyData *polyda
     bool visible)
 {
   vtkPolyDataMapper *mapper = vtkPolyDataMapper::New();
-  mapper->SetInput(polydata);
+  mapper->SetInputData(polydata);
 
   vtkActor *actor = vtkActor::New();
   actor->SetMapper(mapper);
@@ -223,7 +223,7 @@ void MSQGeometryWidget::saveGeometryItem(const QString& name)
   if (!fileName.isEmpty())
   {
     vtkmsqOBJWriter* objWriter = vtkmsqOBJWriter::New();
-    objWriter->SetInput(item->getPolyData());
+    objWriter->SetInputData(item->getPolyData());
     objWriter->SetFileName(fileName.toUtf8().constData());
     objWriter->Update();
   }

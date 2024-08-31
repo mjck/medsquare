@@ -9,6 +9,9 @@
 #define MSQCOMPONENTWIDGET_H
 
 #include <QtGui>
+#include <QLabel>
+#include <QSpinBox>
+#include <QHBoxLayout>
 
 #include <vtkImageData.h>
 

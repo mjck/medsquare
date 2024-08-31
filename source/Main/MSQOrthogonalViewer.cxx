@@ -145,11 +145,12 @@ void MSQOrthogonalViewer::initializeEmptyImage()
   // Creates an empty 3x3x3 short image
   this->emptyImage = vtkImageData::New();
   this->emptyImage->SetDimensions(3, 3, 3);
-  this->emptyImage->SetScalarTypeToShort();
-  this->emptyImage->SetNumberOfScalarComponents(1);
+  //this->emptyImage->SetScalarTypeToShort();
+  //this->emptyImage->SetNumberOfScalarComponents(1);
   this->emptyImage->SetSpacing(1, 1, 1);
   this->emptyImage->SetOrigin(0, 0, 0);
-  this->emptyImage->AllocateScalars();
+  //this->emptyImage->AllocateScalars();
+  this->emptyImage->AllocateScalars(VTK_SHORT, 1);
   this->emptyImage->GetPointData()->GetScalars()->FillComponent(0, 0);
 
   this->emptyImageProperties = vtkmsqMedicalImageProperties::New();
@@ -787,7 +788,7 @@ void MSQOrthogonalViewer::createCursors()
 
     // create cursor mapper
     cursorMapper[i] = vtkPolyDataMapper::New();
-    cursorMapper[i]->SetInput(cursorData[i]->GetOutput());
+    cursorMapper[i]->SetInputData(cursorData[i]->GetOutput());
 
     // create cursor actor
     cursor[i] = vtkActor::New();

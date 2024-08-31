@@ -48,10 +48,10 @@ int main(int argc, char** argv)
   app.setApplicationName("MedSquare");
 
   MedSquare mainwindow;
-  mainwindow.resize(1160, 600);
+  //mainwindow.resize(1160, 600);
 
   // Delay main window from showing up
-  QTimer::singleShot(1500, &mainwindow, SLOT(show()));
+  //QTimer::singleShot(1500, &mainwindow, SLOT(mainwindow.resizeAndShow()));
 
   return app.exec();
 }

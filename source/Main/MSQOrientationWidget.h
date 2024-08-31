@@ -9,6 +9,11 @@
 #define MSQORIENTATIONWIDGET_H
 
 #include <QtGui>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QSpinBox>
+#include <QScrollBar>
+#include <QLabel>
 
 #include <vtkImageData.h>
 

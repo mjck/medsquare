@@ -16,7 +16,7 @@
 class VTK_MSQ_IO_EXPORT vtkmsqAnalyzeWriter: public vtkImageWriter
 {
 public:
-vtkTypeRevisionMacro(vtkmsqAnalyzeWriter,vtkImageWriter)
+vtkTypeMacro(vtkmsqAnalyzeWriter,vtkImageWriter)
   ;
   void PrintSelf(ostream& os, vtkIndent indent);
 

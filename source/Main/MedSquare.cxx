@@ -110,6 +110,19 @@ MedSquare::MedSquare(QWidget* p) : QMainWindow(p)
 
   // create an instance of image IO
   this->msq_imageIO = new MSQImageIO(this);
+
+  // initial resize
+  QTimer::singleShot(1500, this, SLOT(resizeAndShow()));
+}
+
+/***********************************************************************************//**
+ * Initilal resize
+ */
+void MedSquare::resizeAndShow() 
+{
+  QRect rec = QApplication::primaryScreen()->geometry();
+  this->resize(rec.width()*0.8, rec.height()*0.8);
+  this->show();
 }
 
 /***********************************************************************************//**

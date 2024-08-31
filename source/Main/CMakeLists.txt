@@ -82,7 +82,7 @@ SET(MedSquareHeaders
 
 SET(MedSquareResources MedSquare.qrc)
 
-QT4_ADD_RESOURCES(RCCSrcs ${MedSquareResources})
+QT5_ADD_RESOURCES(RCCSrcs ${MedSquareResources})
 #QT4_WRAP_UI(UIHeaders ${UIS})
 #QT4_WRAP_CPP(MOCSrcs ${MedSquareHeaders} )
 ADD_DEFINITIONS(-DQT_GUI_LIBS -DQT_CORE_LIB)
@@ -99,7 +99,7 @@ IF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
   SET (MedSquareSrcs ${MedSquareSrcs} ${UIS})
 ENDIF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
 
-#ADD_EXECUTABLE ( MedSquare WIN32 MACOSX_BUNDLE ${MedSquareSrcs} ${UISrcs} ${MOCSrcs} ${RCCSrcs})
+#ADD_EXECUTABLE ( MedSquare WIN32 MACOSX_BUNDLE ${MedSquareHeaders} ${MedSquareSrcs} ../IO/vtkmsqOBJWriter.cxx ../IO/MSQPListParser.cxx ../IO/Imaging/MSQColormapFactory.cxx ${UISrcs} ${MOCSrcs} ${RCCSrcs})
 ADD_EXECUTABLE ( MedSquare 
   ${MedSquareSrcs} 
   "${MedSquareHeaders}" 
@@ -111,20 +111,14 @@ ADD_EXECUTABLE ( MedSquare
 SET_TARGET_PROPERTIES(MedSquare PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
 
 TARGET_LINK_LIBRARIES (MedSquare
-  QVTK
-  ${QT_LIBRARIES}
+  Qt5::OpenGL
   gdcmCommon
   gdcmMSFF
   vtkgdcm
   vtkmsqImaging
   vtkmsqGraphics
   vtkmsqIO
-  vtkCommon
-  vtkRendering
-  vtkGraphics
-  vtkImaging
-  vtkIO
-  vtkWidgets
+  ${VTK_LIBRARIES}
 )
 
 INSTALL(TARGETS MedSquare

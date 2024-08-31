@@ -22,8 +22,8 @@ SET(UIS )
 
 SET(IMAGING_HEADERS
   MSQColormapFactory.h
-  #vtkmsqImageAverage.h
-  #vtkmsqLookupTable.h
+  vtkmsqImageAverage.h
+  vtkmsqLookupTable.h
 )
 
 #QT4_WRAP_CPP(MOCSrcs ${IMAGING_HEADERS} )
@@ -35,10 +35,10 @@ ADD_DEFINITIONS(-DQT_GUI_LIBS -DQT_CORE_LIB -DQT_XML_LIB)
 # Create the vtkmsqImaging C++ library.
 ADD_LIBRARY (vtkmsqImaging ${IMAGING_SRCS} ../IO/MSQPListParser.cxx)
 TARGET_LINK_LIBRARIES (vtkmsqImaging 
-  vtkImaging 
+  ##vtkImaging 
   vtkzlib 
-  vtkmsqIO 
-  ${QT_LIBRARIES})
+  vtkmsqIO
+  ${VTK_LIBRARIES})
 
 # Create the vtkmsqImaging Tcl library.
 IF (VTK_WRAP_TCL AND MEDSQUARE_WRAP_TCL)

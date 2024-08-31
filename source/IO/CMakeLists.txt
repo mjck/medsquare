@@ -25,7 +25,9 @@ SET (IO_SRCS
 
 # Use the include path and library for Qt that is used by VTK.
 INCLUDE_DIRECTORIES(
-  ${QT_INCLUDE_DIR}
+  ${Qt5Core_INCLUDE_DIR}
+  ${Qt5Widgets_INCLUDE_DIR}
+  ${Qt5Xml_INCLUDE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
@@ -48,10 +50,12 @@ TARGET_LINK_LIBRARIES (vtkmsqIO
   gdcmCommon
   gdcmMSFF
   vtkgdcm
-  vtkIO 
+  ##vtkIO 
   vtkzlib
   ITKniftiio
-  ${QT_LIBRARIES})
+  Qt5::Core
+  Qt5::Xml
+  ${VTK_LIBRARIES})
 
 # Create the vtkmsqIO Tcl library.
 IF (VTK_WRAP_TCL AND MEDSQUARE_WRAP_TCL)

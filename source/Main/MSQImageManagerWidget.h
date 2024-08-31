@@ -2,6 +2,13 @@
 #define MSQ_IMAGE_MANAGER_WIDGET_H
 
 #include <QtGui>
+#include <QMenu>
+#include <QAction>
+#include <QToolBar>
+#include <QTreeWidget>
+#include <QVBoxLayout>
+#include <QHeaderView>
+#include <QFileDialog>
 
 class MedSquare;
 

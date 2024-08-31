@@ -17,6 +17,11 @@
 #define MSQ_DICOMHEADER_VIEWER_H
 
 #include <QtGui>
+#include <QWidget>
+#include <QTreeWidget>
+#include <QHeaderView>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 class MSQDicomHeaderViewer : public QWidget
 {

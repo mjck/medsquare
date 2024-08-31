@@ -43,8 +43,8 @@ MSQGeometryDifference::MSQGeometryDifference(MedSquare *medSquare, QHash<QString
   vtkSmartPointer<vtkEventQtSlotConnect> connection = vtkSmartPointer<vtkEventQtSlotConnect>::New();
   connection->Connect(distanceFilter, vtkCommand::ProgressEvent, medSquare, SLOT(updateProgressBar(vtkObject *, unsigned long, void *, void *)));
 
-  distanceFilter->SetInput(0, geometry1->getPolyData());
-  distanceFilter->SetInput(1, geometry2->getPolyData());
+  distanceFilter->SetInputData(0, geometry1->getPolyData());
+  distanceFilter->SetInputData(1, geometry2->getPolyData());
   distanceFilter->Update();
 
   this->mapper = vtkPolyDataMapper::New();

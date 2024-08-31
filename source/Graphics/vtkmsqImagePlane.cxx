@@ -180,7 +180,7 @@ void vtkmsqImagePlane::SetInput(vtkmsqImageItem *newImageItem)
   this->InputProperties->DeepCopy(newImageItem->GetProperties());
 
   // Sets image reslice
-  this->ImageReslice->SetInput(this->InputImage);
+  this->ImageReslice->SetInputData(this->InputImage);
 
   // Sets lookup table
   this->SetLookupTable(newImageItem->GetColormap());
@@ -361,7 +361,7 @@ void vtkmsqImagePlane::BuildPlane()
 
   // Create mapper
   vtkSmartPointer<vtkPolyDataMapper> frameMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  frameMapper->SetInput(this->FrameSource->GetOutput());
+  frameMapper->SetInputConnection(this->FrameSource->GetOutputPort());
 
   // Create frame actor
   this->FrameActor = vtkActor::New();
@@ -381,7 +381,7 @@ void vtkmsqImagePlane::BuildPlane()
   // Create image plane mapper
   vtkSmartPointer<vtkPolyDataMapper> planeMapper =
       vtkSmartPointer<vtkPolyDataMapper>::New();
-  planeMapper->SetInput(this->PlaneSource->GetOutput());
+  planeMapper->SetInputConnection(this->PlaneSource->GetOutputPort());
 
   // Create texture
   this->ImageTexture = vtkTexture::New();

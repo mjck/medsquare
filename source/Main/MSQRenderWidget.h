@@ -17,6 +17,10 @@
 #define MSQ_RENDER_WIDGET_H
 
 #include <QtGui>
+#include <QWidget>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QFileDialog>
 
 class QVTKWidget2;
 

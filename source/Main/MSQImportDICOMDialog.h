@@ -1,11 +1,19 @@
 #ifndef MSQ_DICOMIMPORT_DIALOG_H
 #define MSQ_DICOMIMPORT_DIALOG_H
 
-#include <QtGui/QDialog>
 #include <QtGui>
+#include <QDialog>
+#include <QWidget>
 #include <QAbstractScrollArea>
 #include <QAbstractItemView>
-#include <QtGui/QTreeWidget>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include <QHeaderView>
+#include <QSplitter>
+#include <QCheckBox>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QFileDialog>
 
 #include "vtkImageData.h"
 #include "vtkMedicalImageProperties.h"

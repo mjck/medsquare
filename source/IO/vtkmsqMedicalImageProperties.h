@@ -28,7 +28,7 @@ class VTK_MSQ_IO_EXPORT vtkmsqMedicalImageProperties: public vtkMedicalImageProp
 {
 public:
   static vtkmsqMedicalImageProperties *New();
-  vtkTypeRevisionMacro(vtkmsqMedicalImageProperties,vtkMedicalImageProperties);
+  vtkTypeMacro(vtkmsqMedicalImageProperties,vtkMedicalImageProperties);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -54,7 +54,7 @@ public:
   // Description:
   // Auxiliary functions for manipulating the gradient/b-value array
   virtual void AddDiffusionGradient(double *values);
-  virtual void AddDiffusionGradient(vtkstd::vector<float> gradient, float bvalue); 
+  virtual void AddDiffusionGradient(std::vector<float> gradient, float bvalue); 
   virtual void GetNthDiffusionGradient(int idx, double *values);
   
   // Description:

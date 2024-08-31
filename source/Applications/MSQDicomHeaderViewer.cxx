@@ -48,7 +48,7 @@ MSQDicomHeaderViewer::MSQDicomHeaderViewer()
   treeTag->setAlternatingRowColors(true);
   //treeTag->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   treeTag->header()->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-  treeTag->header()->setResizeMode(QHeaderView::ResizeToContents);
+  treeTag->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
   //layout->addWidget(searchTag);
   layout->addWidget(treeTag); 

@@ -18,7 +18,15 @@
 
 #include <QtGui>
 #include <QList>
+#include <QMenu>
+#include <QLabel>
+#include <QWidget>
+#include <QToolBar>
+#include <QToolButton>
+#include <QLineEdit>
+#include <QCheckBox>
 #include <QStringList>
+#include <QGridLayout>
 
 #include "gdcmGlobal.h"
 #include "gdcmDicts.h"

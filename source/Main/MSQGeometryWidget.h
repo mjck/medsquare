@@ -17,6 +17,15 @@
 #define MSQ_GEOMETRY_WIDGET_H
 
 #include <QtGui>
+#include <QAction>
+#include <QToolbar>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include <QFileDialog>
+#include <QColorDialog>
+#include <QVBoxLayout>
+#include <QHeaderView>
+#include <QMessageBox>
 #include <vtkOBJExporter.h>
 
 class MedSquare;

@@ -854,6 +854,8 @@ void MSQDicomExplorer::createInterface()
 
   // create modal progress dialog
   mProgressDialog = new QProgressDialog(this);
+  //mProgressDialog->setAutoClose(true);
+  //mProgressDialog->cancel();
 
   // create top layout
   //QHBoxLayout *topLayout = new QHBoxLayout;
@@ -890,7 +892,7 @@ void MSQDicomExplorer::createInterface()
   //this->dicomTree->setColumnHidden(8, true);
 
   this->dicomTree->header()->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-  this->dicomTree->header()->setResizeMode(QHeaderView::ResizeToContents);
+  this->dicomTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
   this->dicomTree->setIconSize(QSize(20, 20));
   this->dicomTree->setSelectionMode(QAbstractItemView::ContiguousSelection);
   this->dicomTree->setSelectionBehavior(QTreeView::SelectRows);
@@ -1138,6 +1140,7 @@ void MSQDicomExplorer::fileOpenDir()
     setCurrentFile(dirName);
 
     this->readDirectory(dirName);
+
     
     //pathLabel->setText(QString("Source: %1").arg(dirName));
 
@@ -1314,7 +1317,8 @@ bool MSQDicomExplorer::averageAndExportToAnalyze(const QStringList& fileNames, c
 
   imageReader->SetFileName(vtkFileNames->GetValue(0));
   imageReader->Update();
-  const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  //const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  const double *spacing = imageReader->GetOutput()->GetSpacing();
 
   vtkSmartPointer<vtkImageAppend> append = vtkSmartPointer<vtkImageAppend>::New();
   append->SetAppendAxis(2);
@@ -1352,7 +1356,7 @@ bool MSQDicomExplorer::averageAndExportToAnalyze(const QStringList& fileNames, c
 
       // Add to append
       //printf("appending at %d\n", total);
-      append->SetInput(total++, average->GetOutput());
+      append->SetInputConnection(total++, average->GetOutputPort());
 
     }
    
@@ -1362,14 +1366,14 @@ bool MSQDicomExplorer::averageAndExportToAnalyze(const QStringList& fileNames, c
   append->Update();
 
   vtkSmartPointer<vtkmsqImageInterleaving> inter = vtkSmartPointer<vtkmsqImageInterleaving>::New();
-  inter->SetInput(append->GetOutput());
+  inter->SetInputConnection(append->GetOutputPort());
   //newImage->SetFrameInterleave();
   inter->SetNumberOfFrames(num_comp);
 
   vtkSmartPointer<vtkImageChangeInformation> newInfo = vtkSmartPointer<
       vtkImageChangeInformation>::New();
   //newInfo->SetInput(append->GetOutput());
-  newInfo->SetInput(inter->GetOutput());
+  newInfo->SetInputConnection(inter->GetOutputPort());
   newInfo->SetOutputSpacing(spacing[0], spacing[1], sliceSpacing);
   newInfo->Update();
 
@@ -1394,7 +1398,7 @@ bool MSQDicomExplorer::averageAndExportToAnalyze(const QStringList& fileNames, c
   // write out Analyze image
   imageWriter->SetFileName(fileNameAnalyze.toLocal8Bit().constData());
   //imageWriter->SetInput(newImage);
-  imageWriter->SetInput(inter->GetOutput());
+  imageWriter->SetInputConnection(inter->GetOutputPort());
   imageWriter->SetMedicalImageProperties(newProperties);
   imageWriter->SetCompression(0);
   imageWriter->Write();
@@ -1445,16 +1449,17 @@ bool MSQDicomExplorer::exportToAnalyze(const QStringList& fileNames, const QStri
     imageReader->SetFileName(vtkFileNames->GetValue(0));
   imageReader->Update();
 
-  const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  //const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  const double *spacing = imageReader->GetOutput()->GetSpacing();
 
   vtkSmartPointer<vtkImageChangeInformation> newInfo = vtkSmartPointer<
       vtkImageChangeInformation>::New();
-  newInfo->SetInput(imageReader->GetOutput());
+  newInfo->SetInputConnection(imageReader->GetOutputPort());
   newInfo->SetOutputSpacing(spacing[0], spacing[1], sliceSpacing);
   newInfo->Update();
 
   vtkmsqImageInterleaving *inter = vtkmsqImageInterleaving::New();
-  inter->SetInput(newInfo->GetOutput());
+  inter->SetInputConnection(newInfo->GetOutputPort());
   inter->SetNumberOfFrames(components);
   inter->Update();
 
@@ -1515,7 +1520,7 @@ bool MSQDicomExplorer::exportToAnalyze(const QStringList& fileNames, const QStri
   // write out Analyze image
   imageWriter->SetFileName(fileNameAnalyze.toLocal8Bit().constData());
   //imageWriter->SetInput(newImage);
-  imageWriter->SetInput(inter->GetOutput());
+  imageWriter->SetInputConnection(inter->GetOutputPort());
   imageWriter->SetMedicalImageProperties(newProperties);
   imageWriter->SetCompression(0);
   imageWriter->Write();
@@ -1566,11 +1571,12 @@ bool MSQDicomExplorer::exportToAnalyze(const QString& fileName, const QString& f
   imageReader->Update();
 
   const double sliceSpacing = this->GetSliceSpacingFromDataset(ds);
-  const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  //const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  const double *spacing = imageReader->GetOutput()->GetSpacing();
 
   vtkSmartPointer<vtkImageChangeInformation> newInfo = vtkSmartPointer<
       vtkImageChangeInformation>::New();
-  newInfo->SetInput(imageReader->GetOutput());
+  newInfo->SetInputConnection(imageReader->GetOutputPort());
   newInfo->SetOutputSpacing(spacing[0], spacing[1], sliceSpacing);
   newInfo->Update();
 
@@ -1598,7 +1604,7 @@ bool MSQDicomExplorer::exportToAnalyze(const QString& fileName, const QString& f
 
   // write out Analyze image
   imageWriter->SetFileName(fileNameAnalyze.toLocal8Bit().constData());
-  imageWriter->SetInput(newImage);
+  imageWriter->SetInputData(newImage);
   imageWriter->SetMedicalImageProperties(newProperties);
   imageWriter->SetCompression(0);
   imageWriter->Write();
@@ -2777,6 +2783,8 @@ void MSQDicomExplorer::readDirectory(const QString& dirName)
 
   this->totalFiles = 0;
 
+  //std::cout << dirName << std::endl;
+
   //mProgressDialog->setMinimum(0);
   //mProgressDialog->setMaximum(countFiles(dirName));
   //mProgressDialog->setWindowModality(Qt::WindowModal);
@@ -2796,7 +2804,9 @@ void MSQDicomExplorer::readDirectory(const QString& dirName)
 
    // read directory contents
   gdcm::Directory dir;
-  const char *dname = dirName.toLocal8Bit().constData();
+  QByteArray dname_array = dirName.toUtf8();
+  //const char *dname = dirName.toLocal8Bit().constData();
+  const char* dname = dname_array.constData();
   unsigned int nfiles = dir.Load( dname, true );
 
   mProgressDialog->setMinimum(0);

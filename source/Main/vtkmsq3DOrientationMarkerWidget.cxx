@@ -69,7 +69,7 @@ vtkmsq3DOrientationMarkerWidget::vtkmsq3DOrientationMarkerWidget()
   sphere->SetRadius(0.5);
 
   vtkSmartPointer<vtkPolyDataMapper> sphereMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-  sphereMapper->SetInput(sphere->GetOutput());
+  sphereMapper->SetInputConnection(sphere->GetOutputPort());
 
   vtkSmartPointer<vtkActor> sphereActor = vtkSmartPointer<vtkActor>::New();
   sphereActor->SetMapper(sphereMapper);

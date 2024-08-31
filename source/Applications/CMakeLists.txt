@@ -60,7 +60,7 @@ SET(MSQDicomExplorerHeaders
 
 SET(MSQDicomExplorerResources MSQDicomExplorer.qrc )
 
-QT4_ADD_RESOURCES(RCCSrcs ${MSQDicomExplorerResources})
+QT5_ADD_RESOURCES(RCCSrcs ${MSQDicomExplorerResources})
 #QT4_WRAP_UI(UIHeaders ${UIS})
 #QT4_WRAP_CPP(MOCSrcs ${MSQDicomExplorerHeaders} )
 ADD_DEFINITIONS(-DQT_GUI_LIBS -DQT_CORE_LIB)
@@ -77,7 +77,7 @@ IF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
   SET (MSQDicomExplorerSrcs ${MSQDicomExplorerSrcs} ${UIS})
 ENDIF (${CMAKE_BUILD_TOOL} MATCHES "devenv")
 
-ADD_EXECUTABLE ( DicomExplorer 
+ADD_EXECUTABLE ( DicomExplorer
   ${MSQDicomExplorerHeaders} 
   ${MSQDicomExplorerSrcs} ${UISrcs} ${MOCSrcs} ${RCCSrcs}
   DicomExplorer.rc 
@@ -86,23 +86,22 @@ ADD_EXECUTABLE ( DicomExplorer
   ../IO/vtkmsqImageInterleaving.cxx 
   ../Imaging/MSQColormapFactory.cxx 
   ../Imaging/vtkmsqImageAverage.cxx)
-SET_TARGET_PROPERTIES( DicomExplorer PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
+IF (WIN32)
+  SET_TARGET_PROPERTIES( DicomExplorer PROPERTIES WIN32_EXECUTABLE $<CONFIG:Release>)
+ENDIF()
+##IF (APPLE)
+##  SET_TARGET_PROPERTIES( DicomExplorer PROPERTIES BUNDLE True )
+##ENDIF()
 
 TARGET_LINK_LIBRARIES (DicomExplorer
-  QVTK
-  ${QT_LIBRARIES}
+  Qt5::OpenGL
   gdcmCommon
   gdcmMSFF
   vtkgdcm
   vtkmsqImaging
   vtkmsqGraphics
   vtkmsqIO
-  vtkCommon
-  vtkRendering
-  vtkGraphics
-  vtkImaging
-  vtkIO
-  vtkWidgets
+  ${VTK_LIBRARIES}
   ${BIS_LIBRARIES}
 )
 

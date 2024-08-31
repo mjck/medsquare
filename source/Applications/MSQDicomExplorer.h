@@ -5,6 +5,9 @@
 #include <fstream>
 
 #include <QtGui>
+#include <QApplication>
+#include <QSplitter>
+
 #include "QVTKWidget.h"
 
 #include "gdcmSubject.h"

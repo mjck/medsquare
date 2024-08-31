@@ -19,9 +19,10 @@
 #include "vtkInformationVector.h"
 #include "vtkInformation.h"
 
-#include <vtksys/ios/fstream>
+//#include <vtksys/ios/fstream>
+#include <fstream>
 
-vtkCxxRevisionMacro(vtkmsqOBJWriter, "$Revision: 1.59 $");
+//vtkCxxRevisionMacro(vtkmsqOBJWriter, "$Revision: 1.59 $");
 vtkStandardNewMacro(vtkmsqOBJWriter);
 
 vtkmsqOBJWriter::vtkmsqOBJWriter()

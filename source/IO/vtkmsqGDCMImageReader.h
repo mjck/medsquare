@@ -96,7 +96,7 @@ class vtkMatrix4x4;
 class VTK_MSQ_IO_EXPORT vtkmsqGDCMImageReader: public vtkMedicalImageReader2
 {
 public:
-  static vtkmsqGDCMImageReader *New();vtkTypeRevisionMacro(vtkmsqGDCMImageReader,vtkMedicalImageReader2)
+  static vtkmsqGDCMImageReader *New();vtkTypeMacro(vtkmsqGDCMImageReader,vtkMedicalImageReader2)
   ;
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 

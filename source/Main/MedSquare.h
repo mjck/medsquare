@@ -4,6 +4,14 @@
 #define MSQ_MAX_IMAGE_OPEN 3
 
 #include <QtGui>
+#include <QWidget>
+#include <QMainWindow>
+#include <QProgressBar>
+#include <QMessageBox>
+#include <QActionGroup>
+#include <QStatusBar>
+#include <QMenuBar>
+#include <QToolBar>
 
 #include "QVTKWidget.h"
 
@@ -76,6 +84,7 @@ private slots:
       const double sliceSpacing);
   void useOrthogonalViewer();
   void exportSlices();
+  void resizeAndShow();
 
 private:
   // Qt actions

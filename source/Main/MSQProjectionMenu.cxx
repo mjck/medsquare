@@ -175,7 +175,7 @@ void MSQProjectionMenu::changedColormap()
 vtkVolume* MSQProjectionMenu::getProjection()
 {
   vtkImageShiftScale *scale = vtkImageShiftScale::New();
-  scale->SetInput(image);
+  scale->SetInputData(image);
   scale->SetOutputScalarTypeToUnsignedChar();
 
   vtkFixedPointVolumeRayCastMapper *rayCastMapper = vtkFixedPointVolumeRayCastMapper::New();

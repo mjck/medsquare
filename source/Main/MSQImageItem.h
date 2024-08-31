@@ -9,6 +9,9 @@
 #define MSQ_IMAGE_ITEM_H
 
 #include <QtGui>
+#include <QFont>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 
 class vtkmsqImageItem;
 

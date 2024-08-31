@@ -25,8 +25,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <vtksys/stl/string>   // STL header
-#include <vtksys/stl/vector>   // STL header
+//#include <vtksys/stl/string>   // STL header
+#include <string>
+//#include <vtksys/stl/vector>   // STL header
+#include <vector>
 #include "vtkObject.h"
 #include "vtkmsqIOWin32Header.h"
 
@@ -141,7 +143,7 @@ class VTK_MSQ_IO_EXPORT vtkmsqPhilipsPAR: public vtkObject
 public:
   static vtkmsqPhilipsPAR *New();
 
-vtkTypeRevisionMacro(vtkmsqPhilipsPAR, vtkObject)
+vtkTypeMacro(vtkmsqPhilipsPAR, vtkObject)
   ;
   void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -150,30 +152,30 @@ vtkTypeRevisionMacro(vtkmsqPhilipsPAR, vtkObject)
   // pPar.
   // Returns false if an error is encountered during reading, otherwise true is 
   // returned.
-  bool ReadPAR(vtkstd::string parFile, struct msqpar_parameter* pPar);
+  bool ReadPAR(std::string parFile, struct msqpar_parameter* pPar);
 
   // Returns a vector of paired values, the first contains the slice index and the 
   // second is the image type for the PAR file "parFile".
-  vtkstd::vector<vtkstd::pair<int, int> > GetRECSliceIndexImageTypes(
-      vtkstd::string parFile);
+  std::vector<std::pair<int, int> > GetRECSliceIndexImageTypes(
+      std::string parFile);
 
   // Returns a vector of paired values, the first contains the slice index and the 
   // second is the scan sequence for the PAR file "parFile".
-  vtkstd::vector<vtkstd::pair<int, int> > GetRECSliceIndexScanningSequence(
-      vtkstd::string parFile);
+  std::vector<std::pair<int, int> > GetRECSliceIndexScanningSequence(
+      std::string parFile);
 
   // Returns a vector of paired values, the first contains the image type and the 
   // second is the scan sequence for that image type for the PAR file "parFile".
-  vtkstd::vector<vtkstd::pair<int, int> > GetImageTypesScanningSequence(
-      vtkstd::string parFile);
+  std::vector<std::pair<int, int> > GetImageTypesScanningSequence(
+      std::string parFile);
 
   // Stores rescale values in the VectorContainer "rescaleValues" for each image 
   // type of the specified scan sequence number "scan_sequence" (from 
   // scanning_sequences) for the PAR file "parFile".
   // Returns false if an error is encountered during reading, otherwise true is 
   // returned.
-  bool GetRECRescaleValues(vtkstd::string parFile,
-      vtkstd::vector<vtkstd::vector<float> > *rescaleValues, int scan_sequence);
+  bool GetRECRescaleValues(std::string parFile,
+      std::vector<std::vector<float> > *rescaleValues, int scan_sequence);
 
   // Stores the diffusion gradient values in the VectorContainer "gradientValues" 
   // and the diffusion b values in the VectorContainer "bValues" for each gradient 
@@ -181,15 +183,15 @@ vtkTypeRevisionMacro(vtkmsqPhilipsPAR, vtkObject)
   // versions > 4.1
   // Returns false if an error is encountered during reading, otherwise true is 
   // returned.
-  bool GetDiffusionGradientOrientationAndBValues(vtkstd::string parFile,
-      vtkstd::vector<vtkstd::vector<float> > *gradientValues,
-      vtkstd::vector<float> *bValues);
+  bool GetDiffusionGradientOrientationAndBValues(std::string parFile,
+      std::vector<std::vector<float> > *gradientValues,
+      std::vector<float> *bValues);
 
   // Returns a vector of ASL label types for the PAR file "parFile".
-  vtkstd::vector<int> GetLabelTypesASL(vtkstd::string parFile);
+  std::vector<int> GetLabelTypesASL(std::string parFile);
 
   // Read a line number within the PAR file.
-  vtkstd::string GetLineNumber(vtkstd::string file, int lineNum);
+  std::string GetLineNumber(std::string file, int lineNum);
 
 protected:
   vtkmsqPhilipsPAR();
@@ -200,16 +202,16 @@ private:
   void operator=(const vtkmsqPhilipsPAR&); //purposely not implemented
 
   // Function used internally to get PAR version. 
-  int GetPARVersion(vtkstd::string parFile);
+  int GetPARVersion(std::string parFile);
 
   // Function used internally to get info string at top of PAR. 
-  vtkstd::string GetGeneralInfoString(vtkstd::string file, int lineNum);
+  std::string GetGeneralInfoString(std::string file, int lineNum);
 
   // Filename to read 
-  vtkstd::string FileName;
+  std::string FileName;
 
   // Vector of strings for storing each line of PAR file. 
-  vtkstd::vector<vtkstd::string> PARFileLines;
+  std::vector<std::string> PARFileLines;
   //ETX
 
 };

@@ -19,7 +19,7 @@
 #include "vtkObjectFactory.h"
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqMedicalImageProperties, "0.1");
+//vtkCxxRevisionMacro(vtkmsqMedicalImageProperties, "0.1");
 vtkStandardNewMacro(vtkmsqMedicalImageProperties);
 /** \endcond */
 
@@ -81,7 +81,7 @@ vtkmsqMedicalImageProperties::~vtkmsqMedicalImageProperties()
 /***********************************************************************************//**
  * 
  */
-void vtkmsqMedicalImageProperties::AddDiffusionGradient(vtkstd::vector<float> gradient, float bvalue)
+void vtkmsqMedicalImageProperties::AddDiffusionGradient(std::vector<float> gradient, float bvalue)
 {
   double vals[4] = {gradient[0], gradient[1], gradient[2], bvalue};
   this->DiffusionGradients->InsertNextTupleValue(vals);

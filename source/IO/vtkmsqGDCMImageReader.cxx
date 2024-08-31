@@ -47,7 +47,7 @@
 #include <sstream>
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqGDCMImageReader, "$Revision: 1.1 $")
+//vtkCxxRevisionMacro(vtkmsqGDCMImageReader, "$Revision: 1.1 $")
 vtkStandardNewMacro(vtkmsqGDCMImageReader)
 
 vtkCxxSetObjectMacro(vtkmsqGDCMImageReader, MedicalImageProperties,
@@ -170,7 +170,8 @@ inline unsigned long vtkImageDataGetTypeSize(T*, int a = 0, int b = 0)
 void InPlaceYFlipImage(vtkImageData* data)
 {
   unsigned long outsize = data->GetNumberOfScalarComponents();
-  int *dext = data->GetWholeExtent();
+  //int *dext = data->GetWholeExtent();
+  int *dext = data->GetExtent();
   if (dext[1] == dext[0] && dext[0] == 0)
     return;
 
@@ -967,7 +968,7 @@ int vtkmsqGDCMImageReader::RequestDataCompat()
   output->GetPointData()->GetScalars()->SetName("GDCMImage");
 
   int outExt[6];
-  output->GetUpdateExtent(outExt);
+  output->GetExtent(outExt);
 
   char * pointer = static_cast<char*>(output->GetScalarPointerForExtent(outExt));
   if (this->FileName)
@@ -1029,17 +1030,13 @@ int vtkmsqGDCMImageReader::RequestData(vtkInformation *vtkNotUsed(request),
 
   for (int i = 0; i < this->GetNumberOfOutputPorts(); ++i)
   {
-    // Copy/paste from vtkImageAlgorithm::AllocateScalars. Cf. "this needs to be fixed -Ken"
-    vtkStreamingDemandDrivenPipeline *sddp =
-        vtkStreamingDemandDrivenPipeline::SafeDownCast(this->GetExecutive());
-    if (sddp)
-    {
+    vtkInformation *outInfo = outputVector->GetInformationObject(i);
+    vtkImageData *data = static_cast<vtkImageData *>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+    if (data) {
       int extent[6];
-      sddp->GetOutputInformation(i)->Get(
-          vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
-      this->GetOutput(i)->SetExtent(extent);
+      outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
+      this->AllocateOutputData(data, outInfo, extent);
     }
-    this->GetOutput(i)->AllocateScalars();
   }
   int res = RequestDataCompat();
   return res;

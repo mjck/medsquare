@@ -25,12 +25,12 @@
 class VTK_MSQ_IO_EXPORT vtkmsqPhilipsRECReader: public vtkMedicalImageReader2
 {
 public:
-  static vtkmsqPhilipsRECReader *New();vtkTypeRevisionMacro(vtkmsqPhilipsRECReader,vtkMedicalImageReader2)
+  static vtkmsqPhilipsRECReader *New();vtkTypeMacro(vtkmsqPhilipsRECReader,vtkMedicalImageReader2)
   ;
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
   //BTX
-  typedef vtkstd::vector<int> SliceIndexType;
+  typedef std::vector<int> SliceIndexType;
   //ETX
 
   // Description: is the given file name a REC/PAR file?
@@ -68,7 +68,7 @@ protected:
 
   virtual int RequestInformation(vtkInformation* request,
       vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  virtual void ExecuteData(vtkDataObject *out);
+  virtual void ExecuteData(vtkDataObject *out, vtkInformation *outInfo);
 
   SliceIndexType *SliceIndex;
 
@@ -77,14 +77,14 @@ private:
   //BTX
   int GetImageTypeOffset(int imageType, int scanSequence, int volumeIndex, int slice,
       int numSlices, struct msqpar_parameter parParam,
-      vtkstd::vector<vtkstd::pair<int, int> > sliceImageTypesIndex,
-      vtkstd::vector<vtkstd::pair<int, int> > sliceScanSequenceIndex);
+      std::vector<std::pair<int, int> > sliceImageTypesIndex,
+      std::vector<std::pair<int, int> > sliceScanSequenceIndex);
 
   void SetupSliceIndex(vtkmsqPhilipsRECReader::SliceIndexType *indexMatrix, int sortBlock,
       struct msqpar_parameter parParam,
-      vtkstd::vector<vtkstd::pair<int, int> > imageTypesScanSequenceIndex,
-      vtkstd::vector<vtkstd::pair<int, int> > sliceImageTypesIndex,
-      vtkstd::vector<vtkstd::pair<int, int> > sliceScanSequenceIndex);
+      std::vector<std::pair<int, int> > imageTypesScanSequenceIndex,
+      std::vector<std::pair<int, int> > sliceImageTypesIndex,
+      std::vector<std::pair<int, int> > sliceScanSequenceIndex);
   //ETX
   vtkmsqPhilipsRECReader(const vtkmsqPhilipsRECReader&); // Not implemented.
   void operator=(const vtkmsqPhilipsRECReader&); // Not implemented.

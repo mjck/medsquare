@@ -281,11 +281,12 @@ int MSQImageIO::loadDICOMImage(const QStringList& fileNames, const double sliceS
     imageReader->SetFileName(vtkFileNames->GetValue(0));
   imageReader->Update();
 
-  const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  //const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  const double *spacing = imageReader->GetOutput()->GetSpacing();
 
   vtkSmartPointer<vtkImageChangeInformation> newInfo = vtkSmartPointer<
       vtkImageChangeInformation>::New();
-  newInfo->SetInput(imageReader->GetOutput());
+  newInfo->SetInputConnection(imageReader->GetOutputPort());
   newInfo->SetOutputSpacing(spacing[0], spacing[1], sliceSpacing);
   newInfo->Update();
 
@@ -554,7 +555,7 @@ bool MSQImageIO::saveAnalyzeImage(QString &fileName, vtkImageData *newImage,
 
   // write out Analyze image
   imageWriter->SetFileName(fileName.toLocal8Bit().constData());
-  imageWriter->SetInput(newImage);
+  imageWriter->SetInputData(newImage);
   imageWriter->SetMedicalImageProperties(newProperties);
   imageWriter->SetCompression(int(saveCompressed));
   imageWriter->Write();

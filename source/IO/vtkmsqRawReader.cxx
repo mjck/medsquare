@@ -25,16 +25,16 @@
 #include <vtkzlib/zlib.h>
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqRawReader, "$Revision: 1.0 $");
+//vtkCxxRevisionMacro(vtkmsqRawReader, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkmsqRawReader);
 /** \endcond */
 
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetRawExtension(const vtkstd::string& filename)
+static std::string GetRawExtension(const std::string& filename)
 {
-  vtkstd::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
+  std::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
 
   // If the last extension is .gz, then need to pull off 2 extensions.
   //.gz is the only valid compression extension.
@@ -82,8 +82,8 @@ vtkmsqRawReader::~vtkmsqRawReader()
  */
 int vtkmsqRawReader::CanReadFile(const char* fname)
 {
-  vtkstd::string filename(fname);
-  vtkstd::string ext = GetRawExtension(filename);
+  std::string filename(fname);
+  std::string ext = GetRawExtension(filename);
 
   // check if we can read the file
   FILE *fp = fopen(filename.c_str(), "rb");
@@ -179,9 +179,9 @@ void vtkmsqRawReaderUpdate(vtkmsqRawReader *self, vtkImageData *data, OT *outPtr
  * This function reads a data from a file.  The datas extent/axes
  * are assumed to be the same as the file extent/order.
  */
-void vtkmsqRawReader::ExecuteData(vtkDataObject *output)
+void vtkmsqRawReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
 {
-  vtkImageData *data = this->AllocateOutputData(output);
+  vtkImageData *data = this->AllocateOutputData(output, outInfo);
 
   gzFile zfp;
   void *ptr;
@@ -193,7 +193,7 @@ void vtkmsqRawReader::ExecuteData(vtkDataObject *output)
   }
 
   // open image for reading
-  vtkstd::string imagefilename = this->FileName;
+  std::string imagefilename = this->FileName;
   // NOTE: gzFile operations act just like FILE * operations when the files
   // are not in gzip format.
   // This greatly simplifies the following code, and gzFile types are used

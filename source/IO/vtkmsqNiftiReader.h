@@ -62,7 +62,7 @@
 class VTK_MSQ_IO_EXPORT vtkmsqNiftiReader: public vtkMedicalImageReader2
 {
 public:
-  static vtkmsqNiftiReader *New();vtkTypeRevisionMacro(vtkmsqNiftiReader,vtkMedicalImageReader2)
+  static vtkmsqNiftiReader *New();vtkTypeMacro(vtkmsqNiftiReader,vtkMedicalImageReader2)
   ;
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -122,7 +122,7 @@ protected:
 
   virtual int RequestInformation(vtkInformation* request,
       vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  virtual void ExecuteData(vtkDataObject *);
+  virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
 
 private:
   vtkmsqNiftiReader(const vtkmsqNiftiReader&); // Not implemented.

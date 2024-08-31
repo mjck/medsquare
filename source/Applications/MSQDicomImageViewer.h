@@ -18,6 +18,10 @@
 
 #include <QtGui>
 #include <QImage>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QToolButton>
+#include <QButtonGroup>
 
 #include "MSQAspectRatioPixmapLabel.h"
 #include "MSQDicomImageViewerButton.h"

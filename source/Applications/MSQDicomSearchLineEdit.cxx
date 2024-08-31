@@ -43,7 +43,7 @@ MSQDicomSearchLineEdit::MSQDicomSearchLineEdit(QWidget *parent)
     mPopupView->setRootIsDecorated(false);
     mPopupView->header()->hide();
     mPopupView->header()->setStretchLastSection(true);
-    mPopupView->header()->setResizeMode(1, QHeaderView::ResizeToContents);
+    mPopupView->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 
     mCompleter = new QCompleter(this);
     mCompleter->setPopup(mPopupView);

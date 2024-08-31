@@ -17,6 +17,8 @@
 #define MSQ_SORTORDER_DELEGATE_H
 
 #include <QItemDelegate>
+#include <QStyledItemDelegate>
+#include <QListWidget>
 #include <QtGui>
 
 class MSQSortOrderDelegate : public QStyledItemDelegate

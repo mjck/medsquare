@@ -25,21 +25,22 @@
 #include "vtkDataSetAttributes.h"
 
 #include <vtksys/SystemTools.hxx>
-#include <vtkstd/string>
+//#include <vtkstd/string>
+#include <string>
 #include <vtkzlib/zlib.h>
 #include <sys/stat.h>
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqAnalyzeWriter, "$Revision: 1.17 $");
+//vtkCxxRevisionMacro(vtkmsqAnalyzeWriter, "$Revision: 1.17 $");
 vtkStandardNewMacro(vtkmsqAnalyzeWriter);
 /** \endcond */
 
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetAnalyzeExtension(const vtkstd::string& filename)
+static std::string GetAnalyzeExtension(const std::string& filename)
 {
-  vtkstd::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
+  std::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
 
   // If the last extension is .gz, then need to pull off 2 extensions.
   //.gz is the only valid compression extension.
@@ -68,16 +69,16 @@ static vtkstd::string GetAnalyzeExtension(const vtkstd::string& filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetAnalyzeRootName(const vtkstd::string& filename)
+static std::string GetAnalyzeRootName(const std::string& filename)
 {
-  const vtkstd::string fileExt = GetAnalyzeExtension(filename);
+  const std::string fileExt = GetAnalyzeExtension(filename);
 
   // Create a base filename
   // i.e Image.HDR --> Image
   if (fileExt.length() > 0 && filename.length() > fileExt.length())
   {
-    const vtkstd::string::size_type it = filename.find_last_of(fileExt);
-    vtkstd::string baseName(filename, 0, it - (fileExt.length() - 1));
+    const std::string::size_type it = filename.find_last_of(fileExt);
+    std::string baseName(filename, 0, it - (fileExt.length() - 1));
     return (baseName);
   }
 
@@ -88,10 +89,10 @@ static vtkstd::string GetAnalyzeRootName(const vtkstd::string& filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetAnalyzeHeaderFileName(const vtkstd::string & filename)
+static std::string GetAnalyzeHeaderFileName(const std::string & filename)
 {
-  vtkstd::string HeaderFileName(filename);
-  const vtkstd::string fileExt = GetAnalyzeExtension(filename);
+  std::string HeaderFileName(filename);
+  const std::string fileExt = GetAnalyzeExtension(filename);
 
   // Accomodate either all caps or all lower-case filenames.
   if ((fileExt == ".IMG") || (fileExt == ".IMG.gz"))
@@ -110,10 +111,10 @@ static vtkstd::string GetAnalyzeHeaderFileName(const vtkstd::string & filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetAnalyzeImageFileName(const vtkstd::string& filename)
+static std::string GetAnalyzeImageFileName(const std::string& filename)
 {
-  vtkstd::string ImageFileName(filename);
-  const vtkstd::string fileExt = GetAnalyzeExtension(filename);
+  std::string ImageFileName(filename);
+  const std::string fileExt = GetAnalyzeExtension(filename);
 
   // Default to uncompressed .IMG if .HDR is given as file name.
   if (fileExt == ".HDR")
@@ -239,24 +240,24 @@ vtkmsqAnalyzeWriter::vtkmsqAnalyzeWriter()
  */
 int vtkmsqAnalyzeWriter::CanWriteFile(const char * FileNameToWrite)
 {
-  vtkstd::string filename(FileNameToWrite);
+  std::string filename(FileNameToWrite);
   // Data file name given?
-  vtkstd::string::size_type imgPos = filename.rfind(".img");
-  if ((imgPos != vtkstd::string::npos) && (imgPos == filename.length() - 4))
+  std::string::size_type imgPos = filename.rfind(".img");
+  if ((imgPos != std::string::npos) && (imgPos == filename.length() - 4))
   {
     return 1;
   }
 
   // Header file given?
-  vtkstd::string::size_type hdrPos = filename.rfind(".hdr");
-  if ((hdrPos != vtkstd::string::npos) && (hdrPos == filename.length() - 4))
+  std::string::size_type hdrPos = filename.rfind(".hdr");
+  if ((hdrPos != std::string::npos) && (hdrPos == filename.length() - 4))
   {
     return 1;
   }
 
   // Compressed image given?
-  vtkstd::string::size_type imggzPos = filename.rfind(".img.gz");
-  if ((imggzPos != vtkstd::string::npos) && (imggzPos == filename.length() - 7))
+  std::string::size_type imggzPos = filename.rfind(".img.gz");
+  if ((imggzPos != std::string::npos) && (imggzPos == filename.length() - 7))
   {
     return 1;
   }
@@ -270,7 +271,7 @@ int vtkmsqAnalyzeWriter::CanWriteFile(const char * FileNameToWrite)
 int vtkmsqAnalyzeWriter::WriteHeader(const char *fileName)
 {
   // Get header filename
-  vtkstd::string headerFilename = GetAnalyzeHeaderFileName(fileName);
+  std::string headerFilename = GetAnalyzeHeaderFileName(fileName);
 
   // Try opening the header file for writing
   FILE *fp;
@@ -433,7 +434,7 @@ void vtkmsqAnalyzeWriterUpdate(vtkmsqAnalyzeWriter *self, vtkImageData *data, OT
 int vtkmsqAnalyzeWriter::WriteImage(const char *fileName)
 {
   // Get header filename
-  vtkstd::string imageFilename = GetAnalyzeImageFileName(fileName);
+  std::string imageFilename = GetAnalyzeImageFileName(fileName);
 
   gzFile zfp;
   FILE *fp;
@@ -506,7 +507,7 @@ void vtkmsqAnalyzeWriter::Write()
 {
   this->SetErrorCode(vtkErrorCode::NoError);
 
-  this->GetInput()->UpdateInformation();
+  //this->GetInput()->UpdateInformation();
 
   // Error checking
   if (this->GetInput() == NULL)
@@ -522,7 +523,8 @@ void vtkmsqAnalyzeWriter::Write()
   }
 
   // Retrive dimensions and spacing
-  int *wholeExtent = this->GetInput()->GetWholeExtent();
+  //int *wholeExtent = this->GetInput()->GetWholeExtent();
+  int *wholeExtent = this->GetInput()->GetExtent();
   double *spacing = this->GetInput()->GetSpacing();
 
   int dimSize[3];

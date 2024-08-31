@@ -17,6 +17,13 @@
 #define MSQ_DICOMIMAGE_SORTER_H
 
 #include <QtGui>
+#include <QWidget>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QPushButton>
+#include <QCheckBox>
+#include <QLineEdit>
+#include <QFileDialog>
 
 #include "gdcmDicts.h"
 #include "gdcmGlobal.h"

@@ -2,6 +2,12 @@
 #define MSQ_WINDOWLEVEL_WIDGET_H
 
 #include <QtGui>
+#include <QLabel>
+#include <QSlider>
+#include <QDockWidget>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QDoubleSpinBox>
 
 #include "vtkImageData.h"
 #include "vtkMedicalImageProperties.h"

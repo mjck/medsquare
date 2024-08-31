@@ -12,7 +12,7 @@
 class VTK_MSQ_IO_EXPORT vtkmsqBruker2DSEQReader: public vtkMedicalImageReader2
 {
 public:
-  static vtkmsqBruker2DSEQReader *New();vtkTypeRevisionMacro(vtkmsqBruker2DSEQReader,vtkMedicalImageReader2)
+  static vtkmsqBruker2DSEQReader *New();vtkTypeMacro(vtkmsqBruker2DSEQReader,vtkMedicalImageReader2)
   ;
   virtual void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -58,7 +58,7 @@ protected:
 
   virtual int RequestInformation(vtkInformation* request,
       vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  virtual void ExecuteData(vtkDataObject *);
+  virtual void ExecuteData(vtkDataObject *, vtkInformation *outInfo);
 
 private:
   vtkmsqBruker2DSEQReader(const vtkmsqBruker2DSEQReader&); // Not implemented.

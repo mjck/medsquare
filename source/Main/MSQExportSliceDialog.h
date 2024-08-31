@@ -1,8 +1,15 @@
 #ifndef MSQ_EXPORTSLICE_DIALOG_H
 #define MSQ_EXPORTSLICE_DIALOG_H
 
-#include <QtGui/QDialog>
 #include <QtGui>
+#include <QLabel>
+#include <QDialog>
+#include <QGridLayout>
+#include <QPushButton>
+#include <QComboBox>
+#include <QLineEdit>
+#include <QFileDialog>
+#include <QDialogButtonBox>
 
 class QLabel;
 class QLineEdit;

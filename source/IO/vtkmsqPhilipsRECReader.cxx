@@ -22,24 +22,25 @@
 #include "vtkByteSwap.h"
 
 #include <vtksys/SystemTools.hxx>
-#include <vtkstd/string>
+//#include <vtkstd/string>
+#include <string>
 #include <vtkzlib/zlib.h>
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqPhilipsRECReader, "$Revision: 0.1 $");
+//vtkCxxRevisionMacro(vtkmsqPhilipsRECReader, "$Revision: 0.1 $");
 vtkStandardNewMacro(vtkmsqPhilipsRECReader);
 /** \endcond */
 
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetRECPARExtension(const vtkstd::string& filename)
+static std::string GetRECPARExtension(const std::string& filename)
 {
-  vtkstd::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
+  std::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
 
   // If the last extension is .gz, then need to pull off 2 extensions.
   //.gz is the only valid compression extension.
-  if (fileExt == vtkstd::string(".gz"))
+  if (fileExt == std::string(".gz"))
   {
     fileExt = vtksys::SystemTools::GetFilenameLastExtension(
         vtksys::SystemTools::GetFilenameWithoutLastExtension(filename));
@@ -67,16 +68,16 @@ static vtkstd::string GetRECPARExtension(const vtkstd::string& filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetRECPARRootName(const vtkstd::string& filename)
+static std::string GetRECPARRootName(const std::string& filename)
 {
-  const vtkstd::string fileExt = GetRECPARExtension(filename);
+  const std::string fileExt = GetRECPARExtension(filename);
 
   // Create a base filename
   // i.e Image.PAR --> Image
   if (fileExt.length() > 0 && filename.length() > fileExt.length())
   {
-    const vtkstd::string::size_type it = filename.find_last_of(fileExt);
-    vtkstd::string baseName(filename, 0, it - (fileExt.length() - 1));
+    const std::string::size_type it = filename.find_last_of(fileExt);
+    std::string baseName(filename, 0, it - (fileExt.length() - 1));
     return (baseName);
   }
   //Default to return same as input when the extension is nothing.
@@ -86,10 +87,10 @@ static vtkstd::string GetRECPARRootName(const vtkstd::string& filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetRECPARHeaderFileName(const vtkstd::string & filename)
+static std::string GetRECPARHeaderFileName(const std::string & filename)
 {
-  vtkstd::string ImageFileName(filename);
-  const vtkstd::string fileExt = GetRECPARExtension(filename);
+  std::string ImageFileName(filename);
+  const std::string fileExt = GetRECPARExtension(filename);
   // Accomodate either all caps or all lower-case filenames.
   if ((fileExt == ".REC") || (fileExt == ".REC.gz"))
   {
@@ -107,10 +108,10 @@ static vtkstd::string GetRECPARHeaderFileName(const vtkstd::string & filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetRECPARImageFileName(const vtkstd::string& filename)
+static std::string GetRECPARImageFileName(const std::string& filename)
 {
-  vtkstd::string ImageFileName(filename);
-  const vtkstd::string fileExt = GetRECPARExtension(filename);
+  std::string ImageFileName(filename);
+  const std::string fileExt = GetRECPARExtension(filename);
   // Default to uncompressed .REC if .PAR is given as file name.
   if (fileExt == ".PAR")
   {
@@ -148,19 +149,19 @@ vtkmsqPhilipsRECReader::~vtkmsqPhilipsRECReader()
  */
 int vtkmsqPhilipsRECReader::CanReadFile(const char* fname)
 {
-  vtkstd::string filename(fname);
+  std::string filename(fname);
 
   // we check that the correct extension is given by the user
-  vtkstd::string filenameext = GetRECPARExtension(filename);
-  if (filenameext != vtkstd::string(".PAR") && filenameext != vtkstd::string(".REC")
-      && filenameext != vtkstd::string(".REC.gz") && filenameext != vtkstd::string(".par")
-      && filenameext != vtkstd::string(".rec")
-      && filenameext != vtkstd::string(".rec.gz"))
+  std::string filenameext = GetRECPARExtension(filename);
+  if (filenameext != std::string(".PAR") && filenameext != std::string(".REC")
+      && filenameext != std::string(".REC.gz") && filenameext != std::string(".par")
+      && filenameext != std::string(".rec")
+      && filenameext != std::string(".rec.gz"))
   {
     return 0;
   }
 
-  const vtkstd::string HeaderFileName = GetRECPARHeaderFileName(filename);
+  const std::string HeaderFileName = GetRECPARHeaderFileName(filename);
 
   // Try to read the par file.
   struct msqpar_parameter par;
@@ -200,8 +201,8 @@ int vtkmsqPhilipsRECReader::GetSliceIndex(int index)
  */
 int vtkmsqPhilipsRECReader::GetImageTypeOffset(int imageType, int scanSequence,
     int volumeIndex, int slice, int numSlices, struct msqpar_parameter parParam,
-    vtkstd::vector<vtkstd::pair<int, int> > sliceImageTypesIndex,
-    vtkstd::vector<vtkstd::pair<int, int> > sliceScanSequenceIndex)
+    std::vector<std::pair<int, int> > sliceImageTypesIndex,
+    std::vector<std::pair<int, int> > sliceScanSequenceIndex)
 {
   int index = volumeIndex * parParam.num_slice_repetitions * numSlices
       + slice * parParam.num_slice_repetitions;
@@ -223,9 +224,9 @@ int vtkmsqPhilipsRECReader::GetImageTypeOffset(int imageType, int scanSequence,
 void vtkmsqPhilipsRECReader::SetupSliceIndex(
     vtkmsqPhilipsRECReader::SliceIndexType *indexMatrix, int sortBlock,
     struct msqpar_parameter parParam,
-    vtkstd::vector<vtkstd::pair<int, int> > imageTypesScanSequenceIndex,
-    vtkstd::vector<vtkstd::pair<int, int> > sliceImageTypesIndex,
-    vtkstd::vector<vtkstd::pair<int, int> > sliceScanSequenceIndex)
+    std::vector<std::pair<int, int> > imageTypesScanSequenceIndex,
+    std::vector<std::pair<int, int> > sliceImageTypesIndex,
+    std::vector<std::pair<int, int> > sliceScanSequenceIndex)
 {
   int index = 0;
   int actualSlices = parParam.slice;
@@ -305,7 +306,7 @@ void vtkmsqPhilipsRECReader::SetupSliceIndex(
 int vtkmsqPhilipsRECReader::RequestInformation(vtkInformation* request,
     vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  const vtkstd::string HeaderFileName = GetRECPARHeaderFileName(this->GetFileName());
+  const std::string HeaderFileName = GetRECPARHeaderFileName(this->GetFileName());
   struct msqpar_parameter par;
 
   // Zero out par_parameter.
@@ -326,11 +327,11 @@ int vtkmsqPhilipsRECReader::RequestInformation(vtkInformation* request,
   this->SliceIndex->clear();
   this->SliceIndex->resize(par.dim[2]);
 
-  vtkstd::vector<vtkstd::pair<int, int> > sliceImageTypesIndexes =
+  std::vector<std::pair<int, int> > sliceImageTypesIndexes =
       philipsPAR->GetRECSliceIndexImageTypes(HeaderFileName);
-  vtkstd::vector<vtkstd::pair<int, int> > sliceScanSequencesIndexes =
+  std::vector<std::pair<int, int> > sliceScanSequencesIndexes =
       philipsPAR->GetRECSliceIndexScanningSequence(HeaderFileName);
-  vtkstd::vector<vtkstd::pair<int, int> > imageTypesScanSequencesIndexes =
+  std::vector<std::pair<int, int> > imageTypesScanSequencesIndexes =
       philipsPAR->GetImageTypesScanningSequence(HeaderFileName);
 
   this->SetupSliceIndex(this->SliceIndex, 1, par, imageTypesScanSequencesIndexes,
@@ -399,8 +400,8 @@ int vtkmsqPhilipsRECReader::RequestInformation(vtkInformation* request,
   // diffusion dataset, populate gradient directions
   if (par.diffusion == 1)
     {
-      vtkstd::vector<vtkstd::vector<float> > gradientValues;
-      vtkstd::vector<float> bValues;
+      std::vector<std::vector<float> > gradientValues;
+      std::vector<float> bValues;
       
       if (philipsPAR->GetDiffusionGradientOrientationAndBValues(HeaderFileName, &gradientValues, &bValues) == false)
 	printf("Could not read diffusion sequence parameters.\n"); 
@@ -495,9 +496,9 @@ void vtkmsqPhilipsRECReaderUpdate(vtkmsqPhilipsRECReader *self, vtkImageData *da
 /***********************************************************************************//**
  * 
  */
-void vtkmsqPhilipsRECReader::ExecuteData(vtkDataObject *output)
+void vtkmsqPhilipsRECReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
 {
-  vtkImageData *data = this->AllocateOutputData(output);
+  vtkImageData *data = this->AllocateOutputData(output, outInfo);
 
   gzFile zfp;
   void *ptr;
@@ -509,7 +510,7 @@ void vtkmsqPhilipsRECReader::ExecuteData(vtkDataObject *output)
   }
 
   // open image for reading
-  vtkstd::string imagefilename = GetRECPARImageFileName(this->FileName);
+  std::string imagefilename = GetRECPARImageFileName(this->FileName);
 
   // NOTE: gzFile operations act just like FILE * operations when the files
   // are not in gzip format.

@@ -10,7 +10,7 @@ class vtkmsqOBJWriter : public vtkPolyDataAlgorithm
 {
 public:
   static vtkmsqOBJWriter *New();
-  vtkTypeRevisionMacro(vtkmsqOBJWriter,vtkPolyDataAlgorithm);
+  vtkTypeMacro(vtkmsqOBJWriter,vtkPolyDataAlgorithm);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:

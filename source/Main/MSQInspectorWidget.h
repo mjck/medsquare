@@ -9,6 +9,9 @@
 #define MSQ_DATA_MANAGER_H
 
 #include <QtGui>
+#include <QTabWidget>
+#include <QDockWidget>
+#include <QGridLayout>
 
 class MedSquare;
 

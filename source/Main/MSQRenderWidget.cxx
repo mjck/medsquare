@@ -162,6 +162,7 @@ void MSQRenderWidget::enableInteraction()
  */
 void MSQRenderWidget::refresh()
 {
+  this->renderer->ResetCameraClippingRange();
   this->vtkWidget->update();
 }
 

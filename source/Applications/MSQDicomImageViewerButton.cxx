@@ -16,6 +16,7 @@
 #include "MSQDicomImageViewerButton.h"
 
 #include <QPainter>
+#include <QPainterPath>
 //
 //#include <QDebug>
 

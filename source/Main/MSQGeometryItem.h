@@ -17,6 +17,10 @@
 #define MSQ_GEOMETRYITEM_H
 
 #include <QtGui>
+#include <QComboBox>
+#include <QTreeWidget>
+#include <QCheckBox>
+#include <QTreeWidgetItem>
 
 class vtkActor;
 class vtkPolyData;

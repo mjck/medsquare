@@ -17,6 +17,13 @@
 #define MSQ_GEOMETRY_DIALOG_H
 
 #include <QtGui>
+#include <QDialog>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QDialogButtonBox>
+#include <QPushButton>
+#include <QTreeWidget>
+#include <QComboBox>
 
 //QT_MODULE(Gui)
 

@@ -17,6 +17,9 @@
 #define MSQ_PROJECTION_MENU_H
 
 #include <QtGui>
+#include <QMenu>
+#include <QWidget>
+#include <QActionGroup>
 
 class MSQColormapFactory;
 

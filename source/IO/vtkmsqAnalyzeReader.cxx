@@ -30,16 +30,16 @@
 #define MSQ_LITTLE_ENDIAN 1
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqAnalyzeReader, "$Revision: 1.0 $");
+//vtkCxxRevisionMacro(vtkmsqAnalyzeReader, "$Revision: 1.0 $");
 vtkStandardNewMacro(vtkmsqAnalyzeReader);
 /** \endcond */
 
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetAnalyzeExtension(const vtkstd::string& filename)
+static std::string GetAnalyzeExtension(const std::string& filename)
 {
-  vtkstd::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
+  std::string fileExt(vtksys::SystemTools::GetFilenameLastExtension(filename));
 
   // If the last extension is .gz, then need to pull off 2 extensions.
   //.gz is the only valid compression extension.
@@ -68,16 +68,16 @@ static vtkstd::string GetAnalyzeExtension(const vtkstd::string& filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetAnalyzeRootName(const vtkstd::string& filename)
+static std::string GetAnalyzeRootName(const std::string& filename)
 {
-  const vtkstd::string fileExt = GetAnalyzeExtension(filename);
+  const std::string fileExt = GetAnalyzeExtension(filename);
 
   // Create a base filename
   // i.e Image.HDR --> Image
   if (fileExt.length() > 0 && filename.length() > fileExt.length())
   {
-    const vtkstd::string::size_type it = filename.find_last_of(fileExt);
-    vtkstd::string baseName(filename, 0, it - (fileExt.length() - 1));
+    const std::string::size_type it = filename.find_last_of(fileExt);
+    std::string baseName(filename, 0, it - (fileExt.length() - 1));
     return (baseName);
   }
 
@@ -88,10 +88,10 @@ static vtkstd::string GetAnalyzeRootName(const vtkstd::string& filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetAnalyzeHeaderFileName(const vtkstd::string & filename)
+static std::string GetAnalyzeHeaderFileName(const std::string & filename)
 {
-  vtkstd::string HeaderFileName(filename);
-  const vtkstd::string fileExt = GetAnalyzeExtension(filename);
+  std::string HeaderFileName(filename);
+  const std::string fileExt = GetAnalyzeExtension(filename);
 
   // Accomodate either all caps or all lower-case filenames.
   if ((fileExt == ".IMG") || (fileExt == ".IMG.gz"))
@@ -110,10 +110,10 @@ static vtkstd::string GetAnalyzeHeaderFileName(const vtkstd::string & filename)
 /***********************************************************************************//**
  * 
  */
-static vtkstd::string GetAnalyzeImageFileName(const vtkstd::string& filename)
+static std::string GetAnalyzeImageFileName(const std::string& filename)
 {
-  vtkstd::string ImageFileName(filename);
-  const vtkstd::string fileExt = GetAnalyzeExtension(filename);
+  std::string ImageFileName(filename);
+  const std::string fileExt = GetAnalyzeExtension(filename);
 
   // Default to uncompressed .IMG if .HDR is given as file name.
   if (fileExt == ".HDR")
@@ -377,8 +377,8 @@ void vtkmsqAnalyzeReader::InitializeHeader(struct analyze_dsr *hdr)
  */
 int vtkmsqAnalyzeReader::CanReadFile(const char* fname)
 {
-  vtkstd::string filename(fname);
-  vtkstd::string ext = GetAnalyzeExtension(filename);
+  std::string filename(fname);
+  std::string ext = GetAnalyzeExtension(filename);
 
   // if not default extension bail out
   if (ext != ".HDR" && ext != ".hdr" && ext != ".IMG" && ext != ".img" && ext != ".IMG.gz"
@@ -388,7 +388,7 @@ int vtkmsqAnalyzeReader::CanReadFile(const char* fname)
   }
 
   // Get header file name
-  vtkstd::string headerfname = GetAnalyzeHeaderFileName(filename);
+  std::string headerfname = GetAnalyzeHeaderFileName(filename);
 
   // check if we can read header
   FILE *fp = fopen(headerfname.c_str(), "rb");
@@ -428,7 +428,7 @@ int vtkmsqAnalyzeReader::RequestInformation(vtkInformation* request,
   FILE *fp;
 
   // Get .hdr file name
-  vtkstd::string headerfilename = GetAnalyzeHeaderFileName(this->GetFileName());
+  std::string headerfilename = GetAnalyzeHeaderFileName(this->GetFileName());
 
   if (!(fp = fopen(headerfilename.c_str(), "rb")))
   {
@@ -601,9 +601,9 @@ void vtkmsqAnalyzeReaderUpdate(vtkmsqAnalyzeReader *self, vtkImageData *data, OT
  * This function reads a data from a file.  The datas extent/axes
  * are assumed to be the same as the file extent/order.
  */
-void vtkmsqAnalyzeReader::ExecuteData(vtkDataObject *output)
+void vtkmsqAnalyzeReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
 {
-  vtkImageData *data = this->AllocateOutputData(output);
+  vtkImageData *data = this->AllocateOutputData(output, outInfo);
 
   gzFile zfp;
   void *ptr;
@@ -615,7 +615,7 @@ void vtkmsqAnalyzeReader::ExecuteData(vtkDataObject *output)
   }
 
   // open image for reading
-  vtkstd::string imagefilename = GetAnalyzeImageFileName(this->FileName);
+  std::string imagefilename = GetAnalyzeImageFileName(this->FileName);
 
   // NOTE: gzFile operations act just like FILE * operations when the files
   // are not in gzip format.

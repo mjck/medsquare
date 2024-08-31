@@ -17,7 +17,7 @@ enum rawOrientation
 class VTK_EXPORT vtkmsqRawHeader: public vtkObject
 {
 public:
-  static vtkmsqRawHeader *New();vtkTypeRevisionMacro(vtkmsqRawHeader, vtkObject)
+  static vtkmsqRawHeader *New();vtkTypeMacro(vtkmsqRawHeader, vtkObject)
   ;
   void PrintSelf(ostream& os, vtkIndent indent);
 

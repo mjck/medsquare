@@ -983,7 +983,7 @@ void MSQImportDICOMDialog::buildDialog()
   this->dicomTree->setColumnHidden(8, true);
 
   this->dicomTree->header()->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-  this->dicomTree->header()->setResizeMode(QHeaderView::ResizeToContents);
+  this->dicomTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
   this->dicomTree->setIconSize(QSize(20, 20));
   connect(this->dicomTree, SIGNAL(itemSelectionChanged()), this,
@@ -1004,7 +1004,7 @@ void MSQImportDICOMDialog::buildDialog()
 
   tagTree->header()->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
-  tagTree->header()->setResizeMode(QHeaderView::ResizeToContents);
+  tagTree->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
   tagTree->hide();
 
   // add tag tree to splitter
@@ -1195,11 +1195,12 @@ int MSQImportDICOMDialog::exportToAnalyze(const QStringList& fileNames, const do
     imageReader->SetFileName(vtkFileNames->GetValue(0));
   imageReader->Update();
 
-  const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  //const vtkFloatingPointType *spacing = imageReader->GetOutput()->GetSpacing();
+  const double *spacing = imageReader->GetOutput()->GetSpacing();
 
   vtkSmartPointer<vtkImageChangeInformation> newInfo = vtkSmartPointer<
       vtkImageChangeInformation>::New();
-  newInfo->SetInput(imageReader->GetOutput());
+  newInfo->SetInputConnection(imageReader->GetOutputPort());
   newInfo->SetOutputSpacing(spacing[0], spacing[1], sliceSpacing);
   newInfo->Update();
 
@@ -1243,7 +1244,7 @@ int MSQImportDICOMDialog::exportToAnalyze(const QStringList& fileNames, const do
 
   // write out Analyze image
   imageWriter->SetFileName(fileName.toLocal8Bit().constData());
-  imageWriter->SetInput(newImage);
+  imageWriter->SetInputData(newImage);
   imageWriter->SetMedicalImageProperties(newProperties);
   imageWriter->SetCompression(0);
   imageWriter->Write();

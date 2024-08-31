@@ -41,7 +41,7 @@ vtkmsqRectangleActor2D::vtkmsqRectangleActor2D()
 
   this->Rectangle = vtkPolyData::New();
   this->RectangleMapper = vtkPolyDataMapper2D::New();
-  this->RectangleMapper->SetInput(this->Rectangle);
+  this->RectangleMapper->SetInputData(this->Rectangle);
   this->RectangleActor = vtkActor2D::New();
   this->RectangleActor->SetMapper(this->RectangleMapper);
 }

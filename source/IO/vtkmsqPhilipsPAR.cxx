@@ -18,9 +18,12 @@
 #include "vtkObjectFactory.h"
 
 #include <algorithm>
-#include <vtksys/ios/fstream>
-#include <vtksys/ios/sstream>
-#include <vtksys/ios/iostream>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+//#include <vtksys/ios/fstream>
+//#include <vtksys/ios/sstream>
+//#include <vtksys/ios/iostream>
 
 #define UNDEFINED "Undefined"
 
@@ -201,18 +204,18 @@ struct msqimage_info_defV4
 };
 
 /** \cond 0 */
-vtkCxxRevisionMacro(vtkmsqPhilipsPAR, "$Revision: 0.1 $");
+//vtkCxxRevisionMacro(vtkmsqPhilipsPAR, "$Revision: 0.1 $");
 vtkStandardNewMacro(vtkmsqPhilipsPAR);
 /** \endcond */
 
 /***********************************************************************************//**
  * 
  */
-struct msqimage_info_defV3 GetImageInformationDefinitionV3(vtkstd::string file,
+struct msqimage_info_defV3 GetImageInformationDefinitionV3(std::string file,
     int lineNum, vtkmsqPhilipsPAR *philipsPARClass)
 {
   struct msqimage_info_defV3 tempInfo;
-  vtkstd::string currentLine = "";
+  std::string currentLine = "";
 
   memset((void*) &tempInfo, 0, sizeof(struct msqimage_info_defV3));
   if (lineNum < 89)
@@ -231,7 +234,7 @@ struct msqimage_info_defV3 GetImageInformationDefinitionV3(vtkstd::string file,
     tempInfo.problemreading = 1;
     return tempInfo;
   }
-  vtkstd::istringstream inString(currentLine);
+  std::istringstream inString(currentLine);
   if (!inString)
   {
     tempInfo.problemreading = 1;
@@ -254,11 +257,11 @@ struct msqimage_info_defV3 GetImageInformationDefinitionV3(vtkstd::string file,
 /***********************************************************************************//**
  * 
  */
-struct msqimage_info_defV4 GetImageInformationDefinitionV4(vtkstd::string file,
+struct msqimage_info_defV4 GetImageInformationDefinitionV4(std::string file,
     int lineNum, vtkmsqPhilipsPAR *philipsPARClass)
 {
   struct msqimage_info_defV4 tempInfo;
-  vtkstd::string currentLine = "";
+  std::string currentLine = "";
 
   memset((void*) &tempInfo, 0, sizeof(struct msqimage_info_defV4));
   if (lineNum < 92)
@@ -277,7 +280,7 @@ struct msqimage_info_defV4 GetImageInformationDefinitionV4(vtkstd::string file,
     tempInfo.problemreading = 1;
     return tempInfo;
   }
-  vtkstd::istringstream inString(currentLine);
+  std::istringstream inString(currentLine);
   if (!inString)
   {
     tempInfo.problemreading = 1;
@@ -306,11 +309,11 @@ struct msqimage_info_defV4 GetImageInformationDefinitionV4(vtkstd::string file,
 /***********************************************************************************//**
  * 
  */
-struct msqimage_info_defV4 GetImageInformationDefinitionV41(vtkstd::string file,
+struct msqimage_info_defV4 GetImageInformationDefinitionV41(std::string file,
     int lineNum, vtkmsqPhilipsPAR *philipsPARClass)
 {
   struct msqimage_info_defV4 tempInfo;
-  vtkstd::string currentLine = "";
+  std::string currentLine = "";
 
   memset((void*) &tempInfo, 0, sizeof(struct msqimage_info_defV4));
   if (lineNum < 99)
@@ -329,7 +332,7 @@ struct msqimage_info_defV4 GetImageInformationDefinitionV41(vtkstd::string file,
     tempInfo.problemreading = 1;
     return tempInfo;
   }
-  vtkstd::istringstream inString(currentLine);
+  std::istringstream inString(currentLine);
   if (!inString)
   {
     tempInfo.problemreading = 1;
@@ -361,11 +364,11 @@ struct msqimage_info_defV4 GetImageInformationDefinitionV41(vtkstd::string file,
 /***********************************************************************************//**
  * 
  */
-struct msqimage_info_defV4 GetImageInformationDefinitionV42(vtkstd::string file,
+struct msqimage_info_defV4 GetImageInformationDefinitionV42(std::string file,
     int lineNum, vtkmsqPhilipsPAR *philipsPARClass)
 {
   struct msqimage_info_defV4 tempInfo;
-  vtkstd::string currentLine = "";
+  std::string currentLine = "";
 
   memset((void*) &tempInfo, 0, sizeof(struct msqimage_info_defV4));
   if (lineNum < 101)
@@ -384,7 +387,7 @@ struct msqimage_info_defV4 GetImageInformationDefinitionV42(vtkstd::string file,
     tempInfo.problemreading = 1;
     return tempInfo;
   }
-  vtkstd::istringstream inString(currentLine);
+  std::istringstream inString(currentLine);
   if (!inString)
   {
     tempInfo.problemreading = 1;
@@ -433,9 +436,9 @@ vtkmsqPhilipsPAR::~vtkmsqPhilipsPAR()
 /***********************************************************************************//**
  * 
  */
-vtkstd::string vtkmsqPhilipsPAR::GetLineNumber(vtkstd::string file, int lineNum)
+std::string vtkmsqPhilipsPAR::GetLineNumber(std::string file, int lineNum)
 {
-  vtkstd::string line = "";
+  std::string line = "";
   char readFileBuffer[1024] = "";
 
   if (lineNum <= 0)
@@ -450,8 +453,8 @@ vtkstd::string vtkmsqPhilipsPAR::GetLineNumber(vtkstd::string file, int lineNum)
     this->PARFileLines.resize(0);
 
     // Try to read the text file.
-    vtkstd::ifstream local_InputStream;
-    local_InputStream.open(file.c_str(), vtkstd::ios::in);
+    std::ifstream local_InputStream;
+    local_InputStream.open(file.c_str(), std::ios::in);
     if (local_InputStream.fail())
     {
       return line;
@@ -467,7 +470,7 @@ vtkstd::string vtkmsqPhilipsPAR::GetLineNumber(vtkstd::string file, int lineNum)
 
   // Return line if not EOF.
   line = "";
-  if ((vtkstd::vector<vtkstd::string>::size_type) lineNum <= this->PARFileLines.size())
+  if ((std::vector<std::string>::size_type) lineNum <= this->PARFileLines.size())
   {
     line = this->PARFileLines[lineNum - 1];
   }
@@ -478,12 +481,12 @@ vtkstd::string vtkmsqPhilipsPAR::GetLineNumber(vtkstd::string file, int lineNum)
 /***********************************************************************************//**
  * 
  */
-int vtkmsqPhilipsPAR::GetPARVersion(vtkstd::string parFile)
+int vtkmsqPhilipsPAR::GetPARVersion(std::string parFile)
 {
   //read version number of Philips research tools
   //Research tools are used to extract data from database; data formats differ 
   //considerably between versions. Handles V3, V4, V4.1, and V4.2
-  vtkstd::string currentLine = "";
+  std::string currentLine = "";
   int ResToolsVersion = RESEARCH_IMAGE_EXPORT_TOOL_UNKNOWN;
 
   // Character index 61 on line 8 should be 'V'.
@@ -524,20 +527,20 @@ int vtkmsqPhilipsPAR::GetPARVersion(vtkstd::string parFile)
 /***********************************************************************************//**
  * 
  */
-vtkstd::string vtkmsqPhilipsPAR::GetGeneralInfoString(vtkstd::string file, int lineNum)
+std::string vtkmsqPhilipsPAR::GetGeneralInfoString(std::string file, int lineNum)
 {
-  vtkstd::string currentLine = "";
-  vtkstd::string::size_type index;
-  vtkstd::string outString = "";
+  std::string currentLine = "";
+  std::string::size_type index;
+  std::string outString = "";
   if ((lineNum < 12) && (lineNum > 51))
   {
     return outString;
   }
   currentLine = this->GetLineNumber(file, lineNum);
   index = currentLine.find(":");
-  if (index != vtkstd::string::npos)
+  if (index != std::string::npos)
   {
-    vtkstd::string tempString = ":";
+    std::string tempString = ":";
     outString = currentLine.substr(index + tempString.length());
   }
   return outString;
@@ -546,9 +549,9 @@ vtkstd::string vtkmsqPhilipsPAR::GetGeneralInfoString(vtkstd::string file, int l
 /***********************************************************************************//**
  * 
  */
-vtkstd::vector<int> vtkmsqPhilipsPAR::GetLabelTypesASL(vtkstd::string parFile)
+std::vector<int> vtkmsqPhilipsPAR::GetLabelTypesASL(std::string parFile)
 {
-  vtkstd::vector<int> labelTypes;
+  std::vector<int> labelTypes;
   int aslLabelCount = 0;
   labelTypes.resize(0); // Reset to zero size.
   struct msqpar_parameter tempPar;
@@ -594,10 +597,10 @@ vtkstd::vector<int> vtkmsqPhilipsPAR::GetLabelTypesASL(vtkstd::string parFile)
 /***********************************************************************************//**
  * 
  */
-vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexImageTypes(
-    vtkstd::string parFile)
+std::vector<std::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexImageTypes(
+    std::string parFile)
 {
-  vtkstd::vector<vtkstd::pair<int, int> > recSliceIndexImageTypes;
+  std::vector<std::pair<int, int> > recSliceIndexImageTypes;
   int ResToolsVersion;
 
   // Check version of PAR file.
@@ -612,7 +615,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexImageT
     case RESEARCH_IMAGE_EXPORT_TOOL_V3:
     {
       struct msqimage_info_defV3 tempInfo;
-      vtkstd::pair<int, int> sliceAndType;
+      std::pair<int, int> sliceAndType;
       int lineIncrement = 89;
       tempInfo = GetImageInformationDefinitionV3(parFile, lineIncrement, this);
       while (!tempInfo.problemreading && tempInfo.slice)
@@ -628,7 +631,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexImageT
     case RESEARCH_IMAGE_EXPORT_TOOL_V4:
     {
       struct msqimage_info_defV4 tempInfo;
-      vtkstd::pair<int, int> sliceAndType;
+      std::pair<int, int> sliceAndType;
       int lineIncrement = 92;
       tempInfo = GetImageInformationDefinitionV4(parFile, lineIncrement, this);
       while (!tempInfo.problemreading && tempInfo.slice)
@@ -644,7 +647,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexImageT
     case RESEARCH_IMAGE_EXPORT_TOOL_V4_1:
     {
       struct msqimage_info_defV4 tempInfo;
-      vtkstd::pair<int, int> sliceAndType;
+      std::pair<int, int> sliceAndType;
       int lineIncrement = 99;
       tempInfo = GetImageInformationDefinitionV41(parFile, lineIncrement, this);
       while (!tempInfo.problemreading && tempInfo.slice)
@@ -660,7 +663,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexImageT
     case RESEARCH_IMAGE_EXPORT_TOOL_V4_2:
     {
       struct msqimage_info_defV4 tempInfo;
-      vtkstd::pair<int, int> sliceAndType;
+      std::pair<int, int> sliceAndType;
       int lineIncrement = 101;
       tempInfo = GetImageInformationDefinitionV42(parFile, lineIncrement, this);
       while (!tempInfo.problemreading && tempInfo.slice)
@@ -680,10 +683,10 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexImageT
 /***********************************************************************************//**
  * 
  */
-vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexScanningSequence(
-    vtkstd::string parFile)
+std::vector<std::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexScanningSequence(
+    std::string parFile)
 {
-  vtkstd::vector<vtkstd::pair<int, int> > recSliceIndexScanSequence;
+  std::vector<std::pair<int, int> > recSliceIndexScanSequence;
   int ResToolsVersion;
 
   // Check version of PAR file.
@@ -698,7 +701,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexScanni
     case RESEARCH_IMAGE_EXPORT_TOOL_V3:
     {
       struct msqimage_info_defV3 tempInfo;
-      vtkstd::pair<int, int> sliceAndSequence;
+      std::pair<int, int> sliceAndSequence;
       int lineIncrement = 89;
       tempInfo = GetImageInformationDefinitionV3(parFile, lineIncrement, this);
       while (!tempInfo.problemreading && tempInfo.slice)
@@ -714,7 +717,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexScanni
     case RESEARCH_IMAGE_EXPORT_TOOL_V4:
     {
       struct msqimage_info_defV4 tempInfo;
-      vtkstd::pair<int, int> sliceAndSequence;
+      std::pair<int, int> sliceAndSequence;
       int lineIncrement = 92;
       tempInfo = GetImageInformationDefinitionV4(parFile, lineIncrement, this);
       while (!tempInfo.problemreading && tempInfo.slice)
@@ -730,7 +733,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexScanni
     case RESEARCH_IMAGE_EXPORT_TOOL_V4_1:
     {
       struct msqimage_info_defV4 tempInfo;
-      vtkstd::pair<int, int> sliceAndSequence;
+      std::pair<int, int> sliceAndSequence;
       int lineIncrement = 99;
       tempInfo = GetImageInformationDefinitionV41(parFile, lineIncrement, this);
       while (!tempInfo.problemreading && tempInfo.slice)
@@ -746,7 +749,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexScanni
     case RESEARCH_IMAGE_EXPORT_TOOL_V4_2:
     {
       struct msqimage_info_defV4 tempInfo;
-      vtkstd::pair<int, int> sliceAndSequence;
+      std::pair<int, int> sliceAndSequence;
       int lineIncrement = 101;
       tempInfo = GetImageInformationDefinitionV42(parFile, lineIncrement, this);
       while (!tempInfo.problemreading && tempInfo.slice)
@@ -766,10 +769,10 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetRECSliceIndexScanni
 /***********************************************************************************//**
  * 
  */
-vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetImageTypesScanningSequence(
-    vtkstd::string parFile)
+std::vector<std::pair<int, int> > vtkmsqPhilipsPAR::GetImageTypesScanningSequence(
+    std::string parFile)
 {
-  vtkstd::vector<vtkstd::pair<int, int> > recImageTypesScanSequence;
+  std::vector<std::pair<int, int> > recImageTypesScanSequence;
   struct msqpar_parameter parParam;
 
   // Read the PAR file.
@@ -782,7 +785,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetImageTypesScanningS
       struct msqimage_info_defV3 tempInfo;
       for (int scanIndex = 0; scanIndex < parParam.num_scanning_sequences; scanIndex++)
       {
-        vtkstd::pair<int, int> imageTypeAndSequence;
+        std::pair<int, int> imageTypeAndSequence;
         int lineIncrement = 89;
         int imageType[PAR_DEFAULT_IMAGE_TYPES_SIZE] = { -1, -1, -1, -1, -1, -1, -1, -1 };
         tempInfo = GetImageInformationDefinitionV3(parFile, lineIncrement, this);
@@ -814,7 +817,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetImageTypesScanningS
       struct msqimage_info_defV4 tempInfo;
       for (int scanIndex = 0; scanIndex < parParam.num_scanning_sequences; scanIndex++)
       {
-        vtkstd::pair<int, int> imageTypeAndSequence;
+        std::pair<int, int> imageTypeAndSequence;
         int lineIncrement = 92;
         int imageType[PAR_DEFAULT_IMAGE_TYPES_SIZE] = { -1, -1, -1, -1, -1, -1, -1, -1 };
         tempInfo = GetImageInformationDefinitionV4(parFile, lineIncrement, this);
@@ -846,7 +849,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetImageTypesScanningS
       struct msqimage_info_defV4 tempInfo;
       for (int scanIndex = 0; scanIndex < parParam.num_scanning_sequences; scanIndex++)
       {
-        vtkstd::pair<int, int> imageTypeAndSequence;
+        std::pair<int, int> imageTypeAndSequence;
         int lineIncrement = 99;
         int imageType[PAR_DEFAULT_IMAGE_TYPES_SIZE] = { -1, -1, -1, -1, -1, -1, -1, -1 };
         tempInfo = GetImageInformationDefinitionV41(parFile, lineIncrement, this);
@@ -878,7 +881,7 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetImageTypesScanningS
       struct msqimage_info_defV4 tempInfo;
       for (int scanIndex = 0; scanIndex < parParam.num_scanning_sequences; scanIndex++)
       {
-        vtkstd::pair<int, int> imageTypeAndSequence;
+        std::pair<int, int> imageTypeAndSequence;
         int lineIncrement = 101;
         int imageType[PAR_DEFAULT_IMAGE_TYPES_SIZE] = { -1, -1, -1, -1, -1, -1, -1, -1 };
         tempInfo = GetImageInformationDefinitionV42(parFile, lineIncrement, this);
@@ -912,14 +915,14 @@ vtkstd::vector<vtkstd::pair<int, int> > vtkmsqPhilipsPAR::GetImageTypesScanningS
 /***********************************************************************************//**
  * 
  */
-bool vtkmsqPhilipsPAR::GetRECRescaleValues(vtkstd::string parFile,
-    vtkstd::vector<vtkstd::vector<float> > *rescaleValues, int scan_sequence)
+bool vtkmsqPhilipsPAR::GetRECRescaleValues(std::string parFile,
+    std::vector<std::vector<float> > *rescaleValues, int scan_sequence)
 {
   int ResToolsVersion;
   rescaleValues->clear();
   // Must match size of image_types
   rescaleValues->resize(PAR_DEFAULT_IMAGE_TYPES_SIZE);
-  vtkstd::vector<float> zero ( sizeof ( double ), 0.0 );
+  std::vector<float> zero ( sizeof ( double ), 0.0 );
   for (unsigned int zeroIndex = 0; zeroIndex < rescaleValues->size(); zeroIndex++)
   {
     (*rescaleValues)[zeroIndex] = zero; // Zero out everything
@@ -937,7 +940,7 @@ bool vtkmsqPhilipsPAR::GetRECRescaleValues(vtkstd::string parFile,
     case RESEARCH_IMAGE_EXPORT_TOOL_V3:
     {
       struct msqimage_info_defV3 tempInfo;
-      vtkstd::vector<float> rescale;
+      std::vector<float> rescale;
       int imageType[PAR_DEFAULT_IMAGE_TYPES_SIZE] = { -1, -1, -1, -1, -1, -1, -1, -1 };
       int lineIncrement = 89;
       tempInfo = GetImageInformationDefinitionV3(parFile, lineIncrement, this);
@@ -960,7 +963,7 @@ bool vtkmsqPhilipsPAR::GetRECRescaleValues(vtkstd::string parFile,
     case RESEARCH_IMAGE_EXPORT_TOOL_V4:
     {
       struct msqimage_info_defV4 tempInfo;
-      vtkstd::vector<float> rescale;
+      std::vector<float> rescale;
       int imageType[PAR_DEFAULT_IMAGE_TYPES_SIZE] = { -1, -1, -1, -1, -1, -1, -1, -1 };
       int lineIncrement = 92;
       tempInfo = GetImageInformationDefinitionV4(parFile, lineIncrement, this);
@@ -983,7 +986,7 @@ bool vtkmsqPhilipsPAR::GetRECRescaleValues(vtkstd::string parFile,
     case RESEARCH_IMAGE_EXPORT_TOOL_V4_1:
     {
       struct msqimage_info_defV4 tempInfo;
-      vtkstd::vector<float> rescale;
+      std::vector<float> rescale;
       int imageType[PAR_DEFAULT_IMAGE_TYPES_SIZE] = { -1, -1, -1, -1, -1, -1, -1, -1 };
       int lineIncrement = 99;
       tempInfo = GetImageInformationDefinitionV41(parFile, lineIncrement, this);
@@ -1006,7 +1009,7 @@ bool vtkmsqPhilipsPAR::GetRECRescaleValues(vtkstd::string parFile,
     case RESEARCH_IMAGE_EXPORT_TOOL_V4_2:
     {
       struct msqimage_info_defV4 tempInfo;
-      vtkstd::vector<float> rescale;
+      std::vector<float> rescale;
       int imageType[PAR_DEFAULT_IMAGE_TYPES_SIZE] = { -1, -1, -1, -1, -1, -1, -1, -1 };
       int lineIncrement = 101;
       tempInfo = GetImageInformationDefinitionV42(parFile, lineIncrement, this);
@@ -1033,9 +1036,9 @@ bool vtkmsqPhilipsPAR::GetRECRescaleValues(vtkstd::string parFile,
 /***********************************************************************************//**
  * 
  */
-bool vtkmsqPhilipsPAR::GetDiffusionGradientOrientationAndBValues(vtkstd::string parFile,
-    vtkstd::vector<vtkstd::vector<float> > *gradientValues,
-    vtkstd::vector<float> *bValues)
+bool vtkmsqPhilipsPAR::GetDiffusionGradientOrientationAndBValues(std::string parFile,
+    std::vector<std::vector<float> > *gradientValues,
+    std::vector<float> *bValues)
 {
   int gradientDirectionCount = 0;
   gradientValues->resize(0); // Reset to zero size.
@@ -1076,7 +1079,7 @@ bool vtkmsqPhilipsPAR::GetDiffusionGradientOrientationAndBValues(vtkstd::string 
       int tempGradientOrientationNumber = tempInfo.gradient_orientation_number;
       if (gradientOrientationNumber != tempGradientOrientationNumber)
       {
-        vtkstd::vector<float> direction(3);
+        std::vector<float> direction(3);
         direction[0] = tempInfo.diffusion_ap;
         direction[1] = tempInfo.diffusion_fh;
         direction[2] = tempInfo.diffusion_rl;
@@ -1095,10 +1098,10 @@ bool vtkmsqPhilipsPAR::GetDiffusionGradientOrientationAndBValues(vtkstd::string 
 /***********************************************************************************//**
  * 
  */
-bool vtkmsqPhilipsPAR::ReadPAR(vtkstd::string parFile, struct msqpar_parameter* pPar)
+bool vtkmsqPhilipsPAR::ReadPAR(std::string parFile, struct msqpar_parameter* pPar)
 {
-  vtkstd::string temp = "";
-  vtkstd::istringstream inString;
+  std::string temp = "";
+  std::istringstream inString;
 
   if (pPar == NULL)
   {
@@ -2168,26 +2171,26 @@ bool vtkmsqPhilipsPAR::ReadPAR(vtkstd::string parFile, struct msqpar_parameter* 
   // Only if the slices need sorting.
   if (!pPar->slicessorted)
   {
-    vtkstd::vector<int> sortedImageTypes;
+    std::vector<int> sortedImageTypes;
     for (int j = 0; j < pPar->num_image_types; j++)
     {
       sortedImageTypes.push_back(pPar->image_types[j]);
     }
 
-    vtkstd::sort(sortedImageTypes.begin(), sortedImageTypes.end());
+    std::sort(sortedImageTypes.begin(), sortedImageTypes.end());
     for (int k = 0; k < pPar->num_image_types; k++)
     {
       pPar->image_types[k] = sortedImageTypes[k];
     }
 
     // Reorder the scanning sequences matrix so that it is least to greatest.
-    vtkstd::vector<int> sortedScanningSequences;
+    std::vector<int> sortedScanningSequences;
     for (int l = 0; l < pPar->num_scanning_sequences; l++)
     {
       sortedScanningSequences.push_back(pPar->scanning_sequences[l]);
     }
 
-    vtkstd::sort(sortedScanningSequences.begin(), sortedScanningSequences.end());
+    std::sort(sortedScanningSequences.begin(), sortedScanningSequences.end());
     for (int m = 0; m < pPar->num_scanning_sequences; m++)
     {
       pPar->scanning_sequences[m] = sortedScanningSequences[m];

@@ -132,7 +132,7 @@ void MSQImageManagerWidget::buildWidget()
   headerItem->setText(1, QString("Value"));
   headerItem->setText(2, QString(" "));
   this->infoTree->setHeaderItem(headerItem);
-  this->infoTree->header()->setMovable(false);
+  this->infoTree->header()->setSectionsMovable(false);
 
   this->infoTree->setAlternatingRowColors(true);
   this->infoTree->setTextElideMode(Qt::ElideMiddle);

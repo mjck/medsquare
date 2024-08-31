@@ -20,10 +20,10 @@ vtkmsqImageAverage::vtkmsqImageAverage()
 }
 
 // ----------------------------------------------------------------------------
-//void vtkmsqImageAverage::AddInput(vtkImageData *input)
-//{
-//  this->vtkImageAlgorithm::AddInput(input);
-//}
+void vtkmsqImageAverage::AddInput(vtkImageData *input)
+{
+ this->vtkImageAlgorithm::AddInputData(input);
+}
 
 //----------------------------------------------------------------------------
 // The default vtkImageAlgorithm semantics are that SetInput() puts
@@ -32,7 +32,7 @@ vtkmsqImageAverage::vtkmsqImageAverage()
 void vtkmsqImageAverage::SetInput(int idx, vtkDataObject *input)
 {
   // Ask the superclass to connect the input.
-  this->SetNthInputConnection(0, idx, (input ? input->GetProducerPort() : 0));
+  //this->SetNthInputConnection(0, idx, (input ? input->GetOuputPort() : 0));
 }
 
 //----------------------------------------------------------------------------
@@ -124,16 +124,19 @@ int vtkmsqImageAverage::RequestData(vtkInformation *vtkNotUsed(request),
   //printf("number of components=%d\n", nc);
   //printf("%d %d %d %d %d %d\n",extent[0],extent[1],extent[2],extent[3],extent[4],extent[5]);
 
-  output->SetNumberOfScalarComponents(nc);
+  //output->SetNumberOfScalarComponents(nc);
 
   //printf("%d %d %d %d %d %d\n",extent[0],extent[1],extent[2],extent[3],extent[4],extent[5]);
 
   output->SetExtent(extent);
-  output->SetUpdateExtent(output->GetExtent());
-  output->SetWholeExtent(output->GetExtent());
-  output->SetScalarTypeToFloat();
+  //output->SetUpdateExtent(output->GetExtent());
+  //output->SetWholeExtent(output->GetExtent());
+  //output->SetScalarTypeToFloat();
 
-  output->AllocateScalars();
+  output->AllocateScalars(VTK_FLOAT, nc);
+
+  //int *uExtent = outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT());
+  //this->AllocateOutputData(output, outInfo, uExtent);
   
   //printf("3) out here = %d\n",this->GetNumberOfInputPorts());
 
