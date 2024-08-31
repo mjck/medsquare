@@ -430,6 +430,7 @@ int vtkmsqAnalyzeReader::RequestInformation(vtkInformation* request,
   // Get .hdr file name
   std::string headerfilename = GetAnalyzeHeaderFileName(this->GetFileName());
 
+  printf("reading header\n");
   if (!(fp = fopen(headerfilename.c_str(), "rb")))
   {
     vtkErrorMacro("Unable to open file " << headerfilename.c_str());
@@ -442,6 +443,7 @@ int vtkmsqAnalyzeReader::RequestInformation(vtkInformation* request,
   // close file
   fclose(fp);
 
+  printf("handle swapping\n");
   // if the machine and file endianess are different
   // perform the byte swapping on it
   if (this->GetAutoByteSwapping())
@@ -468,6 +470,8 @@ int vtkmsqAnalyzeReader::RequestInformation(vtkInformation* request,
       this->header.dime.pixdim[3]);
 
   this->SetNumberOfScalarComponents(this->header.dime.dim[4]);
+
+  printf("done image\n");
 
   // This probably needs to be changed, since we need a way to store
   // image metainformation along with the image data
@@ -522,7 +526,8 @@ int vtkmsqAnalyzeReader::RequestInformation(vtkInformation* request,
   };
 
   // call father to finish up
-  return this->Superclass::RequestInformation(request, inputVector, outputVector);
+  printf("read file\n");
+  return 1;//this->Superclass::RequestInformation(request, inputVector, outputVector);
 }
 
 /***********************************************************************************//**
@@ -603,7 +608,10 @@ void vtkmsqAnalyzeReaderUpdate(vtkmsqAnalyzeReader *self, vtkImageData *data, OT
  */
 void vtkmsqAnalyzeReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
 {
+  printf("before here\n");
   vtkImageData *data = this->AllocateOutputData(output, outInfo);
+
+  printf("reading image...\n");
 
   gzFile zfp;
   void *ptr;

@@ -35,6 +35,7 @@
 #include "vtkImageChangeInformation.h"
 #include "vtkMetaImageReader.h"
 #include "vtkMedicalImageProperties.h"
+#include "vtkNIFTIImageReader.h"
 
 #include "gdcmSystem.h"
 #include "gdcmDirectory.h"
@@ -359,8 +360,9 @@ int MSQImageIO::loadMetaImage(const QString &fileName)
 int MSQImageIO::loadAnalyzeImage(const QString &fileName)
 {
   // instantiate reader
-  vtkSmartPointer<vtkmsqAnalyzeReader> imageReader =
-      vtkSmartPointer<vtkmsqAnalyzeReader>::New();
+  vtkSmartPointer<vtkNIFTIImageReader> imageReader =
+      //vtkSmartPointer<vtkmsqAnalyzeReader>::New();
+      vtkSmartPointer<vtkNIFTIImageReader>::New();
 
   // instantiate connection between vtk and qt events
   vtkSmartPointer<vtkEventQtSlotConnect> connection = vtkSmartPointer<
@@ -373,6 +375,7 @@ int MSQImageIO::loadAnalyzeImage(const QString &fileName)
   // can we actually read the file ?
   if (imageReader->CanReadFile(fileName.toLocal8Bit().constData()) == 0)
   {
+    printf("operation failed\n");
     return 0;
   }
 
@@ -380,8 +383,9 @@ int MSQImageIO::loadAnalyzeImage(const QString &fileName)
   medSquare->updateStatusBar(tr("Reading Analyze image..."), true);
 
   // read in Analyze image
+  printf("name=%s\n", fileName.toLocal8Bit().constData());
   imageReader->SetFileName(fileName.toLocal8Bit().constData());
-  imageReader->UpdateWholeExtent();
+  imageReader->Update();
 
   // update image
   vtkImageData *newImage = vtkImageData::New();
@@ -389,7 +393,7 @@ int MSQImageIO::loadAnalyzeImage(const QString &fileName)
 
   // update properties
   vtkmsqMedicalImageProperties *newProperties = vtkmsqMedicalImageProperties::New();
-  newProperties->DeepCopy(imageReader->GetMedicalImageProperties());
+  //newProperties->DeepCopy(imageReader->GetMedicalImageProperties());
 
   int success = medSquare->updateImageAndProperties(newImage, newProperties);
 
