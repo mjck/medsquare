@@ -183,7 +183,7 @@ int MSQImageIO::loadPhilipsRECPARImage(const QString &fileName)
 
   // read in Analyze image
   imageReader->SetFileName(fileName.toLocal8Bit().constData());
-  imageReader->UpdateWholeExtent();
+  imageReader->Update();//WholeExtent();
 
   // update image
   vtkImageData *newImage = vtkImageData::New();

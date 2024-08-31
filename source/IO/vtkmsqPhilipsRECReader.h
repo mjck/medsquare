@@ -21,6 +21,9 @@
 #include "vtkmsqIOWin32Header.h"
 #include "vtkmsqMedicalImageProperties.h"
 #include "vtkmsqPhilipsPAR.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
 
 class VTK_MSQ_IO_EXPORT vtkmsqPhilipsRECReader: public vtkMedicalImageReader2
 {
@@ -68,7 +71,8 @@ protected:
 
   virtual int RequestInformation(vtkInformation* request,
       vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  virtual void ExecuteData(vtkDataObject *out, vtkInformation *outInfo);
+  //virtual void ExecuteData(vtkDataObject *out, vtkInformation *outInfo);
+  virtual int RequestData(vtkInformation *request, vtkInformationVector **inputVector, vtkInformationVector *outputVector);
 
   SliceIndexType *SliceIndex;
 

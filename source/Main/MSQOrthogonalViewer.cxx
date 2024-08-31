@@ -337,6 +337,8 @@ void MSQOrthogonalViewer::updateSlices(vtkRenderer *pokedRenderer, int x, int y)
   double intensity;
   double image_coord[3];
 
+  printf("%d, %d\n", x, y);
+
   int rendererIndex = 0;
   if (widgets[0]->has(pokedRenderer))
     rendererIndex = SAGITTAL_RENDERER;
@@ -346,8 +348,10 @@ void MSQOrthogonalViewer::updateSlices(vtkRenderer *pokedRenderer, int x, int y)
     rendererIndex = AXIAL_RENDERER;
 
   // pick at mouse location
-  if ((intensity = this->widgets[rendererIndex]->pick(x, y, image_coord)) == -1)
+  if ((intensity = this->widgets[rendererIndex]->pick(x, y, image_coord)) == -1) {
+    printf("NONE\n");
     return;
+  }
 
   switch (rendererIndex)
   {

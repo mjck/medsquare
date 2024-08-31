@@ -20,6 +20,9 @@
 #include "vtkObjectFactory.h"
 #include "vtkSmartPointer.h"
 #include "vtkByteSwap.h"
+#include "vtkInformation.h"
+#include "vtkInformationVector.h"
+#include "vtkStreamingDemandDrivenPipeline.h"
 
 #include <vtksys/SystemTools.hxx>
 //#include <vtkstd/string>
@@ -496,9 +499,24 @@ void vtkmsqPhilipsRECReaderUpdate(vtkmsqPhilipsRECReader *self, vtkImageData *da
 /***********************************************************************************//**
  * 
  */
-void vtkmsqPhilipsRECReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
+int vtkmsqPhilipsRECReader::RequestData(
+  vtkInformation* request, 
+  vtkInformationVector** vtkNotUsed(inputVector), 
+  vtkInformationVector* outputVector)
 {
-  vtkImageData *data = this->AllocateOutputData(output, outInfo);
+  int outputPort = request->Get(vtkDemandDrivenPipeline::FROM_OUTPUT_PORT());
+  if (outputPort > 1) {
+    return 1;
+  }
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+
+  int extent[6];
+  outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), extent);
+
+  // get data object, allocate memory
+  vtkImageData *data = static_cast<vtkImageData *>(outInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+  this->AllocateOutputData(data, outInfo, extent);
 
   gzFile zfp;
   void *ptr;
@@ -506,7 +524,7 @@ void vtkmsqPhilipsRECReader::ExecuteData(vtkDataObject *output, vtkInformation *
   if (this->FileName && !this->FilePattern)
   {
     vtkErrorMacro(<< "Either a FileName or FilePattern must be specified.");
-    return;
+    return 0;
   }
 
   // open image for reading
@@ -520,12 +538,12 @@ void vtkmsqPhilipsRECReader::ExecuteData(vtkDataObject *output, vtkInformation *
   {
     imagefilename += ".gz";
     if (!(zfp = gzopen(imagefilename.c_str(), "rb")))
-      return;
+      return 0;
   }
 
   int *ext = data->GetExtent();
-  vtkDebugMacro(
-      "Reading extent: " << ext[0] << ", " << ext[1] << ", " << ext[2] << ", " << ext[3] << ", " << ext[4] << ", " << ext[5]);
+  //vtkDebugMacro(
+  //    "Reading extent: " << ext[0] << ", " << ext[1] << ", " << ext[2] << ", " << ext[3] << ", " << ext[4] << ", " << ext[5]);
 
   data->GetPointData()->GetScalars()->SetName("PhilipsRECImage");
 
@@ -540,7 +558,59 @@ void vtkmsqPhilipsRECReader::ExecuteData(vtkDataObject *output, vtkInformation *
 
   // close file
   gzclose(zfp);
+
+  return 1;
 }
+
+
+/***********************************************************************************//**
+ * 
+ */
+// void vtkmsqPhilipsRECReader::ExecuteData(vtkDataObject *output, vtkInformation *outInfo)
+// {
+//   vtkImageData *data = this->AllocateOutputData(output, outInfo);
+
+//   gzFile zfp;
+//   void *ptr;
+
+//   if (this->FileName && !this->FilePattern)
+//   {
+//     vtkErrorMacro(<< "Either a FileName or FilePattern must be specified.");
+//     return;
+//   }
+
+//   // open image for reading
+//   std::string imagefilename = GetRECPARImageFileName(this->FileName);
+
+//   // NOTE: gzFile operations act just like FILE * operations when the files
+//   // are not in gzip format.
+//   // This greatly simplifies the following code, and gzFile types are used
+//   // everywhere.
+//   if (!(zfp = gzopen(imagefilename.c_str(), "rb")))
+//   {
+//     imagefilename += ".gz";
+//     if (!(zfp = gzopen(imagefilename.c_str(), "rb")))
+//       return;
+//   }
+
+//   int *ext = data->GetExtent();
+//   vtkDebugMacro(
+//       "Reading extent: " << ext[0] << ", " << ext[1] << ", " << ext[2] << ", " << ext[3] << ", " << ext[4] << ", " << ext[5]);
+
+//   data->GetPointData()->GetScalars()->SetName("PhilipsRECImage");
+
+//   // Call the correct templated function for the output
+//   ptr = data->GetScalarPointer();
+//   switch (this->GetDataScalarType())
+//   {
+//     vtkTemplateMacro(vtkmsqPhilipsRECReaderUpdate(this, data, (VTK_TT *)(ptr), zfp));
+//     default:
+//       vtkErrorMacro(<< "UpdateFromFile: Unknown data type");
+//   }
+
+//   // close file
+//   gzclose(zfp);
+// }
 
 /***********************************************************************************//**
  * 

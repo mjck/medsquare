@@ -274,13 +274,17 @@ double vtkmsqImagePlane::Pick(double selectionX, double selectionY, vtkRenderer 
     double imageCoords[3])
 {
   // pick at mouse location
-  if (this->ImagePicker->Pick(selectionX, selectionY, 0.0, renderer) == 0)
+  if (this->ImagePicker->Pick(selectionX, selectionY, 0.0, renderer) == 0) {
     return -1;
+  }
+
   double pos[3];
   this->ImagePicker->GetPickPosition(pos);
   this->AdjustPickPosition(pos);
 
-
+  vtkActor *pickedActor = (vtkActor *) this->ImagePicker->GetViewProp();
+  cout << pickedActor << endl;
+  
   this->ComputePickedImageCoordinates(pos, imageCoords);
 
   if (MSQ_REORIENT){

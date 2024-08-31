@@ -154,6 +154,7 @@ void vtkmsqAxialImagePlane::ComputePickedImageCoordinates(double pickedPosition[
   imageCoords[1] = (int) ((pickedPosition[1] - origin[1]) / spacing[1] + 0.5);
   imageCoords[2] = this->SliceNumber;
 
+
   if (MSQ_REORIENT){
     vtkSmartPointer<vtkMatrix4x4> dircosMatrix = this->InputProperties->GetDirectionCosineMatrixPerpendicular();
     for(int i = 0; i < 3; i++){
