@@ -97,6 +97,8 @@ private slots:
   void fileFilter();
   void helpAbout();
 
+  void resizeAndShow();
+
 private:
   // Qt actions
   QAction *afileSource;

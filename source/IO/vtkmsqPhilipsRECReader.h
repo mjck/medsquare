@@ -21,9 +21,7 @@
 #include "vtkmsqIOWin32Header.h"
 #include "vtkmsqMedicalImageProperties.h"
 #include "vtkmsqPhilipsPAR.h"
-#include "vtkInformation.h"
-#include "vtkInformationVector.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
+
 
 class VTK_MSQ_IO_EXPORT vtkmsqPhilipsRECReader: public vtkMedicalImageReader2
 {

@@ -116,7 +116,7 @@ MedSquare::MedSquare(QWidget* p) : QMainWindow(p)
 }
 
 /***********************************************************************************//**
- * Initilal resize
+ * Initial resize
  */
 void MedSquare::resizeAndShow() 
 {

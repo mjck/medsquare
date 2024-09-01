@@ -61,6 +61,8 @@ void MSQDicomQualityControl::createInterface()
   boldFont.setBold(false);  
 
   mProgressDialog = new QProgressDialog(this);
+  mProgressDialog->setAutoClose(true);
+  mProgressDialog->cancel();
 
   // create main layout
   QVBoxLayout *mainLayout = new QVBoxLayout;

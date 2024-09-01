@@ -316,11 +316,24 @@ MSQDicomExplorer::MSQDicomExplorer(QWidget* p) : QMainWindow(p)
   setWindowTitle("DICOM Explorer");
   setUnifiedTitleAndToolBarOnMac(true);
 
-#ifdef USE_BIOIMAGESUITE
-  printf("including BIOIMAGESUITE!\n");
-  //vtkpxLinearRegistration *lin = vtkpxLinearRegistration::New();
-  //lin->Delete();
-#endif
+  #ifdef USE_BIOIMAGESUITE
+    printf("including BIOIMAGESUITE!\n");
+    //vtkpxLinearRegistration *lin = vtkpxLinearRegistration::New();
+    //lin->Delete();
+  #endif
+
+  // initial resize
+  QTimer::singleShot(1500, this, SLOT(resizeAndShow()));
+}
+
+/***********************************************************************************//**
+ * Initial resize
+ */
+void MSQDicomExplorer::resizeAndShow() 
+{
+  QRect rec = QApplication::primaryScreen()->geometry();
+  this->resize(rec.width()*0.8, rec.height()*0.8);
+  this->show();
 }
 
 /***********************************************************************************//**
@@ -854,8 +867,8 @@ void MSQDicomExplorer::createInterface()
 
   // create modal progress dialog
   mProgressDialog = new QProgressDialog(this);
-  //mProgressDialog->setAutoClose(true);
-  //mProgressDialog->cancel();
+  mProgressDialog->setAutoClose(true);
+  mProgressDialog->cancel();
 
   // create top layout
   //QHBoxLayout *topLayout = new QHBoxLayout;
