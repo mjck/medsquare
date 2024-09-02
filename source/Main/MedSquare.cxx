@@ -123,6 +123,9 @@ void MedSquare::resizeAndShow()
   QRect rec = QApplication::primaryScreen()->geometry();
   this->resize(rec.width()*0.8, rec.height()*0.8);
   this->show();
+
+  // reset views
+  this->viewResetAll();
 }
 
 /***********************************************************************************//**
