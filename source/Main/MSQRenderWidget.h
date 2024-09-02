@@ -21,8 +21,9 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QFileDialog>
+#include "QVTKOpenGLWidget.h"
 
-class QVTKWidget2;
+//class QVTKWidget2;
 
 class vtkActor;
 class vtkActor2D;
@@ -94,7 +95,8 @@ protected:
   int currentSagittalSlice;
   int currentCoronalSlice;
 
-  QVTKWidget2 *vtkWidget;
+  //QVTKWidget2 *vtkWidget;
+  QVTKOpenGLWidget *vtkWidget;
 
   vtkmsqRectangleActor2D *frame;
   vtkmsqInteractorStyleImage *interStyle;

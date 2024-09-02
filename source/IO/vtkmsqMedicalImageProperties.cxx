@@ -84,7 +84,7 @@ vtkmsqMedicalImageProperties::~vtkmsqMedicalImageProperties()
 void vtkmsqMedicalImageProperties::AddDiffusionGradient(std::vector<float> gradient, float bvalue)
 {
   double vals[4] = {gradient[0], gradient[1], gradient[2], bvalue};
-  this->DiffusionGradients->InsertNextTupleValue(vals);
+  this->DiffusionGradients->InsertNextTuple(vals);
 }
 
 /***********************************************************************************//**
@@ -92,7 +92,7 @@ void vtkmsqMedicalImageProperties::AddDiffusionGradient(std::vector<float> gradi
  */
 void vtkmsqMedicalImageProperties::AddDiffusionGradient(double *values)
 {
-  this->DiffusionGradients->InsertNextTupleValue(values);
+  this->DiffusionGradients->InsertNextTuple(values);
 }
 
 /***********************************************************************************//**
@@ -100,7 +100,7 @@ void vtkmsqMedicalImageProperties::AddDiffusionGradient(double *values)
  */
 void vtkmsqMedicalImageProperties::GetNthDiffusionGradient(int idx, double *values)
 {
-  this->DiffusionGradients->GetTupleValue(idx, values);
+  this->DiffusionGradients->GetTuple(idx, values);
 }
 
 /***********************************************************************************//**

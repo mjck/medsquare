@@ -31,6 +31,7 @@
 #include "vtkPropPicker.h"
 #include "vtkTexture.h"
 #include "vtkCallbackCommand.h"
+#include "vtkAssemblyPath.h"
 
 void UpdateColormapCallback(vtkObject *caller, unsigned long eid, void *clientData, void *callData)
 {
@@ -273,7 +274,7 @@ double vtkmsqImagePlane::GetPickingErrorTolerance()
 double vtkmsqImagePlane::Pick(double selectionX, double selectionY, vtkRenderer *renderer,
     double imageCoords[3])
 {
-  // pick at mouse location
+   // pick at mouse location
   if (this->ImagePicker->Pick(selectionX, selectionY, 0.0, renderer) == 0) {
     return -1;
   }
@@ -376,8 +377,8 @@ void vtkmsqImagePlane::BuildPlane()
 
   // Create image plane
   this->PlaneSource = vtkPlaneSource::New();
-  this->PlaneSource->SetXResolution(1);
-  this->PlaneSource->SetYResolution(1);
+  this->PlaneSource->SetXResolution(2);
+  this->PlaneSource->SetYResolution(2);
 
   // Create image plane mapper
   vtkSmartPointer<vtkPolyDataMapper> planeMapper =
@@ -388,7 +389,8 @@ void vtkmsqImagePlane::BuildPlane()
   this->ImageTexture = vtkTexture::New();
   this->ImageTexture->InterpolateOn();
   this->ImageTexture->SetLookupTable(this->LookupTable);
-  this->ImageTexture->MapColorScalarsThroughLookupTableOn();
+  this->ImageTexture->SetColorModeToMapScalars();
+  //this->ImageTexture->MapColorScalarsThroughLookupTableOn();
 
   // Create image actor
   this->ImageActor = vtkActor::New();
@@ -557,6 +559,7 @@ void vtkmsqImagePlane::UpdateCoords(vtkSmartPointer<vtkMatrix4x4> resliceMatrix)
   this->PlaneSource->SetOrigin(planeOrigin);
   this->PlaneSource->SetPoint1(point1);
   this->PlaneSource->SetPoint2(point2);
+  this->PlaneSource->Modified();
 
 }
 

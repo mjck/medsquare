@@ -15,11 +15,11 @@ public:
   vtkTypeMacro(vtkmsqInteractorStyleImage2D, vtkmsqInteractorStyleImage);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void OnLeftButtonDown();
-  virtual void OnLeftButtonUp();
-  virtual void OnMouseWheelForward();
-  virtual void OnMouseWheelBackward();
-  virtual void OnMouseMove();
+  virtual void OnLeftButtonDown() override;
+  virtual void OnLeftButtonUp() override;
+  virtual void OnMouseWheelForward() override;
+  virtual void OnMouseWheelBackward() override;
+  virtual void OnMouseMove() override;
 
   virtual void StartClickedVoxel();
   virtual void EndClickedVoxel();

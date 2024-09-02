@@ -15,13 +15,18 @@
 
 #include "MedSquare.h"
 
-#include <qapplication.h>
+#include <QApplication>
 #include <QPixmap>
 #include <QSplashScreen>
+#include <QSurfaceFormat>
 #include <QTimer>
+#include "QVTKOpenGLWidget.h"
 
 int main(int argc, char** argv)
 {
+  // it seems to be required to run OpenGL 3.2
+  QSurfaceFormat::setDefaultFormat(QVTKOpenGLWidget::defaultFormat());
+
   #ifdef Q_OS_MACX
     if ( QSysInfo::MacintoshVersion > QSysInfo::MV_10_8 )
     {

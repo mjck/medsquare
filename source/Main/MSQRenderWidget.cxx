@@ -42,7 +42,8 @@ MSQRenderWidget::MSQRenderWidget()
   QGLFormat fmt;
   fmt.setAlpha(true);
   fmt.setAlphaBufferSize(8);
-  vtkWidget = new QVTKWidget2(fmt);
+  //vtkWidget = new QVTKWidget2(fmt);
+  vtkWidget = new QVTKOpenGLWidget();
 
   QVBoxLayout *layout = new QVBoxLayout;
   layout->setSpacing(0);
@@ -63,7 +64,7 @@ MSQRenderWidget::MSQRenderWidget()
   this->currentSagittalSlice = 1;
   this->currentCoronalSlice = 1;
 
-  this->setStyleSheet("QWidget { background-color: black; }");
+  //this->setStyleSheet("QWidget { background-color: black; }");
   this->setLayout(layout);
 
   this->buildFrame();
@@ -163,7 +164,8 @@ void MSQRenderWidget::enableInteraction()
 void MSQRenderWidget::refresh()
 {
   this->renderer->ResetCameraClippingRange();
-  this->vtkWidget->update();
+  this->vtkWidget->GetRenderWindow()->Render();
+  //this->vtkWidget->update();
 }
 
 /***********************************************************************************//**

@@ -32,6 +32,7 @@
 MSQCoronalRenderWidget::MSQCoronalRenderWidget(MSQOrthogonalViewer *viewer) : MSQ2DRenderWidget(viewer)
 {
   this->renderer->GetActiveCamera()->Elevation(-90);
+  this->renderer->GetActiveCamera()->OrthogonalizeViewUp();
   this->renderer->GetActiveCamera()->ParallelProjectionOn();
 
   this->imagePlane = vtkmsqCoronalImagePlane::New();

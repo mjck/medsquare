@@ -20,11 +20,11 @@ public:
   void SetOrthogonalViewer(MSQOrthogonalViewer *viewer);
   MSQOrthogonalViewer *GetOrthogonalViewer();
 
-  virtual void OnLeftButtonDown();
-  virtual void OnLeftButtonUp();
-  virtual void OnRightButtonDown();
-  virtual void OnRightButtonUp();
-  virtual void OnMouseMove();
+  virtual void OnLeftButtonDown() override;
+  virtual void OnLeftButtonUp() override;
+  virtual void OnRightButtonDown() override;
+  virtual void OnRightButtonUp() override;
+  virtual void OnMouseMove() override;
 
   virtual void StartWindowLevel();
   virtual void EndWindowLevel();
