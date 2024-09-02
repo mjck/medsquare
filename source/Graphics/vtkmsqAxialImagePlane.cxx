@@ -69,8 +69,6 @@ void vtkmsqAxialImagePlane::UpdateCoords(vtkSmartPointer<vtkMatrix4x4> resliceMa
   this->InputImage->GetSpacing(spacing);
   this->InputImage->GetOrigin(origin);
 
-  printf("%f, %f, %f\n", origin[0], origin[1], origin[2]);
-
   // update frame coords
    this->FrameSource->SetOrigin(origin[0], origin[1], center[2]);
    this->FrameSource->SetPoint1(origin[0] + spacing[0] * (extent[0] + extent[1]),

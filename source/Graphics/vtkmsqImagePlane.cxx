@@ -369,9 +369,10 @@ void vtkmsqImagePlane::BuildPlane()
   this->FrameActor = vtkActor::New();
   this->FrameActor->SetMapper(frameMapper);
   this->FrameActor->PickableOff();
-  this->FrameActor->GetProperty()->SetLineWidth(2.0);
+  this->FrameActor->ForceOpaqueOn();
+  this->FrameActor->GetProperty()->SetLineWidth(3.0);
   this->FrameActor->GetProperty()->SetAmbient(1.0);
-  this->FrameActor->GetProperty()->SetDiffuse(0.0);
+  this->FrameActor->GetProperty()->SetDiffuse(1.0);
   this->FrameActor->GetProperty()->SetSpecular(0.0);
   this->FrameActor->GetProperty()->SetRepresentationToWireframe();
 
