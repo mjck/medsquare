@@ -248,14 +248,14 @@ void MedSquare::createActions()
   connect(ahelpAbout, SIGNAL(triggered()), this, SLOT(helpAbout()));
 
   // Viewers
-  agViewers = new QActionGroup(this);
+  //agViewers = new QActionGroup(this);
 
-  auseOrthogonalViewer = new QAction(tr("Orthogonal Viewer"), this);
-  auseOrthogonalViewer->setStatusTip(tr("Use an orthogonal viewer for the current image"));
-  auseOrthogonalViewer->setActionGroup(agViewers);
-  auseOrthogonalViewer->setCheckable(true);
-  auseOrthogonalViewer->setChecked(true);
-  connect(auseOrthogonalViewer, SIGNAL(triggered()), this, SLOT(useOrthogonalViewer()));
+  // auseOrthogonalViewer = new QAction(tr("Orthogonal Viewer"), this);
+  // auseOrthogonalViewer->setStatusTip(tr("Use an orthogonal viewer for the current image"));
+  // auseOrthogonalViewer->setActionGroup(agViewers);
+  // auseOrthogonalViewer->setCheckable(true);
+  // auseOrthogonalViewer->setChecked(true);
+  // connect(auseOrthogonalViewer, SIGNAL(triggered()), this, SLOT(useOrthogonalViewer()));
 }
 
 /***********************************************************************************//**
@@ -279,7 +279,7 @@ void MedSquare::createMenus()
   viewMenu->addAction(aviewReset);
 
   toolsMenu = menuBar()->addMenu(tr("&Tools"));
-  toolsMenu->addAction(auseOrthogonalViewer);
+  //toolsMenu->addAction(auseOrthogonalViewer);
 
   menuBar()->addSeparator();
 
