@@ -566,6 +566,7 @@ void MSQDicomExplorer::createLayerToolBar(QToolBar *toolbar)
   layerLabel->setFont(font11);
 
   QVBoxLayout *layerLayout = new QVBoxLayout;
+  layerLayout->setSpacing(0);
   layerLayout->addWidget(layerCombo);
   layerLayout->addWidget(layerLabel); 
   
@@ -588,6 +589,7 @@ void MSQDicomExplorer::createLayerToolBar(QToolBar *toolbar)
   colormapLabel->setFont(font11);
 
   QVBoxLayout *colormapLayout = new QVBoxLayout; 
+  colormapLayout->setSpacing(0);
   colormapLayout->addWidget(colormapCombo);
   colormapLayout->addWidget(colormapLabel);
 
@@ -614,6 +616,7 @@ void MSQDicomExplorer::createLayerToolBar(QToolBar *toolbar)
   opacityLabel->setFont(font11);
 
   QVBoxLayout *opacityLayout = new QVBoxLayout;
+  opacityLayout->setSpacing(0);
   opacityLayout->addWidget(opacityCombo);
   opacityLayout->addWidget(opacityLabel); 
 
