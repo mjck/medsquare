@@ -70,7 +70,7 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
   vtkPolyData *output = vtkPolyData::SafeDownCast(
       outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-  double x[3], tc[2], v1[3], v2[3], scale;
+  double x[3], tc[2], v1[3], v2[3], scale, scalex, scaley;
   vtkIdType pts[4];
   int i, ii;
   int numPts;
@@ -99,6 +99,17 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
 
   scale = this->CornerSize;
 
+  // same size corners
+  double d1 = vtkMath::Norm(v1);
+  double d2 = vtkMath::Norm(v2);
+  if (d1 < d2) { 
+    scalex = scale;
+    scaley = scale * (d1 / d2);
+  } else {
+    scalex = scale * (d2 / d1);
+    scaley = scale;
+  }
+
   newPoints = vtkPoints::New();
   newPoints->Allocate(numPts);
   newNormals = vtkFloatArray::New();
@@ -116,7 +127,7 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
 
   // bottom-left corner
   tc[0] = 0.0;
-  tc[1] = scale;
+  tc[1] = scaley;
   for (ii = 0; ii < 3; ii++)
     x[ii] = this->Origin[ii] + tc[0] * v1[ii] + tc[1] * v2[ii];
   newPoints->InsertPoint(numPts, x);
@@ -131,7 +142,7 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
   newTCoords->InsertTuple(numPts, tc);
   newNormals->InsertTuple(numPts++, this->Normal);
 
-  tc[0] = scale;
+  tc[0] = scalex;
   tc[1] = 0.0;
   for (ii = 0; ii < 3; ii++)
     x[ii] = this->Origin[ii] + tc[0] * v1[ii] + tc[1] * v2[ii];
@@ -140,7 +151,7 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
   newNormals->InsertTuple(numPts++, this->Normal);
 
   // bottom-right corner
-  tc[0] = 1.0 - scale;
+  tc[0] = 1.0 - scalex;
   tc[1] = 0.0;
   for (ii = 0; ii < 3; ii++)
     x[ii] = this->Origin[ii] + tc[0] * v1[ii] + tc[1] * v2[ii];
@@ -157,7 +168,7 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
   newNormals->InsertTuple(numPts++, this->Normal);
 
   tc[0] = 1.0;
-  tc[1] = scale;
+  tc[1] = scaley;
   for (ii = 0; ii < 3; ii++)
     x[ii] = this->Origin[ii] + tc[0] * v1[ii] + tc[1] * v2[ii];
   newPoints->InsertPoint(numPts, x);
@@ -166,7 +177,7 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
 
   // top-right corner
   tc[0] = 1.0;
-  tc[1] = 1.0 - scale;
+  tc[1] = 1.0 - scaley;
   for (ii = 0; ii < 3; ii++)
     x[ii] = this->Origin[ii] + tc[0] * v1[ii] + tc[1] * v2[ii];
   newPoints->InsertPoint(numPts, x);
@@ -181,7 +192,7 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
   newTCoords->InsertTuple(numPts, tc);
   newNormals->InsertTuple(numPts++, this->Normal);
 
-  tc[0] = 1.0 - scale;
+  tc[0] = 1.0 - scalex;
   tc[1] = 1.0;
   for (ii = 0; ii < 3; ii++)
     x[ii] = this->Origin[ii] + tc[0] * v1[ii] + tc[1] * v2[ii];
@@ -191,7 +202,7 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
 
   // top-left corner
   tc[0] = 0.0;
-  tc[1] = 1.0 - scale;
+  tc[1] = 1.0 - scaley;
   for (ii = 0; ii < 3; ii++)
     x[ii] = this->Origin[ii] + tc[0] * v1[ii] + tc[1] * v2[ii];
   newPoints->InsertPoint(numPts, x);
@@ -206,7 +217,7 @@ int vtkmsqFrameSource::RequestData(vtkInformation *vtkNotUsed(request),
   newTCoords->InsertTuple(numPts, tc);
   newNormals->InsertTuple(numPts++, this->Normal);
 
-  tc[0] = scale;
+  tc[0] = scalex;
   tc[1] = 1.0;
   for (ii = 0; ii < 3; ii++)
     x[ii] = this->Origin[ii] + tc[0] * v1[ii] + tc[1] * v2[ii];
