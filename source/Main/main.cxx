@@ -43,6 +43,7 @@ int main(int argc, char** argv)
 
   QSplashScreen *splash = new QSplashScreen(QPixmap(":/images/splash.png"), Qt::WindowStaysOnTopHint);
   splash->show();
+  splash->raise();
 
   splash->showMessage("Initializing...", Qt::AlignLeft, Qt::white);
   app.processEvents();

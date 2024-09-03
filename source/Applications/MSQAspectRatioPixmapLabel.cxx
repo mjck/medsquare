@@ -666,7 +666,7 @@ QImage MSQAspectRatioPixmapLabel::rectangularRegionOfInterest()
     //    qRound((pix.height()+1) * normalized.height()));
 
     //printf("saving\n");
-    pixroi.save( "region_of_interest_back.png" );
+    //pixroi.save( "region_of_interest_back.png" );
 
     //return pixroi.toImage();
     return pixroi.copy();
@@ -735,7 +735,7 @@ QImage MSQAspectRatioPixmapLabel::regionOfInterest()
     }
 
     //printf("saving\n");
-    pixroi.save( "region_of_interest.png" );
+    //pixroi.save( "region_of_interest.png" );
 
     //return pixroi.toImage();
     return pixroi.copy();

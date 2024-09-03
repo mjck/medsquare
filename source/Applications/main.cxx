@@ -37,10 +37,9 @@ int main(int argc, char** argv)
 
   QApplication app(argc, argv);
 
-  //QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-
   QSplashScreen *splash = new QSplashScreen(QPixmap(":/images/splash.png"), Qt::WindowStaysOnTopHint);
   splash->show();
+  splash->raise();
 
   splash->showMessage("Initializing...", Qt::AlignLeft, Qt::white);
   app.processEvents();
@@ -51,7 +50,6 @@ int main(int argc, char** argv)
   app.setApplicationName("DICOM Explorer");
 
   MSQDicomExplorer mainwindow;
-  //mainwindow.setIconSize(QSize(32, 32));
 
   return app.exec();
 }

@@ -121,7 +121,10 @@ MedSquare::MedSquare(QWidget* p) : QMainWindow(p)
 void MedSquare::resizeAndShow() 
 {
   QRect rec = QApplication::primaryScreen()->geometry();
+  int x = rec.width()*0.2 / 2;
+  int y = rec.height()*0.2 / 2;
   this->resize(rec.width()*0.8, rec.height()*0.8);
+  this->move(x, y);
   this->show();
 
   // reset views
