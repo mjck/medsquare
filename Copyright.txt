@@ -3,7 +3,7 @@
   Program:   MedSquare
   Module:    Copyright.txt
 
-Copyright (c) 2010-2012 Marcel P. Jackowski, Choukri Mekkaoui
+Copyright (c) 2010-2025 Marcel P. Jackowski, Choukri Mekkaoui
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
